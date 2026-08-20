@@ -3,30 +3,31 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/phuclager/',
+  base: '/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
-        name: 'Phúc Lager App',
-        short_name: 'Phúc Lager',
-        description: 'Ứng dụng cá nhân Phúc Lager',
+        name: 'Hồng Phúc',
+        short_name: 'Hồng Phúc',
+        description: 'Web Phúc Group V2 - Chú Hè Đây Né!',
         theme_color: '#b71c1c',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/phuclager/',
+        start_url: '/',
         icons: [
           {
-            src: '/phuclager/pwa-192x192.png',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/phuclager/pwa-512x512.png',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       }
