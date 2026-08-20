@@ -3,15 +3,15 @@ import "../css/Tab.css";
 import { supabase } from "../components/utils/supabaseClient";
 
 // Components
-import DailyIncomeExpenseGrid from "../components/DailyIncomeExpenseGrid";
-import DailyIncomeExpensePopup from "../components/popup/DailyIncomeExpensePopup";
-import CreditCardIconGrid from "../components/CreditCardIconGrid";
-import CreditCardGrid from "../components/CreditCardGrid";
-import CreditCardPopup from "../components/popup/CreditCardPopup";
-import TotalBalanceGrid from "../components/TotalBalanceGrid";
-import TotalBalancePopup from "../components/popup/TotalBalancePopup";
-import DebtGrid from "../components/DebtGrid";
-import DebtPopup from "../components/popup/DebtPopup";
+// import DailyIncomeExpenseGrid from "../components/DailyIncomeExpenseGrid";
+// import DailyIncomeExpensePopup from "../components/popup/DailyIncomeExpensePopup";
+// import CreditCardIconGrid from "../components/CreditCardIconGrid";
+// import CreditCardGrid from "../components/CreditCardGrid";
+// import CreditCardPopup from "../components/popup/CreditCardPopup";
+// import TotalBalanceGrid from "../components/TotalBalanceGrid";
+// import TotalBalancePopup from "../components/popup/TotalBalancePopup";
+// import DebtGrid from "../components/DebtGrid";
+// import DebtPopup from "../components/popup/DebtPopup";
 
 const getCurrentDateFormatted = () => {
   const today = new Date();
@@ -26,7 +26,7 @@ const getCurrentDayOfWeek = () => {
   return days[new Date().getDay()];
 };
 
-export default function Finance({ selectedFilter, isPopupOpen, setIsPopupOpen }) {
+export default function Home({ selectedFilter, isPopupOpen, setIsPopupOpen }) {
   const [activeCreditCard, setActiveCreditCard] = useState(null);
   const [selectedDate, setSelectedDate] = useState(getCurrentDateFormatted());
 
@@ -154,95 +154,15 @@ export default function Finance({ selectedFilter, isPopupOpen, setIsPopupOpen })
   const lastSavedDetails = latestRecord ? latestRecord.details : null;
 
   return (
-    <div className="finance-wrapper">
-      {selectedFilter === "thu-chi-moi-ngay" && (
-        <>
-          <DailyIncomeExpenseGrid rawData={dailyData} onSelectDate={(date) => setSelectedDate(date)} />
-          <DailyIncomeExpensePopup
-            isOpen={isPopupOpen}
-            onClose={() => setIsPopupOpen(false)}
-            onSave={(newData) => {
-              const income = Number(newData.income || 0);
-              const expense = Number(newData.expense || 0);
-              const existingIndex = dailyData.findIndex((item) => item.date === newData.date);
-
-              let previousBalance = 43375199;
-              if (dailyData.length > 0) {
-                const lastItem = dailyData[existingIndex > 0 ? existingIndex - 1 : dailyData.length - 1];
-                if (lastItem && lastItem.totalBalance) {
-                  previousBalance = Number(String(lastItem.totalBalance).replace(/\./g, "")) || 43375199;
-                }
-              }
-
-              const newTotalBalance = previousBalance + income - expense;
-              const updatedRecord = {
-                dayOfWeek: getCurrentDayOfWeek(),
-                date: newData.date,
-                income: income.toLocaleString("vi-VN"),
-                expense: expense.toLocaleString("vi-VN"),
-                totalBalance: newTotalBalance.toLocaleString("vi-VN"),
-                incomeDetails: newData.incomeDetails,
-                expenseDetails: newData.expenseDetails,
-              };
-
-              let updatedDaily = [];
-              if (existingIndex >= 0) {
-                updatedDaily = [...dailyData];
-                updatedDaily[existingIndex] = updatedRecord;
-              } else {
-                updatedDaily = [...dailyData, updatedRecord];
-              }
-
-              setDailyData(updatedDaily);
-              syncToSupabase('daily_data', updatedDaily);
-              setIsPopupOpen(false);
-            }}
-            currentDate={selectedDate}
-            lastSavedData={dailyData[dailyData.length - 1] || null}
-          />
-        </>
-      )}
-
-      {selectedFilter === "tong-du-no" && (
-        <>
-          <DebtGrid rawData={debtData} />
-          <DebtPopup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} onAddDebt={handleAddDebtData} />
-        </>
-      )}
-
-      {selectedFilter === "the-tin-dung" && (
-        <>
-          <CreditCardIconGrid selectedCard={activeCreditCard} onSelectCard={(cardId) => setActiveCreditCard(cardId)} allCardsData={creditCardData} />
-          {activeCreditCard && (
-            <CreditCardGrid 
-              selectedCard={activeCreditCard} 
-              rawData={creditCardData[activeCreditCard] || null} 
-              onEdit={() => setIsPopupOpen(true)}
-              onDelete={(cardId) => {
-                const updatedCards = { ...creditCardData };
-                delete updatedCards[cardId];
-                setCreditCardData(updatedCards);
-                syncToSupabase('credit_card_data', updatedCards);
-              }}
-            />
-          )}
-          <CreditCardPopup
-            isOpen={isPopupOpen}
-            onClose={() => setIsPopupOpen(false)}
-            onSave={handleSaveCreditCard}
-            currentDate={selectedDate}
-            selectedCard={activeCreditCard}
-            lastSavedData={activeCreditCard ? creditCardData[activeCreditCard] : null}
-          />
-        </>
-      )}
-
+    <div className="home-wrapper">
+      <h1>Đang cập nhật</h1>
+{/*      
       {selectedFilter === "tong-so-du" && (
         <>
           <TotalBalanceGrid rawData={totalBalanceData} />
           <TotalBalancePopup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} onSave={handleSaveTotalBalance} currentDate={selectedDate} lastSavedData={lastSavedDetails} />
         </>
-      )}
+      )} */}
     </div>
   );
 }

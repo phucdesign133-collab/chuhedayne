@@ -1,65 +1,56 @@
-/* Giao diện tổng thể Phúc Lager */
+/* Giao diện tổng thể Phúc Group V2 - Tối ưu Responsive & Bảng màu chuẩn */
 :root {
-  --primary-purple: #6c5ce7;
-  --secondary-color: #ff7675;
-  --text-color: #333;
-  --bg-color: #f9f9fb;
-  --card-bg: #ffffff;
+  --primary-dark-red: #C0392B;
   --primary-blue: #5DADE2;
   --primary-green: #58D68D;
   --primary-yellow: #F4D03F;
-  --primary-orange: #EB984E;
-  --primary-red: #EC7063;
-  --primary-black: #566573;
-  --primary-dark-red: #C0392B;
+  --text-main: #2C3E50;
+  --bg-main: #F8F9FA;
+  --card-bg: #FFFFFF;
 }
+
 input, select, textarea {
-  font-size: 16px !important; /* Chặn đứng tình trạng iOS tự động zoom */
+  font-size: 16px !important; /* Chặn iOS tự động zoom */
 }
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100vh;
   overflow: hidden;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
 
-input:focus, select:focus, textarea:focus {
-  font-size: 16px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  box-sizing: border-box;
-  border-radius: 8px;
-  border: 1px solid #444;
-  background: #222;
-  color: white;
-}
-
-/* Khung bọc ứng dụng: Mặc định mobile thu gọn, lên Desktop tràn full màn hình */
+/* Khung bọc ứng dụng: Responsive chuẩn Mobile / Tablet / Desktop */
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100%;
-  max-width: 480px; /* Mặc định cho mobile */
+  max-width: 480px; /* Mặc định khung mobile thu gọn */
   margin: 0 auto;
-  background-color: var(--bg-color);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+  background-color: var(--card-bg);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
 }
 
-/* Khi lên màn hình Desktop (từ 768px trở lên), tràn full 100% màn hình */
-@media (min-width: 768px) {
+/* Tablet (từ 640px trở lên) */
+@media (min-width: 640px) {
   .app-container {
-    max-width: 100% !important;
-    box-shadow: none;
+    max-width: 600px;
+    border-left: 1px solid #E2E8F0;
+    border-right: 1px solid #E2E8F0;
+  }
+}
+
+/* Desktop (từ 1024px trở lên) */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 768px; /* Giữ khung giả lập app di động chuyên nghiệp trên màn hình lớn */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -67,143 +58,31 @@ input {
   flex: 1;
   overflow-y: auto;
   box-sizing: border-box;
-  scrollbar-width: none;
+  scrollbar-width: thin;
 }
 
 .app-content::-webkit-scrollbar {
-  display: none;
+  width: 5px;
 }
 
-.main-header {
-  background-color: var(--card-bg);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  padding: 15px 20px;
-  flex-shrink: 0;
-  z-index: 100;
-}
-
-.nav-list {
-  display: flex;
-  list-style: none;
-  gap: 20px;
-  margin: 0;
-  padding: 0;
-}
-
-.nav-link {
-  text-decoration: none;
-  color: var(--text-color);
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-  color: var(--primary-color);
-}
-
-.main-footer {
-  background-color: #2d3436;
-  color: #dfe6e9;
-  padding: 20px 15px;
-  flex-shrink: 0;
-  z-index: 100;
-}
-
-.footer-container {
-  max-width: 100%;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 20px;
-}
-
-.footer-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.footer-title {
-  color: #ffffff;
-  font-size: 1rem;
-  margin: 0 0 10px 0;
-  position: relative;
-  font-weight: 700;
-}
-
-.footer-title::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -4px;
-  width: 25px;
-  height: 2px;
-  background-color: #6c5ce7;
-}
-
-.footer-text {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: #b2bec3;
-  margin: 0 0 6px 0;
-}
-
-.footer-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.footer-links li {
-  margin-bottom: 6px;
-}
-
-.footer-links a {
-  color: #b2bec3;
-  text-decoration: none;
-  font-size: 0.85rem;
-  transition: color 0.3s ease, padding-left 0.3s ease;
-}
-
-.footer-links a:hover {
-  color: #ff7675;
-  padding-left: 3px;
-}
-
-.footer-bottom {
-  max-width: 100%;
-  margin: 15px 0 0 0;
-  padding-top: 10px;
-  border-top: 1px solid #4a4a4a;
-  text-align: center;
-  font-size: 0.75rem;
-  color: #636e72;
-}
-/* Trong App.css hoặc file CSS tổng của khung app */
-.app-container, .finance-wrapper {
-  overflow-y: auto; /* Cho phép cuộn dọc tự động */
-  max-height: 100vh; /* Giới hạn chiều cao tối đa bằng khung nhìn */
-  scrollbar-width: thin; /* Tinh chỉnh thanh cuộn cho gọn (Firefox) */
-}
-
-/* Tùy chỉnh thanh cuộn đẹp hơn trên Chrome/Safari */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+.app-content::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
   border-radius: 3px;
 }
 
-/* Đảm bảo đè bẹp mọi style input tổng toàn cục */
-input.custom-search-input {
-  margin: 0 !important;
-  padding: 6px 0 !important;
-  border: none !important;
-  background: transparent !important;
-  outline: none !important;
-  width: 100% !important;
-  font-size: 13.5px !important;
-  color: #1e293b !important;
-  box-sizing: border-box !important;
+/* Input chung gọn gàng */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: var(--text-main);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-dark-red);
 }

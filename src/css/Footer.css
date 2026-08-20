@@ -1,16 +1,26 @@
+/* Footer cố định responsive hoàn hảo */
 .mobile-bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
+  right: 0;
   width: 100%;
   height: 70px;
-  background: #ffffff;
+  background: var(--card-bg);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
   z-index: 990;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #E2E8F0;
+}
+
+/* Khi lên màn hình lớn (Desktop), cho phép footer trải rộng 100% hoặc quản lý theo container chung của App */
+@media (min-width: 1024px) {
+  .mobile-bottom-nav {
+    width: 100%;
+    /* Không ép max-width cứng ngắc nữa để linh hoạt theo layout lớn */
+  }
 }
 
 .nav-item {
@@ -18,10 +28,11 @@
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  color: #777;
+  color: var(--text-main);
+  opacity: 0.6;
   font-size: 12px;
   flex: 1;
-  transition: color 0.2s;
+  transition: all 0.2s;
 }
 
 .nav-icon {
@@ -30,5 +41,12 @@
 }
 
 .nav-item.active {
-  color: #b71c1c;
+  color: var(--primary-dark-red);
+  opacity: 1;
+  font-weight: 700;
+}
+
+.nav-item:hover {
+  color: var(--primary-dark-red);
+  opacity: 1;
 }
