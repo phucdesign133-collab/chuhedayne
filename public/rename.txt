@@ -1,0 +1,1 @@
+$i = 1; Get-ChildItem -Include *.jpg, *.png, *.jpeg, *.jfif -Recurse | ForEach-Object { $newName = "sinhnhat-boibensony-$i.webp"; Write-Host "Đang chuyển đổi: $($_.Name) -> $newName"; magick $_.FullName -resize 1200x -quality 75 $newName; $i++ }

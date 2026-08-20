@@ -1,0 +1,277 @@
+/* ==========================================
+   POPUP.CSS - HỆ THỐNG POPUP / MODAL DÙNG CHUNG
+   ========================================== */
+
+/* 1. Lớp nền mờ phủ toàn màn hình (Overlay) */
+.popup-overlay,
+.debt-popup-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 2147483647 !important; /* Đè bẹp mọi footer, menu hay thành phần khác */
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* 2. Hộp thoại popup chính (Container) */
+.popup-container,
+.debt-popup-container {
+  background: var(--card-bg, #ffffff);
+  width: 100%;
+  max-width: 400px;
+  max-height: 85vh; /* Giới hạn chiều cao an toàn, không bị tràn màn hình mobile */
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  animation: popupScaleIn 0.25s ease-out;
+  color: var(--text-color, #2d3436);
+}
+
+@keyframes popupScaleIn {
+  from {
+    transform: translateY(20px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 3. Tiêu đề popup (Cố định ở trên) */
+.popup-header,
+.debt-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid #edf2f7;
+  background: var(--card-bg, #fff);
+  flex-shrink: 0;
+}
+
+.popup-header h3,
+.debt-popup-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary-dark-red, #c92a2a);
+  margin: 0;
+}
+
+/* Nút đóng (Dấu X) */
+.popup-close-btn,
+.close-btn,
+.debt-popup-close {
+  background: #f1f3f5;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #495057;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.2s;
+  padding: 0;
+}
+
+.popup-close-btn:hover,
+.close-btn:hover,
+.debt-popup-close:hover {
+  background: #e2e8f0;
+  color: #000;
+}
+
+/* 4. Tab chuyển đổi bên trong popup (nếu có, VD: Thu nhập / Chi phí) */
+.popup-tabs {
+  display: flex;
+  background: var(--bg-color, #f8f9fa);
+  padding: 6px;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--primary-black, #566573);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: var(--card-bg, #fff);
+  color: var(--primary-dark-red, #c92a2a);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* 5. Phần chứa nội dung/form (Có thanh cuộn riêng biệt ở giữa khi dữ liệu dài) */
+.popup-form,
+.popup-body,
+.debt-popup-form {
+  padding: 16px 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+  box-sizing: border-box;
+}
+
+/* 6. Các nhóm trường nhập liệu (Form Group / Field) */
+.form-group,
+.debt-popup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label,
+.debt-popup-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+.debt-popup-field input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px !important;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  background-color: var(--bg-color, #f8fafc);
+  color: var(--text-color, #2d3748);
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.debt-popup-field input:focus {
+  border-color: var(--primary-dark-red, #c92a2a);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(201, 42, 42, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #a0aec0;
+  font-size: 13px;
+}
+
+/* 7. Chân popup chứa nút Submit / Cập nhật */
+.popup-footer {
+  padding: 14px 18px;
+  border-top: 1px solid #edf2f7;
+  background: var(--bg-color, #f8f9fa);
+  flex-shrink: 0;
+}
+
+.popup-submit-btn,
+.submit-update-btn,
+.debt-popup-submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-dark-red, #c92a2a);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 12px rgba(201, 42, 42, 0.25);
+  flex-shrink: 0;
+}
+
+.popup-submit-btn:hover,
+.submit-update-btn:hover,
+.debt-popup-submit-btn:hover {
+  background-color: #b02323;
+}
+
+/* Tiện ích bổ trợ */
+.highlight-val {
+  color: var(--primary-dark-red, #c92a2a);
+  font-weight: 600;
+}
+
+/* ==========================================
+   MXH_POPUP.CSS - CSS RIÊNG CHO QUẢN LÝ SERIES
+   ========================================== */
+
+.preview-filename-box {
+  background-color: #f1f3f5;
+  border: 1px dashed #ced4da;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #495057;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-filename-box span {
+  font-weight: 600;
+  color: var(--primary-dark-red, #c92a2a);
+}
+
+.platform-links-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.platform-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platform-input-row label {
+  min-width: 80px;
+  font-size: 12px !important;
+  font-weight: 600;
+  color: #495057;
+}
+
+.platform-input-row input {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 13px !important;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  outline: none;
+  background: #fff;
+}
+
+.platform-input-row input:focus {
+  border-color: var(--primary-dark-red, #c92a2a);
+  box-shadow: 0 0 0 2px rgba(201, 42, 42, 0.1);
+}

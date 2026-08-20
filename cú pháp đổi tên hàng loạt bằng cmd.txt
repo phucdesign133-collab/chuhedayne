@@ -1,0 +1,9 @@
+$i=1; Get-ChildItem -Filter *.jpg | ForEach-Object { Rename-Item $_ -NewName ("sinhnhat-beBaoMi-{0}.jpg" -f $i++) }
+
+Giải thích lệnh:
+
+$i=1: Bắt đầu đánh số từ 1.
+
+Get-ChildItem -Filter *.jpg: Chỉ chọn các file có đuôi .jpg.
+
+Rename-Item: Đổi tên file theo định dạng sinhnhat-beBaoMi-{0}.jpg (trong đó {0} là số thứ tự tự tăng dần).

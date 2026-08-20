@@ -1,0 +1,354 @@
+/* ==========================================
+    1. KHUNG CONTAINER CHUNG CHO CÁC GRID
+    ========================================== */
+  .grid-container,
+  .common-grid-container,
+  .debt-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .grid-container {
+    margin-top: 15px;
+    width: 95%;
+  }
+
+  .common-grid-container {
+    width: 90%;
+    margin: 0 auto;
+    padding-bottom: 90px; /* Tránh bị footer che khuất khi cuộn */
+  }
+
+  .debt-container {
+    padding: 16px;
+    background: var(--bg-color);
+    min-height: 100vh;
+  }
+
+  /* ==========================================
+    2. CARD / HỘP HIỂN THỊ DỮ LIỆU CHUNG
+    ========================================== */
+  .grid-card-box,
+  .grid-card,
+  .debt-card,
+  .total-debt-card {
+    background: var(--card-bg, #ffffff);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .grid-card-box {
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+  }
+
+  .grid-card {
+    border: 1.5px solid var(--primary-black, #566573);
+  }
+
+  .debt-card, .total-debt-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .total-debt-card {
+    border-left: 4px solid var(--primary-dark-red, #c92a2a);
+    margin-bottom: 4px;
+  }
+
+  /* ==========================================
+    3. PHẦN HEADER CỦA CARD / GRID
+    ========================================== */
+  .grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .grid-date, .section-heading {
+    font-weight: 700;
+  }
+
+  .grid-date {
+    font-size: 14.5px;
+    color: var(--text-color, #1a202c);
+  }
+
+  .section-heading {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    margin-bottom: 12px;
+  }
+
+  /* ==========================================
+    4. CÁC DÒNG THÔNG TIN (ROWS & LABELS)
+    ========================================== */
+  .grid-content-list, .grid-body, .debt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13.5px;
+  }
+
+  .grid-row-inline, .grid-row, .debt-row, .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+  }
+
+  .debt-row {
+    font-size: 0.95rem;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .debt-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .grid-row .label, .grid-row-inline .label, .debt-row .label, .info-label {
+    color: var(--primary-black, #566573);
+  }
+
+  .grid-row .value, .grid-row-inline .value, .debt-row .value, .info-value {
+    font-weight: 600;
+  }
+
+  /* ==========================================
+    5. MÀU SẮC & TRẠNG THÁI (UTILITIES)
+    ========================================== */
+  .text-blue, .value.neutral { color: #1971c2; }
+  .text-red, .trend-down, .value.red { color: #e03131; }
+  .text-green, .trend-up, .value.green { color: #2b8a3e; }
+  .text-orange { color: #d97706; }
+  .text-gray { color: #4a5568; }
+  .italic, .note-text { font-style: italic; }
+
+  
+  .note-row {
+    border-top: 1px solid #f1f3f5;
+    padding-top: 6px;
+    margin-top: 4px;
+  }
+
+
+  /* ==========================================
+   * PHẦN RIÊNG BIỆT (UNIQUE STYLES) CHO TỪNG TAB
+   * ========================================== */
+
+  /* 1. Riêng cho Thẻ tín dụng (Hiệu ứng dấu chấm lửng - Dot leaders) */
+  .info-row {
+    position: relative;
+    align-items: baseline;
+  }
+  .info-label, .info-value {
+    position: relative;
+    background-color: #fff;
+    z-index: 2;
+  }
+  .info-label { padding-right: 6px; color: #4a5568; }
+  .info-value { padding-left: 6px; font-weight: 600; color: #2d3748; }
+  .info-row::after {
+    content: ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .";
+    position: absolute;
+    left: 0; right: 0; bottom: 2px;
+    color: #cbd5e1; z-index: 1;
+    letter-spacing: 2px; white-space: nowrap; overflow: hidden;
+    pointer-events: none;
+  }
+  .grid-no-data {
+   
+    text-align: center;  color: #718096;
+    font-size: 13.5px; 
+    margin:10px auto; width: 90%; 
+  }
+
+  /* 2. Riêng cho Tổng dư nợ (Tabs chọn chủ nợ Dad/Mom & các định dạng màu chuyên biệt) */
+  .debt-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .debt-tab-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: var(--card-bg);
+    border: 1px solid #dcdde1;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-black);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .debt-tab-btn.active {
+    color: var(--primary-dark-red, #c92a2a);
+    border-color: var(--primary-dark-red, #c92a2a);
+    box-shadow: 0 2px 6px rgba(195, 57, 43, 0.15);
+  }
+  .total-goc { font-size: 1.25rem; font-weight: 700; color: var(--primary-red, #e03131); }
+  .total-lai { font-size: 0.95rem; font-weight: 600; color: var(--primary-orange, #d97706); }
+  .debt-row .value.amount { color: var(--primary-red, #e03131); font-weight: 700; }
+  .debt-row .value.months { color: var(--primary-purple, #7950f2); }
+  .debt-row .value.interest { color: var(--primary-orange, #d97706); font-weight: 700; }
+  .debt-row .value.due-date { color: var(--primary-green, #2b8a3e); font-weight: 700; }
+  .note-row { background-color: var(--bg-color); padding: 8px; border-radius: 6px; }
+  .note-text { color: var(--primary-black); font-weight: 500 !important; }
+
+/* ==========================================
+ * CSS HEADER CHUẨN CỦA "CHA" & LƯỚI CARD 9:16
+ * ========================================== */
+
+/* Header gốc bên ngoài */
+.sticky-header-container,
+.social-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--card-bg, #ffffff);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.social-header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.social-title-heading {
+  margin: 0;
+  color: var(--primary-dark-red, #c92a2a);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.social-back-btn,
+.social-add-btn {
+  background: var(--primary-dark-red, #c92a2a);
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.social-back-btn {
+  background: #f1f3f5;
+  color: #495057;
+  font-weight: 700;
+}
+
+.social-search-bar-wrapper {
+  width: 100%;
+}
+/* ==========================================
+ * CSS GỌN GÀNG CHO LƯỚI CARD SOCIAL (3 CỘT CỐ ĐỊNH)
+ * ========================================== */
+
+.phuc-social-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
+.phuc-social-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9/16;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+
+
+.phuc-social-img-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.phuc-social-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.phuc-social-no-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #718096;
+  font-size: 13px;
+  background: #edf2f7;
+}
+
+.phuc-social-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 40%, rgba(0,0,0,0.8) 100%);
+  pointer-events: none;
+}
+
+.phuc-social-text-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  color: white;
+  z-index: 1;
+}
+
+.phuc-social-title-text {
+  font-weight: bold;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+.phuc-social-icons-bottom {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+}
