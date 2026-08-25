@@ -1,354 +1,199 @@
-/* ==========================================
-    1. KHUNG CONTAINER CHUNG CHO CÁC GRID
-    ========================================== */
-  .grid-container,
-  .common-grid-container,
-  .debt-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-sizing: border-box;
-    margin-left: auto;
-    margin-right: auto;
-  }
+/* src/css/Grid.css */
 
-  .grid-container {
-    margin-top: 15px;
-    width: 95%;
-  }
-
-  .common-grid-container {
-    width: 90%;
-    margin: 0 auto;
-    padding-bottom: 90px; /* Tránh bị footer che khuất khi cuộn */
-  }
-
-  .debt-container {
-    padding: 16px;
-    background: var(--bg-color);
-    min-height: 100vh;
-  }
-
-  /* ==========================================
-    2. CARD / HỘP HIỂN THỊ DỮ LIỆU CHUNG
-    ========================================== */
-  .grid-card-box,
-  .grid-card,
-  .debt-card,
-  .total-debt-card {
-    background: var(--card-bg, #ffffff);
-    border-radius: 12px;
-    padding: 14px 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .grid-card-box {
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
-  }
-
-  .grid-card {
-    border: 1.5px solid var(--primary-black, #566573);
-  }
-
-  .debt-card, .total-debt-card {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  }
-
-  .total-debt-card {
-    border-left: 4px solid var(--primary-dark-red, #c92a2a);
-    margin-bottom: 4px;
-  }
-
-  /* ==========================================
-    3. PHẦN HEADER CỦA CARD / GRID
-    ========================================== */
-  .grid-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #eee;
-  }
-
-  .grid-date, .section-heading {
-    font-weight: 700;
-  }
-
-  .grid-date {
-    font-size: 14.5px;
-    color: var(--text-color, #1a202c);
-  }
-
-  .section-heading {
-    font-size: 1.1rem;
-    color: var(--text-color);
-    margin-bottom: 12px;
-  }
-
-  /* ==========================================
-    4. CÁC DÒNG THÔNG TIN (ROWS & LABELS)
-    ========================================== */
-  .grid-content-list, .grid-body, .debt-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 13.5px;
-  }
-
-  .grid-row-inline, .grid-row, .debt-row, .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 13px;
-  }
-
-  .debt-row {
-    font-size: 0.95rem;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--bg-color);
-  }
-  .debt-row:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  .grid-row .label, .grid-row-inline .label, .debt-row .label, .info-label {
-    color: var(--primary-black, #566573);
-  }
-
-  .grid-row .value, .grid-row-inline .value, .debt-row .value, .info-value {
-    font-weight: 600;
-  }
-
-  /* ==========================================
-    5. MÀU SẮC & TRẠNG THÁI (UTILITIES)
-    ========================================== */
-  .text-blue, .value.neutral { color: #1971c2; }
-  .text-red, .trend-down, .value.red { color: #e03131; }
-  .text-green, .trend-up, .value.green { color: #2b8a3e; }
-  .text-orange { color: #d97706; }
-  .text-gray { color: #4a5568; }
-  .italic, .note-text { font-style: italic; }
-
-  
-  .note-row {
-    border-top: 1px solid #f1f3f5;
-    padding-top: 6px;
-    margin-top: 4px;
-  }
-
-
-  /* ==========================================
-   * PHẦN RIÊNG BIỆT (UNIQUE STYLES) CHO TỪNG TAB
-   * ========================================== */
-
-  /* 1. Riêng cho Thẻ tín dụng (Hiệu ứng dấu chấm lửng - Dot leaders) */
-  .info-row {
-    position: relative;
-    align-items: baseline;
-  }
-  .info-label, .info-value {
-    position: relative;
-    background-color: #fff;
-    z-index: 2;
-  }
-  .info-label { padding-right: 6px; color: #4a5568; }
-  .info-value { padding-left: 6px; font-weight: 600; color: #2d3748; }
-  .info-row::after {
-    content: ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .";
-    position: absolute;
-    left: 0; right: 0; bottom: 2px;
-    color: #cbd5e1; z-index: 1;
-    letter-spacing: 2px; white-space: nowrap; overflow: hidden;
-    pointer-events: none;
-  }
-  .grid-no-data {
-   
-    text-align: center;  color: #718096;
-    font-size: 13.5px; 
-    margin:10px auto; width: 90%; 
-  }
-
-  /* 2. Riêng cho Tổng dư nợ (Tabs chọn chủ nợ Dad/Mom & các định dạng màu chuyên biệt) */
-  .debt-tabs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .debt-tab-btn {
-    flex: 1;
-    padding: 10px 16px;
-    background: var(--card-bg);
-    border: 1px solid #dcdde1;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--primary-black);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .debt-tab-btn.active {
-    color: var(--primary-dark-red, #c92a2a);
-    border-color: var(--primary-dark-red, #c92a2a);
-    box-shadow: 0 2px 6px rgba(195, 57, 43, 0.15);
-  }
-  .total-goc { font-size: 1.25rem; font-weight: 700; color: var(--primary-red, #e03131); }
-  .total-lai { font-size: 0.95rem; font-weight: 600; color: var(--primary-orange, #d97706); }
-  .debt-row .value.amount { color: var(--primary-red, #e03131); font-weight: 700; }
-  .debt-row .value.months { color: var(--primary-purple, #7950f2); }
-  .debt-row .value.interest { color: var(--primary-orange, #d97706); font-weight: 700; }
-  .debt-row .value.due-date { color: var(--primary-green, #2b8a3e); font-weight: 700; }
-  .note-row { background-color: var(--bg-color); padding: 8px; border-radius: 6px; }
-  .note-text { color: var(--primary-black); font-weight: 500 !important; }
-
-/* ==========================================
- * CSS HEADER CHUẨN CỦA "CHA" & LƯỚI CARD 9:16
- * ========================================== */
-
-/* Header gốc bên ngoài */
-.sticky-header-container,
-.social-header-sticky {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+.post-admin-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: var(--card-bg, #ffffff);
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  gap: 15px;
+  background-color: var(--bg-main, #f8fafc); /* Đồng bộ màu nền bên ngoài */
+  min-height: 100%;
+  box-sizing: border-box;
 }
 
-.social-header-top-row {
+.admin-grid-top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  gap: 10px;
 }
 
-.social-title-heading {
-  margin: 0;
-  color: var(--primary-dark-red, #c92a2a);
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.social-back-btn,
-.social-add-btn {
-  background: var(--primary-dark-red, #c92a2a);
+.admin-grid-back-btn {
+  background: none;
   border: none;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  font-size: 20px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 600;
-  transition: transform 0.2s;
-}
-
-.social-back-btn {
-  background: #f1f3f5;
-  color: #495057;
-  font-weight: 700;
-}
-
-.social-search-bar-wrapper {
-  width: 100%;
-}
-/* ==========================================
- * CSS GỌN GÀNG CHO LƯỚI CARD SOCIAL (3 CỘT CỐ ĐỊNH)
- * ========================================== */
-
-.phuc-social-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  width: 100%;
-}
-
-.phuc-social-card {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 9/16;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
-  background: #e2e8f0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-
-
-.phuc-social-img-box {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.phuc-social-img-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.phuc-social-no-img {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #718096;
-  font-size: 13px;
-  background: #edf2f7;
-}
-
-.phuc-social-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 40%, rgba(0,0,0,0.8) 100%);
-  pointer-events: none;
-}
-
-.phuc-social-text-top {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  color: white;
-  z-index: 1;
-}
-
-.phuc-social-title-text {
+  padding: 5px 8px;
+  color: var(--text-main, #333333);
   font-weight: bold;
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
 }
 
-.phuc-social-icons-bottom {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
+.admin-grid-heading {
+  flex: 1;
+  margin: 0;
+  color: var(--text-main, #333333);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.admin-grid-heading span {
+  color: var(--text-main, #333333);
+}
+
+.admin-grid-add-btn-main {
+  background-color: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+
+
+.admin-events-grid-wrapper {
   display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-events-grid-dropdown-box {
+  width: 100%;
+}
+
+.admin-events-grid-select {
+  width: 100%;
+  max-width: 350px;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main, #2C3E50);
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.admin-events-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-events-grid-loading,
+.admin-events-grid-empty {
+  text-align: center;
+  padding: 40px;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* Lưới hiển thị các Card */
+.admin-events-grid-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.admin-events-grid-card {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+
+.admin-events-grid-card-content {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+/* Tự động viết hoa chữ cái đầu tiêu đề */
+.admin-events-grid-card-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-main, #2C3E50);
+  margin: 0;
+  text-transform: capitalize !important; 
+}
+
+/* Định dạng danh sách thông tin dọc gọn gàng */
+.admin-events-grid-info-list {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
-  z-index: 1;
+  margin-top: 4px;
+}
+
+.admin-events-grid-info-item {
+  font-size: 13px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+}
+
+.admin-events-grid-card-actions {
+  display: flex;
+  border-top: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.admin-events-grid-icon-btn {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+.admin-events-grid-icon-btn.edit {
+  color: #2563eb;
+  border-right: 1px solid #e2e8f0;
+}
+
+
+
+.admin-events-grid-icon-btn.delete {
+  color: #dc2626;
+}
+
+
+/* --- SEARCH BAR --- */
+
+.search-input {
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 14px !important;
+  color: var(--text-main, #333333) !important;
+  box-shadow: none !important;
 }

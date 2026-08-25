@@ -1,36 +1,62 @@
+// src/components/FooterAdmin.jsx
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { EMOJI_ICONS } from '../datas/icons';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { hubData } from '../datas/icons'; // Import file chứa themeColor của anh
 import '../css/Footer.css';
 
 export default function FooterAdmin() {
+  const navigate = useNavigate();
   const location = useLocation();
 
+  const getCurrentActiveIndex = () => {
+    const path = location.pathname;
+    if (path.includes('/admin/content')) return 0;
+    if (path.includes('/admin/booking')) return 1;
+    if (path.includes('/admin/warehouse')) return 2;
+    if (path.includes('/admin/finance')) return 3;
+    if (path.includes('/admin/tools')) return 4;
+    return 0;
+  };
+
+  const activeIndex = getCurrentActiveIndex();
+
+  // Mảng đường dẫn tương ứng để lấy themeColor từ hubData của anh
+  const tabKeys = ['content', 'booking', 'warehouse', 'finance', 'tools'];
+  const currentKey = tabKeys[activeIndex] || 'content';
+  const currentThemeColor = hubData[currentKey]?.themeColor || '#5DADE2';
+
+  const getFollowLeft = () => {
+    const positions = ['10%', '30%', '50%', '70%', '90%'];
+    return positions[activeIndex] || '10%';
+  };
+
   return (
-    <div className="mobile-bottom-nav">
-      <Link 
-        to="/admin/posts" 
-        className={location.pathname === '/admin/posts' ? 'nav-item active' : 'nav-item'}
-      >
-        <div className="nav-icon text-lg">{EMOJI_ICONS.home}</div>
-        <span>Quản lý bài đăng</span>
-      </Link>
+    <div 
+      className="mobile-bottom-nav"
+      style={{ '--tab-glow-color': currentThemeColor }} // Truyền chuẩn themeColor vào đây!
+    >
+      <div className={`nav-item ${activeIndex === 0 ? 'active' : ''}`} onClick={() => navigate('/admin/content')}>
+        <span className="nav-icon">📁</span>
+      </div>
 
-      <Link 
-        to="/admin/finance" 
-        className={location.pathname === '/admin/finance' ? 'nav-item active' : 'nav-item'}
-      >
-        <div className="nav-icon text-lg">{EMOJI_ICONS.tools}</div>
-        <span>Quản lý tài chính</span>
-      </Link>
+      <div className={`nav-item ${activeIndex === 1 ? 'active' : ''}`} onClick={() => navigate('/admin/booking')}>
+        <span className="nav-icon">📅</span>
+      </div>
 
-      <Link 
-        to="/admin/info" 
-        className={location.pathname === '/admin/info' ? 'nav-item active' : 'nav-item'}
-      >
-        <div className="nav-icon text-lg">{EMOJI_ICONS.balloon}</div>
-        <span>Quản lý thông tin</span>
-      </Link>
+      <div className={`nav-item ${activeIndex === 2 ? 'active' : ''}`} onClick={() => navigate('/admin/warehouse')}>
+        <span className="nav-icon">📦</span>
+      </div>
+
+      <div className={`nav-item ${activeIndex === 3 ? 'active' : ''}`} onClick={() => navigate('/admin/finance')}>
+        <span className="nav-icon">💰</span>
+      </div>
+
+      <div className={`nav-item ${activeIndex === 4 ? 'active' : ''}`} onClick={() => navigate('/admin/tools')}>
+        <span className="nav-icon">⚙️</span>
+      </div>
+
+      {/* Cục tròn nổi di chuyển theo tab */}
+      <div className="follow" style={{ left: `calc(${getFollowLeft()} - 35px)` }}></div>
     </div>
   );
 }

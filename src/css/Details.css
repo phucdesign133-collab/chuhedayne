@@ -1,0 +1,114 @@
+/* Khung bọc tổng thể trang chi tiết */
+.admin-details-wrapper {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+/* Nút quay lại */
+.admin-details-header-nav {
+  margin-bottom: 16px;
+}
+
+.admin-details-back-btn {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-details-back-btn:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Card chứa thông tin chi tiết */
+.admin-details-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+/* Khu vực hiển thị ảnh */
+.admin-details-img-container {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-details-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-details-no-img {
+  font-size: 18px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Badge hiển thị mã danh mục ở góc ảnh */
+.admin-details-code-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+/* Phần nội dung text */
+.admin-details-content {
+  padding: 20px;
+}
+
+.admin-details-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* Danh sách thông tin dọc */
+.admin-details-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.admin-details-meta-item {
+  font-size: 14px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+}
+
+/* Trạng thái loading và không tìm thấy */
+.admin-details-loading,
+.admin-details-not-found {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 16px;
+  color: #64748b;
+}

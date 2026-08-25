@@ -1,127 +1,80 @@
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+// src/App.jsx
+import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { supabase } from "./components/utils/supabaseClient"; 
+import { useParams } from 'react-router-dom';
+import { supabase } from "./components/utils/supabaseClient";
 import "./App.css";
 
-// Components
-import Footer from "./components/Footer"; // Footer cố định 5 tab user
-import FooterAdmin from "./components/FooterAdmin"; // Footer 3 tab quản trị Admin
+import Footer from "./components/Footer";
+import FooterAdmin from "./components/FooterAdmin";
 
-//Tabs
 import Home from "./pages/Home";
 import Tools from "./pages/Tools";
+import AdminPosts from "./pages/AdminEvents";
 
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-};
+// IMPORT CÁC COMPONENT QUẢN TRỊ
+import HubIcon from "./components/HubIcon";
+import Grid from "./components/Grid"; // Component Grid mới đã được đổi tên
+import AdminEventsDetails from "./components/AdminEventsDetails";
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // State quản lý trạng thái đăng nhập ẩn qua máy tính (Tab Tools / Admin)
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem("isAdminLoggedIn") === "true";
+  });
 
-  // --- LẮNG NGHE REALTIME CHO TOÀN BỘ APP ---
-  useEffect(() => {
-    const channel = supabase
-      .channel('global-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', 
-          schema: 'public',
-        },
-        (payload) => {
-          console.log('Phát hiện thay đổi dữ liệu từ thiết bị khác:', payload);
-          window.dispatchEvent(new CustomEvent('supabase-data-changed', { detail: payload }));
-        }
-      )
-      .subscribe();
+  const handleAdminLoginSuccess = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem("isAdminLoggedIn", "true");
+    navigate("/admin/content");
+  };
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // Xử lý loại bỏ rác fbclid trên URL nếu có
-  useEffect(() => {
-    if (window.location.search.includes("fbclid")) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("fbclid");
-      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
-    }
-  }, []);
+  const handleAdminLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("isAdminLoggedIn");
+    navigate("/tools");
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 max-w-md mx-auto relative shadow-2xl border-x border-slate-800">
-      <ScrollToTop />
-
-      {/* 1. Safe Area Spacer: Thanh trạng thái giả lập mobile */}
-      <div 
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          height: '32px',
-          backgroundColor: '#FFFFFF',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '0 16px',
-          fontSize: '12px',
-          fontWeight: '600',
-          color: '#2C3E50',
-          userSelect: 'none',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-          borderBottom: '1px solid #E2E8F0'
-        }}
-      >
-        <span>09:41</span>
-        <div 
-          style={{
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            top: '8px',
-            width: '64px',
-            height: '12px',
-            backgroundColor: '#000000',
-            borderRadius: '6px'
-          }}
-        />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span>5G</span>
-          <span>100%</span>
-        </div>
-      </div>
-      
-      {/* 2. Main Content Area */}
       <div className="flex-1 pb-24 p-4 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
-          <Route 
-            path="/tools" 
-            element={
-              <Tools 
-                isAuthenticated={isAuthenticated} 
-                onAdminLogin={() => setIsAuthenticated(true)} 
-              />
-            } 
+          <Route path="/tools" element={<Tools isAuthenticated={isAuthenticated} onAdminLogin={handleAdminLoginSuccess} />} />
+
+          {/* --- ROUTE QUẢN TRỊ ADMIN (4 TẦNG CHUẨN XÁC) --- */}
+
+          {/* Tầng 2: HubIcon chính cho 5 Tab lớn ở Footer */}
+          <Route path="/admin/content" element={isAuthenticated ? <HubIcon currentTab="content" /> : <Navigate to="/tools" replace />} />
+          <Route path="/admin/booking" element={isAuthenticated ? <HubIcon currentTab="booking" /> : <Navigate to="/tools" replace />} />
+          <Route path="/admin/warehouse" element={isAuthenticated ? <HubIcon currentTab="warehouse" /> : <Navigate to="/tools" replace />} />
+          <Route path="/admin/finance" element={isAuthenticated ? <HubIcon currentTab="finance" /> : <Navigate to="/tools" replace />} />
+          <Route path="/admin/tools" element={isAuthenticated ? <HubIcon currentTab="tools" /> : <Navigate to="/tools" replace />} />
+
+          {/* Tầng 3: Trang Grid chi tiết khi người dùng bấm vào từng icon con cụ thể */}
+
+          <Route
+            path="/admin/content/:categoryId"
+            element={isAuthenticated ? <Grid key={location.pathname} isAdmin={true} /> : <Navigate to="/tools" replace />}
           />
+
+          {/* Tầng 4: Trang Chi tiết (Details) chỉnh sửa hoặc thêm mới */}
+          <Route path="/admin/content/birthday/:id" element={isAuthenticated ? <AdminEventsDetails /> : <Navigate to="/tools" replace />} />
+
+          {/* Route tương thích ngược */}
+          <Route
+            path="/admin/posts"
+            element={isAuthenticated ? <AdminPosts key={location.pathname} isAdmin={true} /> : <Navigate to="/tools" replace />}
+          />
+          <Route path="/admin/posts/:id" element={isAuthenticated ? <AdminEventsDetails /> : <Navigate to="/tools" replace />} />
         </Routes>
       </div>
 
-      {/* 3. Footer Động: Chuyển đổi giữa Footer User và Footer Admin */}
-      {isAuthenticated ? (
-        <FooterAdmin />
-      ) : (
-        <Footer />
-      )}
+      {/* Footer tự động đổi qua lại tuyệt đối */}
+      {isAuthenticated ? <FooterAdmin onLogout={handleAdminLogout} /> : <Footer />}
     </div>
   );
 }

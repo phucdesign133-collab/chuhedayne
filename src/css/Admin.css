@@ -1,0 +1,212 @@
+.post-admin-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: sans-serif;
+  background-color: var(--bg-main, #ffffff);
+  min-height: 100vh;
+  color: var(--text-main, #1e293b);
+  box-sizing: border-box;
+}
+
+.post-admin-dropdown-box {
+  background-color: var(--card-bg, #ffffff);
+  padding: 12px 0;
+}
+
+.post-admin-select {
+  width: 100%;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main, #1e293b);
+  outline: none;
+  cursor: pointer;
+}
+
+.post-admin-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.post-admin-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main, #334155);
+  margin: 0;
+}
+
+.post-admin-add-btn {
+  background-color: var(--primary-dark-red, #C0392B);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(192, 57, 43, 0.2);
+  transition: opacity 0.2s;
+}
+
+.post-admin-add-btn:hover {
+  opacity: 0.9;
+}
+
+.post-admin-card {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--primary-dark-red, #C0392B);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.post-admin-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.post-admin-card-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--primary-dark-red, #C0392B);
+  margin: 0 0 2px 0;
+}
+
+.post-admin-card-code {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.post-admin-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-admin-badge {
+  font-size: 11px;
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+}
+
+.post-admin-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+}
+
+.post-admin-card-bottom {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #475569;
+}
+
+/* Modal / Popup Styles */
+.post-admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.post-admin-modal-content {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: postAdminFadeIn 0.2s ease-out;
+}
+
+@keyframes postAdminFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.post-admin-modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--text-main, #1e293b);
+  margin: 0 0 4px 0;
+}
+
+.post-admin-input {
+  width: 100%;
+  background-color: var(--bg-main, #f8fafc);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  color: var(--text-main, #1e293b);
+}
+
+.post-admin-input:focus {
+  border-color: var(--primary-dark-red, #C0392B);
+}
+
+.post-admin-modal-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.post-admin-submit-btn {
+  flex: 1;
+  background-color: var(--primary-dark-red, #C0392B);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(192, 57, 43, 0.2);
+}
+
+.post-admin-cancel-btn {
+  flex: 1;
+  background-color: #e2e8f0;
+  color: #334155;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}

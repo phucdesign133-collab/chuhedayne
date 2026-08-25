@@ -1,5 +1,6 @@
 # 📝 NHẬT KÝ CÚ PHÁP CODE CỦA DUSTIN
-
+chuhedayne-db (projectName)
+ChuHeDayNe@ (pass Supabase)
 ## 1. Cách chèn Lordicon (Icon Động)
 
 - Thẻ style trong React bắt buộc phải nằm trong 2 cặp dấu ngoặc nhọn `{{ }}`.

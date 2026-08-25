@@ -1,13 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { HashRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom"; // Đổi từ HashRouter sang BrowserRouter
 import App from "./App";
+import "./index.css"; // Đảm bảo import file CSS chính nếu có
 
-// src/main.jsx
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <HashRouter>
+    <BrowserRouter>
       <App />
-    </HashRouter>
-  </React.StrictMode>,
+    </BrowserRouter>
+  </React.StrictMode>
 );

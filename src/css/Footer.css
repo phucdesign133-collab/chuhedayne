@@ -1,52 +1,74 @@
-/* Footer cố định responsive hoàn hảo */
+/* src/css/Footer.css */
+
 .mobile-bottom-nav {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  width: 100%;
   height: 70px;
-  background: var(--card-bg);
+  background: #ffffff;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
-  z-index: 990;
-  border-top: 1px solid #E2E8F0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  /* TUYỆT ĐỐI KHÔNG DÙNG overflow: hidden Ở ĐÂY ĐỂ TRÁNH BỊ CẮT VÒNG TRÒN */
 }
 
-/* Khi lên màn hình lớn (Desktop), cho phép footer trải rộng 100% hoặc quản lý theo container chung của App */
-@media (min-width: 1024px) {
-  .mobile-bottom-nav {
-    width: 100%;
-    /* Không ép max-width cứng ngắc nữa để linh hoạt theo layout lớn */
-  }
-}
-
-.nav-item {
+.mobile-bottom-nav .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-decoration: none;
-  color: var(--text-main);
-  opacity: 0.6;
-  font-size: 12px;
+  justify-content: center;
   flex: 1;
-  transition: all 0.2s;
+  height: 100%;
+  cursor: pointer;
+  z-index: 11; /* Nằm đè lên trên cục tròn follow để click và hiển thị chuẩn */
+  transition: transform 0.2s ease;
 }
 
-.nav-icon {
+.mobile-bottom-nav .nav-item:active {
+  transform: scale(0.9);
+}
+
+.mobile-bottom-nav .nav-icon {
   font-size: 25px;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
+  transition: transform 0.3s ease;
 }
 
-.nav-item.active {
-  color: var(--primary-dark-red);
-  opacity: 1;
+.mobile-bottom-nav .nav-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+/* KHI TAB ĐƯỢC CHỌN: Icon và chữ sẽ nhô lên khớp vào tâm vòng tròn trắng */
+.mobile-bottom-nav .nav-item.active .nav-icon {
+  transform: translateY(-22px);
+}
+
+.mobile-bottom-nav .nav-item.active .nav-text {
+  color: #1e293b;
   font-weight: 700;
+  transform: translateY(-16px);
 }
 
-.nav-item:hover {
-  color: var(--primary-dark-red);
-  opacity: 1;
+/* Cục tròn trắng nổi với viền ăn khớp tuyệt đối với themeColor của tab */
+.mobile-bottom-nav .follow {
+  position: absolute;
+  top: -22px;
+  width: 70px;
+  height: 70px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  
+  /* Lấy trực tiếp mã màu từ biến động truyền từ component, khớp 100% với màu background phía trên */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08), 0 0 0 8px var(--tab-glow-color, #5DADE2);
+  
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
 }

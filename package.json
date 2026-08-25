@@ -13,7 +13,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.0",
+    "@supabase/supabase-js": "^2.112.3",
     "canvas-confetti": "^1.9.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
