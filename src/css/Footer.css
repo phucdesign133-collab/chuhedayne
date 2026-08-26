@@ -46,18 +46,45 @@
   transition: all 0.3s ease;
 }
 
-/* KHI TAB ĐƯỢC CHỌN: Icon và chữ sẽ nhô lên khớp vào tâm vòng tròn trắng */
-.mobile-bottom-nav .nav-item.active .nav-icon {
+/* ==========================================
+   1. DÀNH CHO ADMIN FOOTER (Đổi màu theo tab)
+   ========================================== */
+.mobile-bottom-nav:not(.user-footer) .nav-item.active .nav-icon {
   transform: translateY(-22px);
+  color: var(--tab-glow-color) !important;
 }
 
-.mobile-bottom-nav .nav-item.active .nav-text {
+.mobile-bottom-nav:not(.user-footer) .nav-item.active .nav-text {
   color: #1e293b;
   font-weight: 700;
   transform: translateY(-16px);
 }
 
-/* Cục tròn trắng nổi với viền ăn khớp tuyệt đối với themeColor của tab */
+.mobile-bottom-nav:not(.user-footer) .follow {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08), 0 0 0 8px var(--tab-glow-color, #C0392B);
+}
+
+
+/* ==========================================
+   2. DÀNH CHO USER FOOTER (Luôn màu đỏ khi active)
+   ========================================== */
+.mobile-bottom-nav.user-footer .nav-item.active .nav-icon {
+  transform: translateY(-22px);
+  color: #e74c3c !important; /* Màu đỏ cho icon active phía user */
+}
+
+.mobile-bottom-nav.user-footer .nav-item.active .nav-text {
+  color: #1e293b;
+  font-weight: 700;
+  transform: translateY(-16px);
+}
+
+.mobile-bottom-nav.user-footer .follow {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08), 0 0 0 8px #e74c3c; /* Viền cục tròn màu đỏ */
+}
+
+
+/* Cục tròn trắng chung cho cả hai */
 .mobile-bottom-nav .follow {
   position: absolute;
   top: -22px;
@@ -65,10 +92,6 @@
   height: 70px;
   background-color: #ffffff;
   border-radius: 50%;
-  
-  /* Lấy trực tiếp mã màu từ biến động truyền từ component, khớp 100% với màu background phía trên */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08), 0 0 0 8px var(--tab-glow-color, #5DADE2);
-  
   transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 5;
 }

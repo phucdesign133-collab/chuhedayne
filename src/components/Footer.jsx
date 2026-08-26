@@ -20,7 +20,6 @@ export default function Footer() {
 
   const activeIndex = getCurrentActiveIndex();
 
-  // Mảng key tương ứng với 5 tab user để lấy màu từ hubData (nếu có)
   const tabKeys = ['content', 'gallery', 'balloon', 'spin', 'tools'];
   const currentKey = tabKeys[activeIndex] || 'content';
   const currentThemeColor = hubData[currentKey]?.themeColor || '#5DADE2';
@@ -32,7 +31,7 @@ export default function Footer() {
 
   return (
     <div 
-      className="mobile-bottom-nav"
+      className="mobile-bottom-nav user-footer"
       style={{ '--tab-glow-color': currentThemeColor }}
     >
       <div 
@@ -70,7 +69,7 @@ export default function Footer() {
         <div className="nav-icon">{EMOJI_ICONS.tools}</div>
       </div>
 
-      {/* Cục tròn nổi di chuyển mượt mà theo tab đang chọn */}
+      {/* Cục tròn nổi di chuyển mượt mà theo tab đang chọn với viền đỏ */}
       <div className="follow" style={{ left: `calc(${getFollowLeft()} - 35px)` }}></div>
     </div>
   );

@@ -1,9 +1,11 @@
 // src/components/Grid.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { hubData } from "../datas/icons";
+import { EMOJI_ICONS, hubData } from '../datas/icons';
 import { fetchPosts, addPost, updatePost, deletePost, uploadImageToSupabase } from "../datas/api";
 import AddPopup from "./popup/AddPopup";
+import Details from "./Detail";
+import { ArrowLeft, Plus, Calendar, MapPin, Folder, Edit3, Trash2 } from "lucide-react";
 import "../css/Grid.css";
 
 export default function Grid() {
@@ -34,7 +36,11 @@ export default function Grid() {
       const data = await fetchPosts();
 
       const filtered = (data || []).filter((item) => {
-        if (item.category === selectedCategory) return true;
+        // So khớp linh hoạt hơn giữa item.category và selectedCategory (hỗ trợ cả slug và chữ thường)
+        const itemCat = (item.category || "").trim().toLowerCase();
+        const currentCat = (selectedCategory || "").trim().toLowerCase();
+        
+        if (itemCat === currentCat) return true;
         if (currentCode && item.description && item.description.includes(`Mã: ${currentCode}`)) return true;
         return false;
       });
@@ -77,7 +83,7 @@ export default function Grid() {
         for (const img of formData.images) {
           if (img.file) {
             const url = await uploadImageToSupabase(img.file);
-            finalImages.push(url);
+            if (url) finalImages.push(url);
           } else if (img.preview) {
             finalImages.push(img.preview);
           } else if (typeof img === 'string') {
@@ -87,7 +93,7 @@ export default function Grid() {
       }
 
       const postData = {
-        category: selectedCategory,
+        category: formData.category || selectedCategory, // Đảm bảo lấy đúng category được truyền từ popup hoặc trang hiện tại
         location: formData.location || "N/A",
         date: formData.date || null,
         images: finalImages,
@@ -138,18 +144,18 @@ export default function Grid() {
   };
 
   return (
-    <div className="post-admin-container">
+    <div className="post-admin-container" style={{padding:'20px'}}>
       <div className="admin-grid-top-bar">
         <button onClick={() => navigate(-1)} className="admin-grid-back-btn" title="Quay lại">
-          ←
+          <ArrowLeft size={20} />
         </button>
 
         <h2 className="admin-grid-heading">
           Danh sách {currentCategoryLabel || "Sự kiện"} hiện có: <span>{posts.length} mục</span>
         </h2>
 
-        <button onClick={openAddModal} className="admin-grid-add-btn-main">
-          + Thêm mới
+        <button onClick={openAddModal} className="admin-grid-add-btn-main" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Plus size={18} /> Thêm mới
         </button>
       </div>
 
@@ -191,8 +197,8 @@ export default function Grid() {
                           {post.description ? post.description.toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase()) : ""}
                         </h3>
                         {formattedDate && (
-                          <div style={{ fontSize: "14px", color: "#64748b", whiteSpace: "nowrap", marginLeft: "10px" }}>
-                            📅 {formattedDate}
+                          <div style={{ fontSize: "14px", color: "#64748b", whiteSpace: "nowrap", marginLeft: "10px", display: "flex", alignItems: "center", gap: "4px" }}>
+                            <Calendar size={15} /> {formattedDate}
                           </div>
                         )}
                       </div>
@@ -200,11 +206,15 @@ export default function Grid() {
                       {/* Hàng 2: Địa điểm và Số lượng ảnh */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                         <div className="admin-events-grid-info-item" style={{ margin: 0, fontSize: "14px", color: "#64748b" }}>
-                          {post.location && <span>📍 {post.location}</span>}
+                          {post.location && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                              <MapPin size={15} /> {post.location}
+                            </span>
+                          )}
                         </div>
                         {imgCount > 0 && (
-                          <div style={{ fontSize: "13px", color: "#0284c7", fontWeight: "500", whiteSpace: "nowrap" }}>
-                            📁 {imgCount} ảnh
+                          <div style={{ fontSize: "13px", color: "#0284c7", fontWeight: "500", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "4px" }}>
+                            <Folder size={15} /> {imgCount} ảnh
                           </div>
                         )}
                       </div>
@@ -218,8 +228,9 @@ export default function Grid() {
                           handleEdit(post);
                         }}
                         className="admin-events-grid-icon-btn edit"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        ✏️ Sửa
+                        <Edit3 size={15} /> Sửa
                       </button>
                       <button
                         onClick={(e) => {
@@ -227,8 +238,9 @@ export default function Grid() {
                           handleDelete(post.id);
                         }}
                         className="admin-events-grid-icon-btn delete"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        🗑️ Xóa
+                        <Trash2 size={15} /> Xóa
                       </button>
                     </div>
                   </div>

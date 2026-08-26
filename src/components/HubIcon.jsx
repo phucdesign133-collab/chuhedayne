@@ -26,10 +26,7 @@ export default function HubIcon({ currentTab = 'content' }) {
 
   return (
     <div className="hub-container" style={{ '--hub-bg': currentHub.themeColor }}>
-      {/* Phần Header Tiêu đề quản lý */}
-      <div className="hub-header">
-        <h2>{currentHub.title}</h2>
-      </div>
+      
 
       {/* Vòng lặp các cụm section */}
       {currentHub.sections && currentHub.sections.length > 0 ? (

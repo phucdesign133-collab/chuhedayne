@@ -1,9 +1,12 @@
 /* Giao diện tổng thể Phúc Group V2 - Tối ưu Responsive & Bảng màu chuẩn */
 :root {
-  --primary-dark-red: #C0392B;
-  --primary-blue: #5DADE2;
-  --primary-green: #58D68D;
-  --primary-yellow: #F4D03F;
+  --primary-rose: #E74C3C;      /* Đỏ hồng pastel dịu mắt, thay cho màu đỏ đậm cũ */
+  --primary-blue: #5DADE2;      /* Xanh dương (Quản lý Nội dung) */
+  --primary-yellow: #F4D03F;    /* Vàng (Quản lý Booking) */
+  --primary-red: #C0392B;       /* Giữ lại màu đỏ brand gốc nếu cần dùng chỗ khác */
+  --primary-green: #58D68D;     /* Xanh lá (Quản lý Tài chính) */
+  --primary-slate: #4f4f4f;     /* Xám slate pastel sang trọng, thay cho màu xám quá nhạt ở tab Công cụ */
+  
   --text-main: #333;
   --bg-main: #F8F9FA;
   --card-bg: #FFFFFF;

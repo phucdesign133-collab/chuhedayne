@@ -1,0 +1,66 @@
+.custom-carousel-container {
+  width:95%;margin:0 auto;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.carousel-multi-wrapper {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  width:95%;margin:0 auto;
+}
+
+.carousel-card-active {
+  flex: 1;width:95%;margin:0 auto;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+
+
+.carousel-image-box {
+  width:100%;
+  height: 250px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.carousel-image-box img {
+  width:100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-text-box {
+  padding: 16px;
+  text-align: left;
+}
+
+.carousel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.carousel-location, .carousel-date {
+  font-size: 14px;
+  color: #64748b;
+  margin: 4px 0;
+}
+
+/* Responsive cho màn hình nhỏ (mobile chỉ hiện 1 card cho gọn) */
+@media (max-width: 768px) {
+  .carousel-multi-wrapper {
+    flex-direction: column;
+  }
+  .carousel-card-active {
+    max-width:95%;margin:0 auto;
+    width:95%;margin:0 auto;
+  }
+}

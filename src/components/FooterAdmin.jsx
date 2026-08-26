@@ -1,7 +1,7 @@
 // src/components/FooterAdmin.jsx
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { hubData } from '../datas/icons'; // Import file chứa themeColor của anh
+import { EMOJI_ICONS, hubData } from '../datas/icons';
 import '../css/Footer.css';
 
 export default function FooterAdmin() {
@@ -36,23 +36,23 @@ export default function FooterAdmin() {
       style={{ '--tab-glow-color': currentThemeColor }} // Truyền chuẩn themeColor vào đây!
     >
       <div className={`nav-item ${activeIndex === 0 ? 'active' : ''}`} onClick={() => navigate('/admin/content')}>
-        <span className="nav-icon">📁</span>
+        <span className="nav-icon">{EMOJI_ICONS.content || EMOJI_ICONS.home}</span>
       </div>
 
       <div className={`nav-item ${activeIndex === 1 ? 'active' : ''}`} onClick={() => navigate('/admin/booking')}>
-        <span className="nav-icon">📅</span>
+        <span className="nav-icon">{EMOJI_ICONS.booking || EMOJI_ICONS.goal}</span>
       </div>
 
       <div className={`nav-item ${activeIndex === 2 ? 'active' : ''}`} onClick={() => navigate('/admin/warehouse')}>
-        <span className="nav-icon">📦</span>
+        <span className="nav-icon">{EMOJI_ICONS.supplies}</span>
       </div>
 
       <div className={`nav-item ${activeIndex === 3 ? 'active' : ''}`} onClick={() => navigate('/admin/finance')}>
-        <span className="nav-icon">💰</span>
+        <span className="nav-icon">{EMOJI_ICONS.finance}</span>
       </div>
 
       <div className={`nav-item ${activeIndex === 4 ? 'active' : ''}`} onClick={() => navigate('/admin/tools')}>
-        <span className="nav-icon">⚙️</span>
+        <span className="nav-icon">{EMOJI_ICONS.settings}</span>
       </div>
 
       {/* Cục tròn nổi di chuyển theo tab */}

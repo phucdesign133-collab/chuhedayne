@@ -80,12 +80,22 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
     const processedImages = await Promise.all(
       files.map(async (file) => {
         return new Promise((resolve) => {
+          // Fallback an toàn cho mobile PWA nếu FileReader hoặc Canvas gặp lỗi treo
+          const fallbackTimeout = setTimeout(() => {
+            resolve({
+              file: file,
+              preview: URL.createObjectURL(file),
+              name: file.name
+            });
+          }, 2000);
+
           const reader = new FileReader();
           reader.readAsDataURL(file);
           reader.onload = (event) => {
             const img = new Image();
             img.src = event.target.result;
             img.onload = () => {
+              clearTimeout(fallbackTimeout);
               const canvas = document.createElement('canvas');
               let width = img.width;
               let height = img.height;
@@ -103,8 +113,16 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
 
               canvas.toBlob(
                 (blob) => {
+                  if (!blob) {
+                    resolve({
+                      file: file,
+                      preview: URL.createObjectURL(file),
+                      name: file.name
+                    });
+                    return;
+                  }
                   const baseSlug = title ? toSlug(title) : 'su-kien';
-                  const newFileName = `${baseSlug}.webp`;
+                  const newFileName = `${baseSlug}-${Date.now()}.webp`;
                   const newFile = new File([blob], newFileName, { type: 'image/webp' });
                   
                   resolve({
@@ -117,6 +135,22 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
                 0.8
               );
             };
+            img.onerror = () => {
+              clearTimeout(fallbackTimeout);
+              resolve({
+                file: file,
+                preview: URL.createObjectURL(file),
+                name: file.name
+              });
+            };
+          };
+          reader.onerror = () => {
+            clearTimeout(fallbackTimeout);
+            resolve({
+              file: file,
+              preview: URL.createObjectURL(file),
+              name: file.name
+            });
           };
         });
       })
@@ -140,7 +174,7 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
 
     const formData = {
       title,
-      category: defaultCategory,
+      category: initialData?.category || defaultCategory, // Giữ lại category cũ khi sửa hoặc dùng defaultCategory khi thêm mới
       location: formattedLocation,
       date,
       images

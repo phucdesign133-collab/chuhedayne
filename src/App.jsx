@@ -1,7 +1,6 @@
 // src/App.jsx
 import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { useParams } from 'react-router-dom';
 import { supabase } from "./components/utils/supabaseClient";
 import "./App.css";
 
@@ -10,12 +9,11 @@ import FooterAdmin from "./components/FooterAdmin";
 
 import Home from "./pages/Home";
 import Tools from "./pages/Tools";
-import AdminPosts from "./pages/AdminEvents";
 
 // IMPORT CÁC COMPONENT QUẢN TRỊ
 import HubIcon from "./components/HubIcon";
-import Grid from "./components/Grid"; // Component Grid mới đã được đổi tên
-import AdminEventsDetails from "./components/AdminEventsDetails";
+import Grid from "./components/Grid"; 
+import Detail from "./components/Detail";
 
 function App() {
   const location = useLocation();
@@ -45,35 +43,24 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/tools" element={<Tools isAuthenticated={isAuthenticated} onAdminLogin={handleAdminLoginSuccess} />} />
 
-          {/* --- ROUTE QUẢN TRỊ ADMIN (4 TẦNG CHUẨN XÁC) --- */}
-
-          {/* Tầng 2: HubIcon chính cho 5 Tab lớn ở Footer */}
+          {/* --- ROUTE QUẢN TRỊ ADMIN --- */}
           <Route path="/admin/content" element={isAuthenticated ? <HubIcon currentTab="content" /> : <Navigate to="/tools" replace />} />
           <Route path="/admin/booking" element={isAuthenticated ? <HubIcon currentTab="booking" /> : <Navigate to="/tools" replace />} />
           <Route path="/admin/warehouse" element={isAuthenticated ? <HubIcon currentTab="warehouse" /> : <Navigate to="/tools" replace />} />
           <Route path="/admin/finance" element={isAuthenticated ? <HubIcon currentTab="finance" /> : <Navigate to="/tools" replace />} />
           <Route path="/admin/tools" element={isAuthenticated ? <HubIcon currentTab="tools" /> : <Navigate to="/tools" replace />} />
 
-          {/* Tầng 3: Trang Grid chi tiết khi người dùng bấm vào từng icon con cụ thể */}
-
           <Route
             path="/admin/content/:categoryId"
             element={isAuthenticated ? <Grid key={location.pathname} isAdmin={true} /> : <Navigate to="/tools" replace />}
           />
 
-          {/* Tầng 4: Trang Chi tiết (Details) chỉnh sửa hoặc thêm mới */}
-          <Route path="/admin/content/birthday/:id" element={isAuthenticated ? <AdminEventsDetails /> : <Navigate to="/tools" replace />} />
-
-          {/* Route tương thích ngược */}
-          <Route
-            path="/admin/posts"
-            element={isAuthenticated ? <AdminPosts key={location.pathname} isAdmin={true} /> : <Navigate to="/tools" replace />}
-          />
-          <Route path="/admin/posts/:id" element={isAuthenticated ? <AdminEventsDetails /> : <Navigate to="/tools" replace />} />
+          {/* Trang Chi tiết dùng chung cho cả User & Admin */}
+          <Route path="/posts/:id" element={<Detail />} />
+          <Route path="/admin/posts/:id" element={<Detail />} />
         </Routes>
       </div>
 
-      {/* Footer tự động đổi qua lại tuyệt đối */}
       {isAuthenticated ? <FooterAdmin onLogout={handleAdminLogout} /> : <Footer />}
     </div>
   );

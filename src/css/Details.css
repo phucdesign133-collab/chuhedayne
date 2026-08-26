@@ -1,114 +1,133 @@
-/* Khung bọc tổng thể trang chi tiết */
-.admin-details-wrapper {
-  padding: 16px;
-  max-width: 600px;
-  margin: 0 auto;
-  font-family: inherit;
+.admin-detail-container {
+  max-width: 750px;
+  margin: 20px auto;
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Nút quay lại */
-.admin-details-header-nav {
-  margin-bottom: 16px;
-}
-
-.admin-details-back-btn {
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  padding: 8px 14px;
-  border-radius: 8px;
+/* Breadcrumb style */
+.admin-breadcrumb {
   font-size: 14px;
-  font-weight: 500;
+  color: #666;
+  margin-bottom: 12px;
+  text-align:left;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.admin-details-back-btn:hover {
-  background-color: #e2e8f0;
-  color: #0f172a;
+.admin-breadcrumb a {
+  color: #007bff;
+  text-decoration: none;
 }
 
-/* Card chứa thông tin chi tiết */
-.admin-details-card {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
+.admin-breadcrumb a:hover {
+  text-decoration: underline;
 }
 
-/* Khu vực hiển thị ảnh */
-.admin-details-img-container {
-  position: relative;
+.admin-breadcrumb span {
+  color: #333;
+  font-weight: 500;
+}
+
+
+/* Tự động viết hoa chữ cái đầu cho tiêu đề trên breadcrumb */
+.admin-breadcrumb span:last-child {
+  color: #333;
+  font-weight: 500;
+  cursor: default;
+  text-transform: capitalize; /* Viết hoa chữ cái đầu mỗi từ */
+}
+
+/* Tiêu đề chính bên dưới cũng có thể áp dụng nếu muốn */
+.admin-detail-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 20px;
+  text-align: left;
+  text-transform: capitalize; /* Tùy chọn viết hoa tiêu đề */
+}
+
+/* Cụm Image phân tầng với tỷ lệ 1:1 và cho phép cuộn dọc */
+.admin-detail-image-section {
+  margin-bottom: 24px;
+}
+
+.admin-detail-image-box {
   width: 100%;
-  height: 260px;
-  background-color: #f8fafc;
+  aspect-ratio: 1 / 1;
+  max-height: 450px;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border: 1px solid #eaeaea;
+  margin-bottom: 12px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
 }
 
-.admin-details-img {
+.admin-main-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Danh sách ảnh nhỏ (Thumbnail) */
+.admin-thumbnail-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-thumbnail-item {
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: #f1f3f5;
+  transition: all 0.2s;
+}
+
+.admin-thumbnail-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.admin-details-no-img {
-  font-size: 18px;
-  font-weight: 600;
-  color: #64748b;
+.admin-thumbnail-item:hover {
+  border-color: #adb5bd;
 }
 
-/* Badge hiển thị mã danh mục ở góc ảnh */
-.admin-details-code-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background-color: rgba(15, 23, 42, 0.75);
-  color: #ffffff;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: bold;
-  border-radius: 6px;
-  backdrop-filter: blur(4px);
+.admin-thumbnail-item.active {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
 }
 
-/* Phần nội dung text */
-.admin-details-content {
-  padding: 20px;
-}
-
-.admin-details-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-top: 0;
-  margin-bottom: 16px;
-}
-
-/* Danh sách thông tin dọc */
-.admin-details-meta-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 12px;
-}
-
-.admin-details-meta-item {
-  font-size: 14px;
-  color: #475569;
-  display: flex;
-  align-items: center;
-}
-
-/* Trạng thái loading và không tìm thấy */
-.admin-details-loading,
-.admin-details-not-found {
-  text-align: center;
-  padding: 40px 20px;
+/* Khung thông tin kiểu User (dòng đơn + câu cảm ơn) */
+.admin-detail-info-box-userstyle {
+  background: transparent;
+  padding: 10px 0;
   font-size: 16px;
-  color: #64748b;
+  color: #333;
+  text-align: left;
+}
+
+.info-line {
+  margin-bottom: 12px;
+}
+
+.info-thankyou {
+  margin-top: 16px;
+  font-weight: 500;
+  color: #222;
+}
+
+.admin-detail-loading,
+.admin-detail-notfound {
+  text-align: center;
+  padding: 50px;
+  font-size: 16px;
+  color: #666;
 }
