@@ -1,257 +1,181 @@
 // src/components/Grid.jsx
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { EMOJI_ICONS, hubData } from '../datas/icons';
-import { fetchPosts, addPost, updatePost, deletePost, uploadImageToSupabase } from "../datas/api";
-import AddPopup from "./popup/AddPopup";
-import Details from "./Detail";
-import { ArrowLeft, Plus, Calendar, MapPin, Folder, Edit3, Trash2 } from "lucide-react";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, Outlet } from "react-router-dom";
+import { hubData } from "../datas/icons";
+import { fetchPosts } from "../datas/api";
+import { ArrowLeft, Plus } from "lucide-react";
+import Popup from "./popup/Popup";
 import "../css/Grid.css";
 
 export default function Grid() {
   const navigate = useNavigate();
   const { categoryId } = useParams();
 
-  // Lấy toàn bộ danh sách item từ tất cả các sections của content trong hubData của icons.js
-  const allCategories = hubData.content.sections.flatMap((section) => section.items);
-
-  // Tìm kiếm danh mục hiện tại khớp với URL, nếu không thấy mặc định lấy phần tử đầu tiên
-  const currentCategoryObj = allCategories.find((c) => c.id === categoryId) || allCategories[0] || {};
-  const selectedCategory = categoryId || currentCategoryObj.id;
-  const currentCategoryLabel = currentCategoryObj.name;
-  
-  // Tạo mã code ngầm dựa trên id nếu cần tra cứu
-  const currentCode = currentCategoryObj.id ? currentCategoryObj.id.toUpperCase() : "";
-
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [itemCount, setItemCount] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  // === 1. TÌM MODULE HIỆN TẠI TRONG hubData ===
 
-  const loadPosts = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchPosts();
+  const allCategories = useMemo(() => {
+    if (!hubData) return [];
 
-      const filtered = (data || []).filter((item) => {
-        // So khớp linh hoạt hơn giữa item.category và selectedCategory (hỗ trợ cả slug và chữ thường)
-        const itemCat = (item.category || "").trim().toLowerCase();
-        const currentCat = (selectedCategory || "").trim().toLowerCase();
-        
-        if (itemCat === currentCat) return true;
-        if (currentCode && item.description && item.description.includes(`Mã: ${currentCode}`)) return true;
-        return false;
+    const items = [];
+
+    Object.values(hubData).forEach((tab) => {
+      if (!tab?.sections) return;
+
+      tab.sections.forEach((section) => {
+        if (section?.items) {
+          items.push(...section.items);
+        }
       });
+    });
 
-      setPosts(filtered);
-    } catch (error) {
-      console.error("Lỗi tải dữ liệu:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return items;
+  }, []);
+
+  const currentCategory = useMemo(() => {
+    return allCategories.find((item) => item.id === categoryId);
+  }, [allCategories, categoryId]);
+
+  const currentCategoryLabel = currentCategory?.name || "Quản lý";
+
+  // === 2. ĐẾM SỐ LƯỢNG DỮ LIỆU CHO HEADER ===
 
   useEffect(() => {
-    loadPosts();
+    async function loadItemCount() {
+      if (!categoryId) {
+        setItemCount(null);
+        return;
+      }
+
+      try {
+        const data = await fetchPosts();
+
+        const currentId = categoryId.trim().toLowerCase();
+        const currentCode = categoryId.toUpperCase();
+
+        const filtered = (data || []).filter((item) => {
+          const itemCategory = (item.category || "")
+            .trim()
+            .toLowerCase();
+
+          if (itemCategory === currentId) {
+            return true;
+          }
+
+          if (
+            item.description &&
+            item.description.includes(`Mã: ${currentCode}`)
+          ) {
+            return true;
+          }
+
+          return false;
+        });
+
+        setItemCount(filtered.length);
+      } catch (error) {
+        console.error("Lỗi đếm dữ liệu Grid:", error);
+        setItemCount(null);
+      }
+    }
+
+    loadItemCount();
   }, [categoryId]);
 
-  const filteredPosts = posts.filter((item) => {
-    const term = searchTerm.toLowerCase();
-    const titleMatch = item.description && item.description.toLowerCase().includes(term);
-    const dateMatch = item.date && item.date.toLowerCase().includes(term);
-    const locationMatch = item.location && item.location.toLowerCase().includes(term);
-    return titleMatch || dateMatch || locationMatch;
-  });
+  // === 3. MỞ POPUP ===
 
-  const openAddModal = () => {
-    setEditingItem(null);
-    setIsModalOpen(true);
+  const handleAddNewClick = () => {
+    setIsPopupOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingItem(null);
+  // === 4. ĐÓNG POPUP ===
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
   };
 
-  const handleSaveData = async (formData) => {
-    try {
-      setLoading(true);
-      let finalImages = [];
-      if (formData.images?.length > 0) {
-        for (const img of formData.images) {
-          if (img.file) {
-            const url = await uploadImageToSupabase(img.file);
-            if (url) finalImages.push(url);
-          } else if (img.preview) {
-            finalImages.push(img.preview);
-          } else if (typeof img === 'string') {
-            finalImages.push(img);
-          }
-        }
-      }
+  // === 5. NHẬN DỮ LIỆU TỪ POPUP ===
 
-      const postData = {
-        category: formData.category || selectedCategory, // Đảm bảo lấy đúng category được truyền từ popup hoặc trang hiện tại
-        location: formData.location || "N/A",
-        date: formData.date || null,
-        images: finalImages,
-        image_url: finalImages[0] || null,
-        description: formData.title,
-      };
+  const handleSavePopup = async (data) => {
+    console.log("Grid nhận dữ liệu Popup:", data);
 
-      if (editingItem) {
-        await updatePost(editingItem.id, postData);
-      } else {
-        await addPost(postData);
-      }
+    // TODO:
+    // Sau này xử lý lưu Supabase tại đây
 
-      closeModal();
-      loadPosts();
-    } catch (error) {
-      console.error("Lỗi lưu dữ liệu:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (post) => {
-    setEditingItem(post);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa mục này không?")) {
-      try {
-        await deletePost(id);
-        loadPosts();
-      } catch (error) {
-        console.error("Lỗi khi xóa:", error);
-      }
-    }
-  };
-
-  const formatDateDisplay = (dateStr) => {
-    if (!dateStr) return "";
-    if (dateStr.includes("-") && dateStr.length >= 10) {
-      const parts = dateStr.split("T")[0].split("-");
-      if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
-    }
-    return dateStr;
+    setIsPopupOpen(false);
   };
 
   return (
-    <div className="post-admin-container" style={{padding:'20px'}}>
+    <div className="post-admin-container" style={{ padding: "20px" }}>
+
+      {/* === HEADER === */}
+
       <div className="admin-grid-top-bar">
-        <button onClick={() => navigate(-1)} className="admin-grid-back-btn" title="Quay lại">
+
+        <button
+          onClick={() => navigate(-1)}
+          className="admin-grid-back-btn"
+          title="Quay lại"
+        >
           <ArrowLeft size={20} />
         </button>
 
         <h2 className="admin-grid-heading">
-          Danh sách {currentCategoryLabel || "Sự kiện"} hiện có: <span>{posts.length} mục</span>
+          Danh sách {currentCategoryLabel} hiện có:
+
+          {itemCount !== null && (
+            <span> {itemCount} mục</span>
+          )}
         </h2>
 
-        <button onClick={openAddModal} className="admin-grid-add-btn-main" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Plus size={18} /> Thêm mới
-        </button>
       </div>
 
-      <div className="admin-grid-search-wrapper">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Tìm kiếm..."
-          className="admin-search-input"
-        />
-      </div>
 
-      <div className="admin-events-grid-wrapper">
-        <div className="admin-events-grid-container">
-          {loading ? (
-            <div className="admin-events-grid-loading">Đang tải danh sách...</div>
-          ) : filteredPosts.length === 0 ? (
-            <div className="admin-events-grid-empty">Chưa có dữ liệu cho mục này.</div>
-          ) : (
-            <div className="admin-events-grid-list">
-              {filteredPosts.map((post) => {
-                let imgCount = 0;
-                if (Array.isArray(post.images)) {
-                  imgCount = post.images.length;
-                } else if (post.image_url) {
-                  imgCount = 1;
-                }
+      {/* === TOOLBAR === */}
 
-                const formattedDate = formatDateDisplay(post.date);
+      <div className="admin-grid-toolbar">
 
-                return (
-                  <div key={post.id} className="admin-events-grid-card" onClick={() => navigate(`/admin/posts/${post.id}`)}>
-                    <div className="admin-events-grid-card-content">
-                      
-                      {/* Hàng 1: Tiêu đề và Ngày tháng */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: "8px" }}>
-                        <h3 className="admin-events-grid-card-title" style={{ margin: 0}}>
-                          {post.description ? post.description.toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase()) : ""}
-                        </h3>
-                        {formattedDate && (
-                          <div style={{ fontSize: "14px", color: "#64748b", whiteSpace: "nowrap", marginLeft: "10px", display: "flex", alignItems: "center", gap: "4px" }}>
-                            <Calendar size={15} /> {formattedDate}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Hàng 2: Địa điểm và Số lượng ảnh */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                        <div className="admin-events-grid-info-item" style={{ margin: 0, fontSize: "14px", color: "#64748b" }}>
-                          {post.location && (
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                              <MapPin size={15} /> {post.location}
-                            </span>
-                          )}
-                        </div>
-                        {imgCount > 0 && (
-                          <div style={{ fontSize: "13px", color: "#0284c7", fontWeight: "500", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "4px" }}>
-                            <Folder size={15} /> {imgCount} ảnh
-                          </div>
-                        )}
-                      </div>
-
-                    </div>
-
-                    <div className="admin-events-grid-card-actions">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(post);
-                        }}
-                        className="admin-events-grid-icon-btn edit"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Edit3 size={15} /> Sửa
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(post.id);
-                        }}
-                        className="admin-events-grid-icon-btn delete"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Trash2 size={15} /> Xóa
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+        <div className="admin-grid-search-wrapper">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Tìm kiếm..."
+            className="admin-search-input"
+          />
         </div>
+
+        <button
+          onClick={handleAddNewClick}
+          className="admin-grid-add-btn-main"
+        >
+          <Plus size={18} />
+          Thêm mới
+        </button>
+
       </div>
 
-      <AddPopup isOpen={isModalOpen} onClose={closeModal} onSave={handleSaveData} defaultCategory={selectedCategory} initialData={editingItem} />
+
+      {/* === OUTLET === */}
+
+      <div className="admin-grid-outlet-wrapper">
+        <Outlet context={{ searchTerm }} />
+      </div>
+
+
+      {/* === POPUP CHUNG === */}
+
+      <Popup
+        isOpen={isPopupOpen}
+        onSave={handleSavePopup}
+        onClose={handleClosePopup}
+        categoryId={categoryId}
+      />
+
     </div>
   );
 }

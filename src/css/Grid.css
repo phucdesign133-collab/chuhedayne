@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  background-color: var(--bg-main, #f8fafc); /* Đồng bộ màu nền bên ngoài */
+  background-color: var(--bg-main, #f8fafc);
   min-height: 100%;
   box-sizing: border-box;
 }
@@ -39,161 +39,57 @@
 
 .admin-grid-heading span {
   color: var(--text-main, #333333);
+  font-weight: 500;
 }
 
-.admin-grid-add-btn-main {
-  background-color: #dc2626;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-
-
-.admin-events-grid-wrapper {
+/* --- TOOLBAR (Search + Nút Thêm mới) --- */
+.admin-grid-toolbar {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  align-items: center;
+  gap: 12px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.admin-events-grid-dropdown-box {
-  width: 100%;
+.admin-grid-search-wrapper {
+  flex: 1; /* Chiếm phần lớn không gian (~80%) */
+  box-sizing: border-box;
 }
 
-.admin-events-grid-select {
-  width: 100%;
-  max-width: 350px;
-  background-color: var(--card-bg, #ffffff);
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-main, #2C3E50);
-  outline: none;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.admin-events-grid-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.admin-events-grid-loading,
-.admin-events-grid-empty {
-  text-align: center;
-  padding: 40px;
-  background-color: var(--card-bg, #ffffff);
-  border: 1px dashed #cbd5e1;
-  border-radius: 16px;
-  color: #64748b;
-  font-size: 15px;
-}
-
-/* Lưới hiển thị các Card */
-.admin-events-grid-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.admin-events-grid-card {
-  background-color: var(--card-bg, #ffffff);
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-}
-
-
-.admin-events-grid-card-content {
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
-}
-
-/* Tự động viết hoa chữ cái đầu tiêu đề */
-.admin-events-grid-card-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--text-main, #2C3E50);
-  margin: 0;
-  text-transform: capitalize !important; 
-}
-
-/* Định dạng danh sách thông tin dọc gọn gàng */
-.admin-events-grid-info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.admin-events-grid-info-item {
-  font-size: 13px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-}
-
-.admin-events-grid-card-actions {
-  display: flex;
-  border-top: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-}
-
-.admin-events-grid-icon-btn {
-  flex: 1;
-  padding: 10px;
-  background: none;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: background 0.2s;
-}
-
-.admin-events-grid-icon-btn.edit {
-  color: #2563eb;
-  border-right: 1px solid #e2e8f0;
-}
-
-
-
-.admin-events-grid-icon-btn.delete {
-  color: #dc2626;
-}
-
-
-/* --- SEARCH BAR --- */
-
-.search-input {
+.admin-search-input {
   width: 100% !important;
-  background: transparent !important;
-  border: none !important;
+  background: var(--card-bg, #ffffff) !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
   outline: none !important;
   font-size: 14px !important;
   color: var(--text-main, #333333) !important;
-  box-shadow: none !important;
+  box-sizing: border-box !important;
+}
+
+.admin-grid-add-btn-main {
+  flex: 0 0 auto; /* Chiếm vừa đủ nội dung (~20%) */
+  background-color: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.admin-grid-add-btn-main:hover {
+  background-color: #b91c1c;
+}
+
+.admin-grid-outlet-wrapper {
+  width: 100%;
+  box-sizing: border-box;
 }

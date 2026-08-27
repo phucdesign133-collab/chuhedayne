@@ -7,31 +7,24 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [images, setImages] = useState([]);
+  const [saveMode, setSaveMode] = useState('single'); // 'single': gộp chung ảnh vào 1 bài, 'multi': tách mỗi ảnh 1 bài riêng
 
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       setTitle(initialData.description || initialData.title || '');
       setLocation(initialData.location || '');
-      setDate(initialData.date || '');
+      // Hỗ trợ map đúng biến thời gian từ DB lên form
+      setDate(initialData.date || initialData.event_date || '');
       
       let formattedImages = [];
-      
       if (Array.isArray(initialData.images) && initialData.images.length > 0) {
-        formattedImages = initialData.images.map(img => {
-          if (typeof img === 'string') {
-            return { file: null, preview: img };
-          } else if (img && typeof img === 'object') {
-            return {
-              file: img.file || null,
-              preview: img.preview || img.url || (typeof img === 'string' ? img : '')
-            };
-          }
-          return null;
-        }).filter(img => img && img.preview);
+        formattedImages = initialData.images.map(img => ({
+          file: null,
+          preview: typeof img === 'string' ? img : (img.preview || img.url || '')
+        })).filter(img => img.preview);
       } else if (initialData.image_url) {
         formattedImages = [{ file: null, preview: initialData.image_url }];
       }
-
       setImages(formattedImages);
     } else {
       setTitle('');
@@ -80,32 +73,20 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
     const processedImages = await Promise.all(
       files.map(async (file) => {
         return new Promise((resolve) => {
-          // Fallback an toàn cho mobile PWA nếu FileReader hoặc Canvas gặp lỗi treo
-          const fallbackTimeout = setTimeout(() => {
-            resolve({
-              file: file,
-              preview: URL.createObjectURL(file),
-              name: file.name
-            });
-          }, 2000);
-
           const reader = new FileReader();
           reader.readAsDataURL(file);
           reader.onload = (event) => {
             const img = new Image();
             img.src = event.target.result;
             img.onload = () => {
-              clearTimeout(fallbackTimeout);
               const canvas = document.createElement('canvas');
               let width = img.width;
               let height = img.height;
-
               const MAX_WIDTH = 1200;
               if (width > MAX_WIDTH) {
                 height = Math.round((height * MAX_WIDTH) / width);
                 width = MAX_WIDTH;
               }
-
               canvas.width = width;
               canvas.height = height;
               const ctx = canvas.getContext('2d');
@@ -113,21 +94,13 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
 
               canvas.toBlob(
                 (blob) => {
-                  if (!blob) {
-                    resolve({
-                      file: file,
-                      preview: URL.createObjectURL(file),
-                      name: file.name
-                    });
-                    return;
-                  }
                   const baseSlug = title ? toSlug(title) : 'su-kien';
                   const newFileName = `${baseSlug}-${Date.now()}.webp`;
-                  const newFile = new File([blob], newFileName, { type: 'image/webp' });
+                  const newFile = blob ? new File([blob], newFileName, { type: 'image/webp' }) : file;
                   
                   resolve({
                     file: newFile,
-                    preview: URL.createObjectURL(blob),
+                    preview: blob ? URL.createObjectURL(blob) : URL.createObjectURL(file),
                     name: newFileName
                   });
                 },
@@ -135,22 +108,6 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
                 0.8
               );
             };
-            img.onerror = () => {
-              clearTimeout(fallbackTimeout);
-              resolve({
-                file: file,
-                preview: URL.createObjectURL(file),
-                name: file.name
-              });
-            };
-          };
-          reader.onerror = () => {
-            clearTimeout(fallbackTimeout);
-            resolve({
-              file: file,
-              preview: URL.createObjectURL(file),
-              name: file.name
-            });
           };
         });
       })
@@ -174,10 +131,11 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
 
     const formData = {
       title,
-      category: initialData?.category || defaultCategory, // Giữ lại category cũ khi sửa hoặc dùng defaultCategory khi thêm mới
+      category: initialData?.category || defaultCategory,
       location: formattedLocation,
-      date,
-      images
+      date: date || null, // Đảm bảo truyền đúng giá trị ngày tháng
+      images,
+      saveMode: initialData ? 'single' : saveMode // Nếu đang sửa thì giữ nguyên, thêm mới thì theo chọn lựa
     };
 
     onSave(formData);
@@ -191,9 +149,7 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
           <h3 className="events-modal-title">
             {initialData && Object.keys(initialData).length > 0 ? '✏️ Cập nhật mục' : '✨ Thêm mục mới'}
           </h3>
-          <button type="button" onClick={onClose} className="events-close-btn">
-            ✕
-          </button>
+          <button type="button" onClick={onClose} className="events-close-btn">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -233,6 +189,32 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
             />
           </div>
 
+          {!initialData && images.length > 1 && (
+            <div className="events-form-group" style={{ background: '#f1f5f9', padding: '10px', borderRadius: '8px' }}>
+              <label className="events-label" style={{ marginBottom: '6px' }}>Kiểu thêm nhiều ảnh:</label>
+              <div style={{ display: 'flex', gap: '16px', fontSize: '14px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="saveMode" 
+                    value="single" 
+                    checked={saveMode === 'single'} 
+                    onChange={() => setSaveMode('single')} 
+                  /> Gộp chung vào 1 bài
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="saveMode" 
+                    value="multi" 
+                    checked={saveMode === 'multi'} 
+                    onChange={() => setSaveMode('multi')} 
+                  /> Tách thành các bài riêng
+                </label>
+              </div>
+            </div>
+          )}
+
           <div className="events-form-group">
             <label className="events-label">Hình ảnh</label>
             <div className="events-upload-row">
@@ -246,38 +228,22 @@ export default function AddPopup({ isOpen, onClose, onSave, initialData, default
                   className="events-file-input"
                 />
               </label>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
-                {images.length} ảnh đã chọn
-              </span>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>{images.length} ảnh đã chọn</span>
             </div>
 
             {images.length > 0 && (
               <div className="events-preview-container">
                 {images.map((imgObj, idx) => (
                   <div key={idx} className="events-preview-item">
-                    <img 
-                      src={imgObj.preview} 
-                      alt="preview" 
-                      className="events-preview-img" 
-                    />
-                    <button 
-                      type="button" 
-                      onClick={() => handleRemoveImage(idx)}
-                      className="events-remove-img-btn"
-                      title="Xóa ảnh"
-                    >
-                      ✕
-                    </button>
+                    <img src={imgObj.preview} alt="preview" className="events-preview-img" />
+                    <button type="button" onClick={() => handleRemoveImage(idx)} className="events-remove-img-btn">✕</button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <button type="submit" className="events-submit-btn">
-            Lưu Lại
-          </button>
-
+          <button type="submit" className="events-submit-btn">Lưu Lại</button>
         </form>
       </div>
     </div>

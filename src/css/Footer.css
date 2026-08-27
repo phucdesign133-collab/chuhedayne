@@ -69,7 +69,6 @@
    2. DÀNH CHO USER FOOTER (Luôn màu đỏ khi active)
    ========================================== */
 .mobile-bottom-nav.user-footer .nav-item.active .nav-icon {
-  transform: translateY(-22px);
   color: #e74c3c !important; /* Màu đỏ cho icon active phía user */
 }
 

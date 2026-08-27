@@ -24,11 +24,6 @@ export default function Footer() {
   const currentKey = tabKeys[activeIndex] || 'content';
   const currentThemeColor = hubData[currentKey]?.themeColor || '#5DADE2';
 
-  const getFollowLeft = () => {
-    const positions = ['10%', '30%', '50%', '70%', '90%'];
-    return positions[activeIndex] || '10%';
-  };
-
   return (
     <div 
       className="mobile-bottom-nav user-footer"
@@ -68,9 +63,6 @@ export default function Footer() {
       >
         <div className="nav-icon">{EMOJI_ICONS.tools}</div>
       </div>
-
-      {/* Cục tròn nổi di chuyển mượt mà theo tab đang chọn với viền đỏ */}
-      <div className="follow" style={{ left: `calc(${getFollowLeft()} - 35px)` }}></div>
     </div>
   );
 }

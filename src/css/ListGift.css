@@ -1,0 +1,130 @@
+.lg-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-family: "Quicksand", sans-serif;
+}
+
+.lg-container {
+  position: relative;
+  background: #13111c;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 25px;
+  border-radius: 24px;
+  /* maxWidth: 400px; */
+  width: 90%;
+  box-sizing: border-box;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.lg-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: #94a3b8;
+}
+
+.lg-title {
+  margin: 0 0 4px 0;
+  color: #fff;
+  font-size: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.lg-subtitle {
+  margin: 0 0 20px 0;
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+}
+
+.lg-tab-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.lg-tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.lg-tab-basic-active {
+  background: #f21d1d;
+  color: #fff;
+}
+
+.lg-tab-vip-active {
+  background: #00f5d4;
+  color: #000;
+}
+
+.lg-tab-inactive {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.lg-list-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.lg-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.lg-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lg-item-icon {
+  font-size: 20px;
+}
+
+.lg-item-text {
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lg-item-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+}

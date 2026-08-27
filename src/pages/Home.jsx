@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../components/utils/supabaseClient';
 import Carousel from '../components/Carousel';
 import '../css/Home.css';
+import Calendar from '../components/Calendar';
 
 export default function Home() {
   const navigate = useNavigate();
-  // Dữ liệu có thể được nhận từ API hoặc props sau này
-  const [posts] = useState([]);
-  const [loading] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      console.error('Lỗi tải danh sách bài viết:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="home-page-container">
@@ -18,11 +40,13 @@ export default function Home() {
 
       <div className="home-carousel-wrapper">
         {loading ? (
-          <div className="home-loading">Đang tải...</div>
+          <div className="home-loading">Đang tải dữ liệu...</div>
         ) : (
           <Carousel items={posts} />
         )}
       </div>
+
+      <Calendar isAdmin={false}/>
     </div>
   );
 }

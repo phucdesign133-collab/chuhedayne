@@ -1,3 +1,4 @@
+/* === POPUP OVERLAY === */
 .events-modal-overlay {
   position: fixed;
   top: 0;
@@ -5,39 +6,58 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
+
   display: flex;
   justify-content: center;
   align-items: center;
+
   z-index: 1000;
   padding: 16px;
   box-sizing: border-box;
 }
 
+/* === POPUP CONTAINER === */
 .events-modal-content {
   background-color: var(--card-bg, #ffffff);
+
   border-radius: 20px;
   width: 100%;
   max-width: 440px;
   max-height: 90vh;
+
   overflow-y: auto;
+
   padding: 20px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+
   display: flex;
   flex-direction: column;
   gap: 14px;
+
   animation: eventsFadeIn 0.2s ease-out;
+
   box-sizing: border-box;
 }
 
+/* === POPUP ANIMATION === */
 @keyframes eventsFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+/* === POPUP HEADER === */
 .events-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   border-bottom: 1px solid #e2e8f0;
   padding-bottom: 10px;
 }
@@ -45,7 +65,7 @@
 .events-modal-title {
   font-size: 18px;
   font-weight: bold;
-  color: var(--primary-dark-red, #C0392B);
+  color: var(--primary-dark-red, #c0392b);
   margin: 0;
 }
 
@@ -53,21 +73,23 @@
   background: #f1f5f9;
   border: none;
   border-radius: 50%;
+
   width: 30px;
   height: 30px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   cursor: pointer;
   font-size: 14px;
-  color: var(--text-main, #2C3E50);
+
+  color: var(--text-main, #2c3e50);
+
   transition: background 0.2s;
 }
 
-.events-close-btn:hover {
-  background: #e2e8f0;
-}
-
+/* === FORM GROUP === */
 .events-form-group,
 .events-form-row {
   display: flex;
@@ -78,29 +100,33 @@
 .events-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-main, #2C3E50);
+  color: var(--text-main, #2c3e50);
   text-align: left;
 }
 
-.events-input, 
+/* === INPUT / SELECT === */
+.events-input,
 .events-select {
   width: 100%;
-  background-color: var(--bg-main, #F8F9FA);
+
+  background-color: var(--bg-main, #f8f9fa);
+
   border: 1px solid #cbd5e1;
   border-radius: 12px;
+
   padding: 10px 14px;
+
   font-size: 14px;
   outline: none;
+
   box-sizing: border-box;
-  color: var(--text-main, #2C3E50);
+
+  color: var(--text-main, #2c3e50);
+
   transition: border-color 0.2s;
 }
 
-.events-input:focus, 
-.events-select:focus {
-  border-color: var(--primary-dark-red, #C0392B);
-}
-
+/* === IMAGE UPLOAD === */
 .events-upload-row {
   display: flex;
   align-items: center;
@@ -114,23 +140,27 @@
 
 .events-upload-btn {
   background-color: #f1f5f9;
+
   border: 1px dashed #cbd5e1;
   border-radius: 10px;
+
   padding: 10px 16px;
+
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-main, #2C3E50);
+
+  color: var(--text-main, #2c3e50);
+
   cursor: pointer;
+
   display: inline-flex;
   align-items: center;
   gap: 6px;
+
   transition: background 0.2s;
 }
 
-.events-upload-btn:hover {
-  background-color: #e2e8f0;
-}
-
+/* === IMAGE PREVIEW === */
 .events-preview-container {
   display: flex;
   gap: 8px;
@@ -140,10 +170,13 @@
 
 .events-preview-item {
   position: relative;
+
   width: 60px;
   height: 60px;
+
   border-radius: 8px;
   overflow: hidden;
+
   border: 1px solid #cbd5e1;
   background: #fff;
 }
@@ -158,34 +191,46 @@
   position: absolute;
   top: 2px;
   right: 2px;
+
   background: rgba(192, 57, 43, 0.9);
   color: #fff;
+
   border: none;
   border-radius: 50%;
+
   width: 18px;
   height: 18px;
+
   font-size: 10px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   cursor: pointer;
 }
 
+/* === POPUP FOOTER === */
 .events-submit-btn {
   width: 100%;
-  background-color: var(--primary-dark-red, #C0392B);
+
+  background-color: var(--primary-dark-red, #c0392b);
   color: #ffffff;
+
   font-weight: 600;
+
   padding: 12px;
+
   border-radius: 12px;
+
   font-size: 14px;
+
   border: none;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(192, 57, 43, 0.2);
-  margin-top: 6px;
-  transition: opacity 0.2s;
-}
 
-.events-submit-btn:hover {
-  opacity: 0.9;
+  box-shadow: 0 2px 4px rgba(192, 57, 43, 0.2);
+
+  margin-top: 6px;
+
+  transition: opacity 0.2s;
 }

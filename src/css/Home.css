@@ -1,30 +1,34 @@
 .home-page-container {
-  min-height: 100vh;
-  padding: 24px 0 100px 0;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  /* Chừa khoảng trống an toàn ở đáy để cục liên hệ không bị menu footer fixed che mất */
+  padding-bottom: 80px; 
   box-sizing: border-box;
 }
 
 .home-header-section {
-  padding: 0 24px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .home-title {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--text-main, #333);
-  margin: 0 0 4px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
 }
 
 .home-subtitle {
   font-size: 14px;
   color: #64748b;
-  margin: 0;
 }
 
-.home-loading, .home-empty {
+.home-carousel-wrapper {
+  margin-bottom: 30px;
+}
+
+.home-loading {
   text-align: center;
   padding: 40px;
   color: #64748b;

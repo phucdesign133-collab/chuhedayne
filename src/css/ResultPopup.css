@@ -1,0 +1,196 @@
+/* Khóa cuộn trang bằng cách thêm class này vào body từ JSX */
+.overflow-hidden {
+  overflow: hidden;
+  height: 100vh;
+}
+.popup-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9998;
+}
+
+.popup-container {
+  position: relative; /* Để đặt icon close */
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  max-width: 350px;
+  width: 90%;
+  text-align: center;
+  margin-top: -5vh;
+}
+
+.instruction {
+  font-size: 0.9em;
+  color: #666;
+  margin: 15px 0;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+.instructions {
+  margin: 20px 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #444;
+  text-align: left;
+}
+
+.zalo-btn {
+  background: #0068ff;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+}
+.wa-btn {
+  background: #25d366;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+}
+.retry-btn {
+  background: #f59e0b;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+}
+/* Thêm style cho nút xem ảnh */
+.view-img-btn {
+  width: 100%;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Chia hàng nút liên hệ */
+.contact-row {
+  display: flex;
+  gap: 10px;
+}
+
+.contact-row button {
+  flex: 1;
+}
+
+.popup-title,
+.prize-display,
+.code-badge,
+.wa-btn,
+.retry-btn {
+  color: #333;
+  font-weight: 600;
+}
+.zalo-btn,
+.wa-btn,
+.retry-btn {
+  cursor: pointer;
+}
+
+/* Container chứa các chấm tròn */
+.wheel-lights-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  pointer-events: none;
+  display: block;
+  margin-top: -2px;
+}
+
+.light-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background-color: #fff;
+  border-radius: 50%;
+  margin-left: -5px;
+  margin-top: -5px;
+  transition: background-color 0.3s;
+}
+
+/* KHI QUAY: Đổi màu và chớp */
+.spinning .light-dot {
+  background-color: #FFD700 !important;
+  animation: blink-light 0.8s infinite ease-in-out !important;
+}
+
+@keyframes blink-light {
+  0% { 
+    opacity: 0.3; 
+    box-shadow: 0 0 0px #FFD700; 
+  }
+  50% { 
+    opacity: 1; 
+    box-shadow: 0 0 10px #FFD700; 
+  }
+  100% { 
+    opacity: 0.3; 
+    box-shadow: 0 0 0px #FFD700; 
+  }
+}
+
+/* UI Lightbox mới */
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999;
+}
+.lightbox-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.lightbox-content img {
+  max-width: 85vw;
+  max-height: 70vh;
+  border: 4px solid #fff;
+  border-radius: 15px;
+}
+.lightbox-hint {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 20px;
+  border-radius: 20px;
+}
