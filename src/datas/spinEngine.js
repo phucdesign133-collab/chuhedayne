@@ -48,17 +48,16 @@ export async function fetchAllPrizesFromCloud() {
   try {
     const { data, error } = await supabase
       .from("prizes")
-      .select("*")
-      .order("created_at", { ascending: true });
+      .select("*");
 
     if (error) {
-      console.error("Lỗi tải toàn bộ prizes từ Supabase:", error);
+      console.error("LỖI FETCH ALL PRIZES:", error);
       return [];
     }
 
     return data || [];
   } catch (err) {
-    console.error("Lỗi kết nối toàn bộ prizes:", err);
+    console.error("LỖI KẾT NỐI PRIZES:", err);
     return [];
   }
 }

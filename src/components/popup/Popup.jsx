@@ -1,7 +1,9 @@
-// src/components/Popup.jsx
+// src/components/popup/Popup.jsx
 
 import React from "react";
-import { getPopupById } from "../../datas/adminRegistry";
+
+import PrizePopup from "./PrizePopup";
+
 import "../../css/Popup.css";
 
 export default function Popup({
@@ -11,34 +13,46 @@ export default function Popup({
   categoryId,
   initialData = null,
 }) {
-  // === 1. CHƯA MỞ → KHÔNG RENDER ===
+  if (!isOpen) {
+    return null;
+  }
 
-  if (!isOpen) return null;
+  // ============================================================
+  // RENDER FORM THEO CATEGORY
+  // ============================================================
 
-  // === 2. TÌM RUỘT POPUP THEO ID ===
+  const renderPopupContent = () => {
+    if (categoryId === "prizes") {
+      return (
+        <PrizePopup
+          onClose={onClose}
+          onSave={onSave}
+          initialData={initialData}
+        />
+      );
+    }
 
-  const PopupComponent = getPopupById(categoryId);
+    return (
+      <div>
+        Chưa có nội dung Popup cho chức năng:{" "}
+        {categoryId}
+      </div>
+    );
+  };
 
-  // === 3. RENDER KHUNG + RUỘT ===
+  // ============================================================
+  // UI KHUNG POPUP DÙNG CHUNG
+  // ============================================================
 
   return (
     <div className="events-modal-overlay">
+
       <div className="events-modal-content">
 
-        {PopupComponent ? (
-          <PopupComponent
-            onClose={onClose}
-            onSave={onSave}
-            initialData={initialData}
-            categoryId={categoryId}
-          />
-        ) : (
-          <div>
-            Chưa có Popup cho chức năng: {categoryId}
-          </div>
-        )}
+        {renderPopupContent()}
 
       </div>
+
     </div>
   );
 }

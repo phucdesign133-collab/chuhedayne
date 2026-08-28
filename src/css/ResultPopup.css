@@ -106,6 +106,7 @@
 .retry-btn {
   color: #333;
   font-weight: 600;
+  text-transform: capitalize;
 }
 .zalo-btn,
 .wa-btn,
@@ -141,22 +142,22 @@
 
 /* KHI QUAY: Đổi màu và chớp */
 .spinning .light-dot {
-  background-color: #FFD700 !important;
+  background-color: #ffd700 !important;
   animation: blink-light 0.8s infinite ease-in-out !important;
 }
 
 @keyframes blink-light {
-  0% { 
-    opacity: 0.3; 
-    box-shadow: 0 0 0px #FFD700; 
+  0% {
+    opacity: 0.3;
+    box-shadow: 0 0 0px #ffd700;
   }
-  50% { 
-    opacity: 1; 
-    box-shadow: 0 0 10px #FFD700; 
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 10px #ffd700;
   }
-  100% { 
-    opacity: 0.3; 
-    box-shadow: 0 0 0px #FFD700; 
+  100% {
+    opacity: 0.3;
+    box-shadow: 0 0 0px #ffd700;
   }
 }
 

@@ -54,7 +54,7 @@ export default function LuckySpinParty() {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      if (now - lastRoundTime >= 60000) {
+      if (now - lastRoundTime >= 15000) {
         refreshRounds(allPrizes);
       }
     }, 1000);
@@ -62,7 +62,7 @@ export default function LuckySpinParty() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         const now = Date.now();
-        if (now - lastRoundTime >= 60000) {
+        if (now - lastRoundTime >= 15000) {
           refreshRounds(allPrizes);
         }
       }

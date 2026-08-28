@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 
-export default function PrizePopup({ initialData = null, onSave, onClose }) {
+export default function PrizePopup({
+  initialData = null,
+  onSave,
+  onClose,
+}) {
   const [text, setText] = useState("");
   const [unit, setUnit] = useState("");
   const [packaging, setPackaging] = useState("");
@@ -11,8 +15,10 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
   const [images, setImages] = useState([]);
   const [cost, setCost] = useState("");
 
+  const [isSaving, setIsSaving] = useState(false);
+
   // ============================================================
-  // 1. NẠP DỮ LIỆU
+  // NẠP DỮ LIỆU
   // ============================================================
 
   useEffect(() => {
@@ -24,13 +30,13 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
       setQuantity(initialData.quantity ?? "");
       setNote(initialData.note || "");
 
-      if (Array.isArray(initialData.images)) {
-        setImages(initialData.images);
-      } else if (initialData.image) {
+      // prizes dùng image (số ít)
+      if (initialData.image) {
         setImages([initialData.image]);
       } else {
         setImages([]);
       }
+
     } else {
       setText("");
       setCost("");
@@ -43,16 +49,21 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
   }, [initialData]);
 
   // ============================================================
-  // 2. NHẬP GIÁ NHẬP
+  // GIÁ NHẬP
   // ============================================================
 
   const handleCostChange = (e) => {
     const rawValue = e.target.value.replace(/\D/g, "");
+
     setCost(rawValue);
   };
 
   const formatNumber = (value) => {
-    if (value === "" || value === null || value === undefined) {
+    if (
+      value === "" ||
+      value === null ||
+      value === undefined
+    ) {
       return "";
     }
 
@@ -60,7 +71,7 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
   };
 
   // ============================================================
-  // 3. CHỌN ẢNH
+  // CHỌN ẢNH
   // ============================================================
 
   const handleImageChange = (e) => {
@@ -73,33 +84,44 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
       preview: URL.createObjectURL(file),
     }));
 
-    setImages((prev) => [...prev, ...previews]);
+    setImages((prev) => [
+      ...prev,
+      ...previews,
+    ]);
 
     e.target.value = "";
   };
 
   // ============================================================
-  // 4. XÓA ẢNH
+  // XÓA ẢNH
   // ============================================================
 
   const handleRemoveImage = (index) => {
     setImages((prev) => {
       const removed = prev[index];
 
-      if (removed && typeof removed !== "string" && removed.preview?.startsWith("blob:")) {
+      if (
+        removed &&
+        typeof removed !== "string" &&
+        removed.preview?.startsWith("blob:")
+      ) {
         URL.revokeObjectURL(removed.preview);
       }
 
-      return prev.filter((_, i) => i !== index);
+      return prev.filter(
+        (_, i) => i !== index
+      );
     });
   };
 
   // ============================================================
-  // 5. LƯU FORM
+  // SAVE
   // ============================================================
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSaving) return;
 
     if (!text.trim()) {
       alert("Vui lòng nhập tên món quà!");
@@ -110,73 +132,99 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
     const packagingValue = Number(packaging) || 0;
     const quantityValue = Number(quantity) || 0;
 
-    // Giá vốn / 1 đơn vị
-    const unitCost = packagingValue > 0 ? costValue / packagingValue : costValue;
+    const unitCost =
+      packagingValue > 0
+        ? costValue / packagingValue
+        : costValue;
 
     const formData = {
       id: initialData?.id || null,
-
       text: text.trim(),
-
-      // Giá nhập thực tế
-      cost: unitCost,
-
+      cost: costValue,
       unit: unit.trim(),
-
-      // Số lượng đóng gói
       packaging: packagingValue,
-
-      // Tồn kho
       quantity: quantityValue,
-
-      // Giá vốn / đơn vị
       unit_cost: unitCost,
-
-      // Ưu tiên tự động
       priority: unitCost < 5000,
-
-      // Trạng thái
       is_active: initialData?.is_active ?? true,
-
       note: note.trim(),
-
-      // Ảnh tạm thời
       images,
     };
 
     if (typeof onSave !== "function") {
-      console.error("PrizePopup: chưa nhận được onSave");
+      console.error("❌ PrizePopup: onSave không tồn tại");
+      alert("Không thể lưu món quà.");
       return;
     }
 
-    onSave(formData);
+    setIsSaving(true);
+
+    try {
+      console.log("📤 PrizePopup gửi:", formData);
+
+      const result = await onSave(formData);
+
+      console.log("📥 PrizePopup nhận:", result);
+
+      if (!result || result.success !== true) {
+        const error =
+          result?.error ||
+          new Error("Không thể lưu món quà.");
+
+        throw error;
+      }
+
+      onClose();
+
+    } catch (error) {
+      console.error(
+        "❌ PrizePopup save error:",
+        error
+      );
+
+      alert(
+        `Không thể lưu món quà:\n${
+          error?.message ||
+          "Lỗi không xác định"
+        }`
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // ============================================================
-  // 6. UI
+  // UI
   // ============================================================
 
   return (
-    <form onSubmit={handleSubmit} className="events-popup-form">
-      {/* TÊN */}
+    <form
+      onSubmit={handleSubmit}
+      className="events-popup-form"
+    >
 
       <div className="events-form-group">
-        <label className="events-label">Tên món quà</label>
+        <label className="events-label">
+          Tên món quà
+        </label>
 
         <input
           type="text"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) =>
+            setText(e.target.value)
+          }
           placeholder="Nhập tên món quà..."
           className="events-input"
           required
+          disabled={isSaving}
         />
       </div>
 
-      {/* GIÁ NHẬP */}
-
       <div className="events-form-group">
-        <label className="events-label">Giá nhập</label>
+        <label className="events-label">
+          Giá nhập
+        </label>
 
         <input
           type="text"
@@ -185,93 +233,133 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
           onChange={handleCostChange}
           placeholder="Nhập giá nhập..."
           className="events-input"
+          disabled={isSaving}
         />
       </div>
 
-      {/* ĐƠN VỊ */}
-
       <div className="events-form-group">
-        <label className="events-label">Đơn vị</label>
+        <label className="events-label">
+          Đơn vị
+        </label>
 
-        <input type="text" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="VD: cái, hộp, thẻ..." className="events-input" />
+        <input
+          type="text"
+          value={unit}
+          onChange={(e) =>
+            setUnit(e.target.value)
+          }
+          placeholder="VD: cái, hộp, thẻ..."
+          className="events-input"
+          disabled={isSaving}
+        />
       </div>
 
-      {/* ĐÓNG GÓI */}
-
       <div className="events-form-group">
-        <label className="events-label">Đóng gói</label>
+        <label className="events-label">
+          Đóng gói
+        </label>
 
         <input
           type="number"
           min="0"
           step="1"
           value={packaging}
-          onChange={(e) => setPackaging(e.target.value)}
+          onChange={(e) =>
+            setPackaging(e.target.value)
+          }
           placeholder="Nhập số lượng đóng gói..."
           className="events-input"
+          disabled={isSaving}
         />
       </div>
 
-      {/* SỐ LƯỢNG */}
-
       <div className="events-form-group">
-        <label className="events-label">Số lượng trong kho</label>
+        <label className="events-label">
+          Số lượng trong kho
+        </label>
 
         <input
           type="number"
           min="0"
           step="1"
           value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
+          onChange={(e) =>
+            setQuantity(e.target.value)
+          }
           placeholder="Nhập số lượng..."
           className="events-input"
+          disabled={isSaving}
         />
       </div>
 
-      {/* GHI CHÚ */}
-
       <div className="events-form-group">
-        <label className="events-label">Ghi chú</label>
+        <label className="events-label">
+          Ghi chú
+        </label>
 
         <input
           type="text"
           value={note}
-          onChange={(e) => setNote(e.target.value)}
+          onChange={(e) =>
+            setNote(e.target.value)
+          }
           placeholder="VD: tăng 500đ / giảm 300đ..."
           className="events-input"
+          disabled={isSaving}
         />
       </div>
 
-      {/* HÌNH ẢNH */}
-
       <div className="events-form-group">
-        <label className="events-label">Hình ảnh</label>
+        <label className="events-label">
+          Hình ảnh
+        </label>
 
         <div className="events-upload-row">
           <label className="events-upload-btn">
             Chọn ảnh
+
             <input
               type="file"
               multiple
               accept="image/png, image/jpeg, image/jpg, image/webp"
               onChange={handleImageChange}
               className="events-file-input"
+              disabled={isSaving}
             />
           </label>
 
-          <span className="events-image-count">{images.length} ảnh đã chọn</span>
+          <span className="events-image-count">
+            {images.length} ảnh đã chọn
+          </span>
         </div>
 
         {images.length > 0 && (
           <div className="events-preview-container">
             {images.map((img, index) => {
-              const preview = typeof img === "string" ? img : img.preview || img.url;
+              const preview =
+                typeof img === "string"
+                  ? img
+                  : img.preview || img.url;
 
               return (
-                <div key={index} className="events-preview-item">
-                  <img src={preview} alt="preview" className="events-preview-img" />
+                <div
+                  key={index}
+                  className="events-preview-item"
+                >
+                  <img
+                    src={preview}
+                    alt="preview"
+                    className="events-preview-img"
+                  />
 
-                  <button type="button" onClick={() => handleRemoveImage(index)} className="events-remove-img-btn">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleRemoveImage(index)
+                    }
+                    className="events-remove-img-btn"
+                    disabled={isSaving}
+                  >
                     ✕
                   </button>
                 </div>
@@ -281,11 +369,16 @@ export default function PrizePopup({ initialData = null, onSave, onClose }) {
         )}
       </div>
 
-      {/* SAVE */}
-
-      <button type="submit" className="events-submit-btn">
-        Lưu lại
+      <button
+        type="submit"
+        className="events-submit-btn"
+        disabled={isSaving}
+      >
+        {isSaving
+          ? "Đang đẩy lên mây..."
+          : "Lưu lại"}
       </button>
+
     </form>
   );
 }
