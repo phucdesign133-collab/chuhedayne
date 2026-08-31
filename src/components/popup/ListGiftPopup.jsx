@@ -17,7 +17,7 @@ export default function ListGiftPopup({ isOpen, onClose, basicPrizes, vipPrizes 
         <button className="lg-close-btn" onClick={onClose}>&times;</button>
 
         <h3 className="lg-title">🎁 Danh Sách Quà Tặng</h3>
-        <p className="lg-subtitle">Vòng quay sẽ được làm mới sau mỗi 60 giây</p>
+        <p className="lg-subtitle">Vòng quay sẽ được làm mới sau mỗi 15 giây</p>
 
         {/* 2 Tab ngang */}
         <div className="lg-tab-container">

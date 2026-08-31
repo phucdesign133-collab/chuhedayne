@@ -111,6 +111,7 @@ body {
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
+  scrollbar-width: none !important;
 }
 
 /* Bọc lót thêm cho container chính nếu cần */

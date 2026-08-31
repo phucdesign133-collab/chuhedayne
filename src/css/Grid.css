@@ -1,5 +1,13 @@
 /* src/css/Grid.css */
-
+.admin-grid-fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  padding:10px;
+}
 .post-admin-container {
   display: flex;
   flex-direction: column;
@@ -8,7 +16,9 @@
   min-height: 100%;
   box-sizing: border-box;
 }
-
+.admin-grid-body{
+  margin:90px 0 60px 0;
+}
 .admin-grid-top-bar {
   display: flex;
   align-items: center;

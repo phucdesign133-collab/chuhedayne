@@ -1,0 +1,327 @@
+/* === MANAGER === */
+
+.manager {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+
+
+/* === LIST === */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* === CARD === */
+
+.card {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  column-gap: 12px;
+  row-gap: 10px;
+}
+
+/* === THÔNG TIN === */
+
+.info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.row {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #2c3e50;
+  text-align: left;
+  overflow-wrap: anywhere;
+  text-transform: capitalize;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.row strong {
+  font-weight: 700;
+}
+
+/* === PRIORITY === */
+
+.priority-yes {
+  color: #27ae60;
+}
+
+.priority-no {
+  color: #64748b;
+}
+
+/* === PRIZE NOTE === */
+
+.prize-note {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.prize-note-decrease {
+  color: #27ae60;
+}
+
+.prize-note-increase {
+  color: #c0392b;
+}
+
+/* === PRIZE IMAGE === */
+
+.prize-image-wrapper {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+}
+
+.prize-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prize-image-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+/* === FOOTER === */
+
+.card-footer {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* === ACTION === */
+
+.action-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.edit-btn {
+  background: #f1f5f9;
+  color: #2c3e50;
+}
+
+.delete-btn {
+  background: #fcebea;
+  color: #c0392b;
+}
+
+/* === EMPTY === */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ============================================================
+   CONTENT MANAGER
+   Chỉ bổ sung phần riêng của Content.
+   Các class Admin chung:
+   .manager
+   .list
+   .card
+   .info
+   .row
+   .card-footer
+   .action-btn
+   .edit-btn
+   .delete-btn
+   .empty
+   vẫn dùng CSS hiện tại.
+   ============================================================ */
+
+
+/* ============================================================
+   CARD CONTENT
+   ============================================================ */
+
+.content-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+/* ============================================================
+   MAIN
+   TEXT TRÁI - ẢNH PHẢI
+   ============================================================ */
+
+.content-card-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+}
+
+
+/* ============================================================
+   INFO
+   ============================================================ */
+
+.content-card-main .info {
+  flex: 1;
+  min-width: 0;
+}
+
+.content-card-main .row {
+  text-align: left;
+}
+
+
+/* ============================================================
+   IMAGE
+   ============================================================ */
+
+.content-image-box {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  flex: 0 0 150px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f1f3f5;
+  border: 1px solid #eaeaea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* ============================================================
+   IMAGE COUNT
+   ============================================================ */
+
+.content-image-count {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+
+  padding: 2px 6px;
+
+  border-radius: 5px;
+
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  line-height: 1.3;
+}
+
+
+/* ============================================================
+   EMPTY IMAGE
+   ============================================================ */
+
+.content-image-empty {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #999;
+}
+
+
+/* ============================================================
+   VIEW BUTTON
+   ============================================================ */
+
+.view-btn {
+  color: #333;
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+  .content-card-main {
+    gap: 12px;
+  }
+
+  .content-image-box {
+    width: 110px;
+    height: 110px;
+    flex-basis: 110px;
+  }
+}
+
+@media (max-width: 420px) {
+  .content-image-box {
+    width: 90px;
+    height: 90px;
+    flex-basis: 90px;
+  }
+
+  .content-card-main {
+    gap: 10px;
+  }
+}

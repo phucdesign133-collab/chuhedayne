@@ -90,7 +90,7 @@ export const EMOJI_ICONS = {
   supplies: <Package size={25} />,
 };
 
-// Phần cụm component/tiện ích riêng trong tab Tools
+// Phần cụm component/tiện ích riêng trong tab Tools . id8 là cánh cửa để đăng nhập admin
 export const toolsServices = [
   // { id: 1, name: "Create Invoice", icon: <FileText size={22} />, bg: "#ede9fe" },
   // { id: 2, name: "Pay Bills", icon: <FileSpreadsheet size={22} />, bg: "#fef3c7" },
@@ -113,7 +113,7 @@ export const hubData = {
         items: [
           { id: "birthday", name: "Sinh nhật", icon: <Cake size={22} />, path: "/admin/content/birthday" },
           { id: "wedding", name: "Cưới", icon: <Heart size={22} />, path: "/admin/content/wedding" },
-          { id: "thoinoi", name: "Thôi nôi", icon: <Baby size={22} />, path: "/admin/content/thoinoni" },
+          { id: "thoinoi", name: "Thôi nôi", icon: <Baby size={22} />, path: "/admin/content/thoinoi" },
           { id: "tuthien", name: "Từ thiện", icon: <Handshake size={22} />, path: "/admin/content/tuthien" },
           { id: "khaitruong", name: "Khai trương", icon: <PartyPopper size={22} />, path: "/admin/content/khaitruong" },
           { id: "trangtri", name: "Trang trí", icon: <Sparkles size={22} />, path: "/admin/content/trangtri" },

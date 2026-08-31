@@ -20,9 +20,9 @@
   position: relative; /* Để đặt icon close */
   background: white;
   padding: 30px;
-  border-radius: 20px;
-  max-width: 350px;
-  width: 90%;
+  /* border-radius: 20px; */
+  /* max-width: 350px; */
+  /* width: 90%; */
   text-align: center;
   margin-top: -5vh;
 }

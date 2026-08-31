@@ -1,5 +1,3 @@
-// src/components/popup/PrizePopup.jsx
-
 import React, { useEffect, useState } from "react";
 
 export default function PrizePopup({
@@ -30,13 +28,11 @@ export default function PrizePopup({
       setQuantity(initialData.quantity ?? "");
       setNote(initialData.note || "");
 
-      // prizes dùng image (số ít)
       if (initialData.image) {
         setImages([initialData.image]);
       } else {
         setImages([]);
       }
-
     } else {
       setText("");
       setCost("");
@@ -54,7 +50,6 @@ export default function PrizePopup({
 
   const handleCostChange = (e) => {
     const rawValue = e.target.value.replace(/\D/g, "");
-
     setCost(rawValue);
   };
 
@@ -152,7 +147,9 @@ export default function PrizePopup({
     };
 
     if (typeof onSave !== "function") {
-      console.error("❌ PrizePopup: onSave không tồn tại");
+      console.error(
+        "❌ PrizePopup: onSave không tồn tại"
+      );
       alert("Không thể lưu món quà.");
       return;
     }
@@ -160,22 +157,29 @@ export default function PrizePopup({
     setIsSaving(true);
 
     try {
-      console.log("📤 PrizePopup gửi:", formData);
+      console.log(
+        "📤 PrizePopup gửi:",
+        formData
+      );
 
       const result = await onSave(formData);
 
-      console.log("📥 PrizePopup nhận:", result);
+      console.log(
+        "📥 PrizePopup nhận:",
+        result
+      );
 
       if (!result || result.success !== true) {
         const error =
           result?.error ||
-          new Error("Không thể lưu món quà.");
+          new Error(
+            "Không thể lưu món quà."
+          );
 
         throw error;
       }
 
       onClose();
-
     } catch (error) {
       console.error(
         "❌ PrizePopup save error:",
@@ -194,17 +198,17 @@ export default function PrizePopup({
   };
 
   // ============================================================
-  // UI
+  // BODY
   // ============================================================
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="events-popup-form"
+      className="popup-form"
     >
 
-      <div className="events-form-group">
-        <label className="events-label">
+      <div className="popup-row">
+        <label className="popup-label">
           Tên món quà
         </label>
 
@@ -215,14 +219,14 @@ export default function PrizePopup({
             setText(e.target.value)
           }
           placeholder="Nhập tên món quà..."
-          className="events-input"
+          className="popup-input"
           required
           disabled={isSaving}
         />
       </div>
 
-      <div className="events-form-group">
-        <label className="events-label">
+      <div className="popup-row">
+        <label className="popup-label">
           Giá nhập
         </label>
 
@@ -232,13 +236,13 @@ export default function PrizePopup({
           value={formatNumber(cost)}
           onChange={handleCostChange}
           placeholder="Nhập giá nhập..."
-          className="events-input"
+          className="popup-input"
           disabled={isSaving}
         />
       </div>
 
-      <div className="events-form-group">
-        <label className="events-label">
+      <div className="popup-row">
+        <label className="popup-label">
           Đơn vị
         </label>
 
@@ -249,13 +253,13 @@ export default function PrizePopup({
             setUnit(e.target.value)
           }
           placeholder="VD: cái, hộp, thẻ..."
-          className="events-input"
+          className="popup-input"
           disabled={isSaving}
         />
       </div>
 
-      <div className="events-form-group">
-        <label className="events-label">
+      <div className="popup-row">
+        <label className="popup-label">
           Đóng gói
         </label>
 
@@ -268,13 +272,13 @@ export default function PrizePopup({
             setPackaging(e.target.value)
           }
           placeholder="Nhập số lượng đóng gói..."
-          className="events-input"
+          className="popup-input"
           disabled={isSaving}
         />
       </div>
 
-      <div className="events-form-group">
-        <label className="events-label">
+      <div className="popup-row">
+        <label className="popup-label">
           Số lượng trong kho
         </label>
 
@@ -287,13 +291,13 @@ export default function PrizePopup({
             setQuantity(e.target.value)
           }
           placeholder="Nhập số lượng..."
-          className="events-input"
+          className="popup-input"
           disabled={isSaving}
         />
       </div>
 
-      <div className="events-form-group">
-        <label className="events-label">
+      <div className="popup-row">
+        <label className="popup-label">
           Ghi chú
         </label>
 
@@ -304,18 +308,20 @@ export default function PrizePopup({
             setNote(e.target.value)
           }
           placeholder="VD: tăng 500đ / giảm 300đ..."
-          className="events-input"
+          className="popup-input"
           disabled={isSaving}
         />
       </div>
 
-      <div className="events-form-group">
-        <label className="events-label">
+      {/* HÌNH ẢNH — NẰM TRONG BODY POPUP CHUNG */}
+
+      <div className="popup-row">
+        <label className="popup-label">
           Hình ảnh
         </label>
 
-        <div className="events-upload-row">
-          <label className="events-upload-btn">
+        <div className="popup-upload">
+          <label className="popup-upload-btn">
             Chọn ảnh
 
             <input
@@ -323,18 +329,18 @@ export default function PrizePopup({
               multiple
               accept="image/png, image/jpeg, image/jpg, image/webp"
               onChange={handleImageChange}
-              className="events-file-input"
+              className="popup-file-input"
               disabled={isSaving}
             />
           </label>
 
-          <span className="events-image-count">
+          <span className="popup-image-count">
             {images.length} ảnh đã chọn
           </span>
         </div>
 
         {images.length > 0 && (
-          <div className="events-preview-container">
+          <div className="popup-preview">
             {images.map((img, index) => {
               const preview =
                 typeof img === "string"
@@ -344,12 +350,12 @@ export default function PrizePopup({
               return (
                 <div
                   key={index}
-                  className="events-preview-item"
+                  className="popup-preview-item"
                 >
                   <img
                     src={preview}
                     alt="preview"
-                    className="events-preview-img"
+                    className="popup-preview-img"
                   />
 
                   <button
@@ -357,7 +363,7 @@ export default function PrizePopup({
                     onClick={() =>
                       handleRemoveImage(index)
                     }
-                    className="events-remove-img-btn"
+                    className="popup-remove-img"
                     disabled={isSaving}
                   >
                     ✕
@@ -369,15 +375,17 @@ export default function PrizePopup({
         )}
       </div>
 
-      <button
-        type="submit"
-        className="events-submit-btn"
-        disabled={isSaving}
-      >
-        {isSaving
-          ? "Đang đẩy lên mây..."
-          : "Lưu lại"}
-      </button>
+      <div className="popup-footer">
+        <button
+          type="submit"
+          className="popup-submit"
+          disabled={isSaving}
+        >
+          {isSaving
+            ? "Đang đẩy lên mây..."
+            : "Lưu lại"}
+        </button>
+      </div>
 
     </form>
   );
