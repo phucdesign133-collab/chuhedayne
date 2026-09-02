@@ -3,12 +3,7 @@ import { Pencil, Trash2, Wallet } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
 
-export default function IncomeManager({
-  searchTerm = "",
-  savedData = null,
-  onCountChange,
-  onEdit,
-}) {
+export default function IncomeManager({ searchTerm = "", savedData = null, onCountChange, onEdit }) {
   const [incomes, setIncomes] = useState([]);
 
   // ============================================================
@@ -48,15 +43,9 @@ export default function IncomeManager({
         return [savedData, ...prev];
       }
 
-      const exists = prev.some(
-        (item) => item.id === savedData.id,
-      );
+      const exists = prev.some((item) => item.id === savedData.id);
 
-      return exists
-        ? prev.map((item) =>
-            item.id === savedData.id ? savedData : item,
-          )
-        : [savedData, ...prev];
+      return exists ? prev.map((item) => (item.id === savedData.id ? savedData : item)) : [savedData, ...prev];
     });
   }, [savedData]);
 
@@ -115,31 +104,20 @@ export default function IncomeManager({
   // ============================================================
 
   const handleDelete = async (income) => {
-    const confirmed = window.confirm(
-      `Xóa khoản thu "${income.title || "không tên"}" khỏi danh sách?`,
-    );
+    const confirmed = window.confirm(`Xóa khoản thu "${income.title || "không tên"}" khỏi danh sách?`);
 
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from("incomes")
-        .delete()
-        .eq("id", income.id);
+      const { error } = await supabase.from("incomes").delete().eq("id", income.id);
 
       if (error) throw error;
 
-      setIncomes((prev) =>
-        prev.filter((item) => item.id !== income.id),
-      );
+      setIncomes((prev) => prev.filter((item) => item.id !== income.id));
     } catch (error) {
       console.error("❌ Lỗi xóa thu nhập:", error);
 
-      alert(
-        `Không thể xóa thu nhập:\n${
-          error?.message || "Lỗi không xác định"
-        }`,
-      );
+      alert(`Không thể xóa thu nhập:\n${error?.message || "Lỗi không xác định"}`);
     }
   };
 
@@ -158,9 +136,7 @@ export default function IncomeManager({
   const formatDate = (value) => {
     if (!value) return "";
 
-    const match = String(value).match(
-      /^(\d{4})-(\d{2})-(\d{2})$/,
-    );
+    const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
     if (!match) return value;
 
@@ -198,24 +174,16 @@ export default function IncomeManager({
           </div>
         ) : (
           filteredIncomes.map((income, index) => (
-            <div
-              className="card"
-              key={income.id || `income-${index}`}
-            >
+            <div className="card" key={income.id || `income-${index}`}>
               <div className="info">
-
                 {/* NỘI DUNG */}
-                <div className="row name">
-                  {income.title || ""}
-                </div>
+                <div className="row name">{income.title || ""}</div>
 
                 {/* NGUỒN */}
                 {income.source && (
                   <div className="row">
                     <span>Nguồn: </span>
-                    <strong>
-                      {formatSource(income.source)}
-                    </strong>
+                    <strong>{formatSource(income.source)}</strong>
                   </div>
                 )}
 
@@ -228,15 +196,12 @@ export default function IncomeManager({
                 )}
 
                 {/* THỰC NHẬN */}
-                {income.received !== null &&
-                  income.received !== undefined && (
-                    <div className="row">
-                      <span>Thực nhận: </span>
-                      <strong>
-                        {formatMoney(income.received)}
-                      </strong>
-                    </div>
-                  )}
+                {income.received !== null && income.received !== undefined && (
+                  <div className="row">
+                    <span>Thực nhận: </span>
+                    <strong>{formatMoney(income.received)}</strong>
+                  </div>
+                )}
 
                 {/* GHI CHÚ - CHỈ RENDER KHI CÓ DATA */}
                 {income.note && (
@@ -245,24 +210,15 @@ export default function IncomeManager({
                     {income.note}
                   </div>
                 )}
-
               </div>
 
               <div className="card-footer">
-                <button
-                  type="button"
-                  className="action-btn edit-btn"
-                  onClick={() => handleEdit(income)}
-                >
+                <button type="button" className="action-btn edit-btn" onClick={() => handleEdit(income)}>
                   <Pencil size={16} />
                   Sửa
                 </button>
 
-                <button
-                  type="button"
-                  className="action-btn delete-btn"
-                  onClick={() => handleDelete(income)}
-                >
+                <button type="button" className="action-btn delete-btn" onClick={() => handleDelete(income)}>
                   <Trash2 size={16} />
                   Xóa
                 </button>

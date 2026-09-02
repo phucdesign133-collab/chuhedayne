@@ -1,4 +1,5 @@
 import React from "react";
+
 import PrizePopup from "./PrizePopup";
 import CustomerPopup from "./CustomerPopup";
 import BookingPopup from "./BookingPopup";
@@ -7,9 +8,10 @@ import IncomePopup from "./IncomePopup";
 import PurchasePopup from "./PurchasePopup";
 import ShippedPrizesPopup from "./ShippedPrizesPopup";
 import WarehousePopup from "./WarehousePopup";
+import PricePopup from "./PricePopup";
+
 import "../../css/Popup.css";
 
-// RENDER POPUP CÁC CHỨC NĂNG
 export default function Popup({ isOpen, onClose, onSave, categoryId, initialData = null }) {
   if (!isOpen) return null;
 
@@ -31,100 +33,93 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
     if (categoryId === "calendar") {
       return `${action} Booking`;
     }
+
     if (categoryId === "income") {
       return `${action} khoản thu`;
     }
+
+    if (categoryId === "purchase") {
+      return `${action} khoản mua`;
+    }
+
     if (categoryId === "shipped-prizes") {
       return `${action} quà đã gửi`;
     }
+
     if (["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId)) {
       return `${action} vật tư`;
     }
+
+    // ==========================================================
+    // PRICE
+    // ==========================================================
+
+    if (categoryId === "price-decoration") {
+      return `${action} giá trang trí`;
+    }
+
+    if (categoryId === "price-party") {
+      return `${action} giá biểu diễn`;
+    }
+
     return `${action} nội dung`;
   };
 
   // ============================================================
-  // RENDER BODY THEO CATEGORY
+  // POPUP CONTENT
   // ============================================================
 
   const renderPopupContent = () => {
-    // ----------------------------------------------------------
-    // PRIZES
-    // ----------------------------------------------------------
-
     if (categoryId === "prizes") {
       return <PrizePopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     }
-
-    // ----------------------------------------------------------
-    // CUSTOMER
-    // ----------------------------------------------------------
 
     if (categoryId === "customer-info") {
       return <CustomerPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     }
 
-    // ----------------------------------------------------------
-    // CALENDAR / BOOKING
-    // ----------------------------------------------------------
-
     if (categoryId === "calendar") {
       return <BookingPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     }
 
-    // ----------------------------------------------------------
-    // INCOME
-    //
     if (categoryId === "income") {
       return <IncomePopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     }
-    // ============================================================
-    // PURCHASE
-    // ============================================================
 
     if (categoryId === "purchase") {
       return <PurchasePopup initialData={initialData} onSave={onSave} onClose={onClose} />;
     }
-    // ============================================================
-    // QUÀ ĐÃ GỬI
-    // ============================================================
+
     if (categoryId === "shipped-prizes") {
       return <ShippedPrizesPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     }
-    // ============================================================
-    // KHO VẬT TƯ: BÓNG - ZIP - TEM - TRANG PHỤC
-    // ============================================================
+
     if (["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId)) {
       return <WarehousePopup initialData={initialData} categoryId={categoryId} onSave={onSave} onClose={onClose} />;
     }
-    // ----------------------------------------------------------
+
+    // ==========================================================
+    // PRICE
+    // ==========================================================
+
+    if (categoryId === "price-decoration" || categoryId === "price-party") {
+      return <PricePopup onClose={onClose} onSave={onSave} initialData={initialData} categoryId={categoryId} />;
+    }
+
+    // ==========================================================
     // CONTENT
-    //
-    // categoryId lúc này có thể là:
-    // birthday
-    // wedding
-    // thoinoi
-    // logo
-    // facebook
-    // tiktok
-    // ...
-    //
-    // Không dùng categoryId === "content"
-    // vì route thực tế là:
-    // /admin/content/:categoryId
-    // ----------------------------------------------------------
+    // ==========================================================
 
     return <ContentPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
   };
 
   // ============================================================
-  // UI KHUNG POPUP DÙNG CHUNG
+  // UI
   // ============================================================
 
   return (
     <div className="popup-container">
       <div className="popup-wrapper">
-        {/* HEADER */}
         <div className="popup-header">
           <h2 className="popup-title">{getPopupTitle()}</h2>
 
@@ -133,7 +128,6 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
           </button>
         </div>
 
-        {/* BODY */}
         <div className="popup-body">{renderPopupContent()}</div>
       </div>
     </div>

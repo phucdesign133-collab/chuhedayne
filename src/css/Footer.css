@@ -1,31 +1,105 @@
-/* src/css/Footer.css */
+/* =========================================================
+   PHUC GROUP — FOOTER
+   User Footer + Admin Footer dùng chung
+   ========================================================= */
 
 .mobile-bottom-nav {
-  position: absolute;
+  /*
+    FIXED:
+    Footer bám theo viewport, không chạy theo document.
+  */
+  position: fixed;
+
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  width: 100%;
+  max-width: 480px;
+
+  /*
+    Chiều cao phần navigation.
+  */
   height: 70px;
+
+  /*
+    QUAN TRỌNG:
+    Footer luôn có nền trắng.
+    Safe-area cũng thuộc Footer.
+  */
   background: #ffffff;
+
+  /*
+    Safari / iPhone có Home Indicator:
+    Footer tự mở rộng xuống vùng safe-area.
+  */
+  padding-bottom: env(safe-area-inset-bottom);
+
+  /*
+    box-sizing để height + padding không làm layout
+    bị khó kiểm soát.
+  */
+  box-sizing: border-box;
+
   display: flex;
   justify-content: space-around;
   align-items: center;
+
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-  z-index: 100;
+
+  z-index: 1000;
+
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  /* TUYỆT ĐỐI KHÔNG DÙNG overflow: hidden Ở ĐÂY ĐỂ TRÁNH BỊ CẮT VÒNG TRÒN */
+
+  /*
+    TUYỆT ĐỐI KHÔNG DÙNG overflow: hidden
+    Ở đây để tránh cắt vòng tròn follow.
+  */
 }
+
+/* =========================================================
+   SAFARI SAFE-AREA
+   ---------------------------------------------------------
+   Phủ trắng tuyệt đối phần nằm dưới Footer.
+   Không cho nhìn xuyên xuống background của page.
+   ========================================================= */
+
+.mobile-bottom-nav::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: env(safe-area-inset-bottom);
+
+  background: #ffffff;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   NAV ITEM
+   ========================================================= */
 
 .mobile-bottom-nav .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
   flex: 1;
+
   height: 100%;
+
   cursor: pointer;
-  z-index: 11; /* Nằm đè lên trên cục tròn follow để click và hiển thị chuẩn */
+
+  z-index: 11;
+
   transition: transform 0.2s ease;
 }
 
@@ -33,22 +107,34 @@
   transform: scale(0.9);
 }
 
+/* =========================================================
+   ICON
+   ========================================================= */
+
 .mobile-bottom-nav .nav-icon {
   font-size: 25px;
   margin-bottom: 2px;
+
   transition: transform 0.3s ease;
 }
+
+/* =========================================================
+   TEXT
+   ========================================================= */
 
 .mobile-bottom-nav .nav-text {
   font-size: 10px;
   font-weight: 600;
+
   color: #64748b;
+
   transition: all 0.3s ease;
 }
 
-/* ==========================================
-   1. DÀNH CHO ADMIN FOOTER (Đổi màu theo tab)
-   ========================================== */
+/* =========================================================
+   ADMIN FOOTER
+   ========================================================= */
+
 .mobile-bottom-nav:not(.user-footer) .nav-item.active .nav-icon {
   transform: translateY(-22px);
   color: var(--tab-glow-color) !important;
@@ -56,41 +142,77 @@
 
 .mobile-bottom-nav:not(.user-footer) .nav-item.active .nav-text {
   color: #1e293b;
+
   font-weight: 700;
+
   transform: translateY(-16px);
 }
 
 .mobile-bottom-nav:not(.user-footer) .follow {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08), 0 0 0 8px var(--tab-glow-color, #C0392B);
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.08),
+    0 0 0 8px var(--tab-glow-color, #c0392b);
 }
 
+/* =========================================================
+   USER FOOTER
+   ========================================================= */
 
-/* ==========================================
-   2. DÀNH CHO USER FOOTER (Luôn màu đỏ khi active)
-   ========================================== */
 .mobile-bottom-nav.user-footer .nav-item.active .nav-icon {
-  color: #e74c3c !important; /* Màu đỏ cho icon active phía user */
+  color: #e74c3c !important;
 }
 
 .mobile-bottom-nav.user-footer .nav-item.active .nav-text {
   color: #1e293b;
+
   font-weight: 700;
+
   transform: translateY(-16px);
 }
 
 .mobile-bottom-nav.user-footer .follow {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08), 0 0 0 8px #e74c3c; /* Viền cục tròn màu đỏ */
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.08),
+    0 0 0 8px #e74c3c;
 }
 
+/* =========================================================
+   FOLLOW CIRCLE
+   ========================================================= */
 
-/* Cục tròn trắng chung cho cả hai */
 .mobile-bottom-nav .follow {
   position: absolute;
+
   top: -22px;
+
   width: 70px;
   height: 70px;
+
   background-color: #ffffff;
+
   border-radius: 50%;
+
   transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
   z-index: 5;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (min-width: 640px) {
+  .mobile-bottom-nav {
+    max-width: 600px;
+  }
+}
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 1024px) {
+  .mobile-bottom-nav {
+    max-width: 768px;
+  }
 }

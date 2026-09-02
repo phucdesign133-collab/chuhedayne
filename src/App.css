@@ -1,91 +1,117 @@
-/* Giao diện tổng thể Phúc Group V2 - Tối ưu Responsive & Bảng màu chuẩn */
+/* =========================================================
+   PHUC GROUP V2 — APP LAYOUT
+   ========================================================= */
+
+/* =========================================================
+   PHUC GROUP BRAND COLORS
+   ========================================================= */
+
 :root {
-  --primary-rose: #E74C3C;      /* Đỏ hồng pastel dịu mắt, thay cho màu đỏ đậm cũ */
-  --primary-blue: #5DADE2;      /* Xanh dương (Quản lý Nội dung) */
-  --primary-yellow: #F4D03F;    /* Vàng (Quản lý Booking) */
-  --primary-red: #C0392B;       /* Giữ lại màu đỏ brand gốc nếu cần dùng chỗ khác */
-  --primary-green: #58D68D;     /* Xanh lá (Quản lý Tài chính) */
-  --primary-slate: #4f4f4f;     /* Xám slate pastel sang trọng, thay cho màu xám quá nhạt ở tab Công cụ */
-  
+  --primary-rose: #e74c3c;
+  --primary-blue: #5dade2;
+  --primary-yellow: #f4d03f;
+  --primary-red: #c0392b;
+  --primary-green: #58d68d;
+  --primary-slate: #4f4f4f;
+
   --text-main: #333;
-  --bg-main: #F8F9FA;
-  --card-bg: #FFFFFF;
+  --bg-main: #f8f9fa;
+  --card-bg: #ffffff;
 }
 
-input, select, textarea {
-  font-size: 16px !important; /* Chặn iOS tự động zoom */
-}
+/* =========================================================
+   APP CONTAINER
+   ========================================================= */
 
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  overflow-y:auto ;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-main);
-  color: var(--text-main);
-}
-
-/* Khung bọc ứng dụng: Responsive chuẩn Mobile / Tablet / Desktop */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+
   width: 100%;
-  max-width: 480px; /* Mặc định khung mobile thu gọn */
+  height: 100%;
+
+  max-width: 480px;
   margin: 0 auto;
-  background-color: var(--card-bg);
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+
   position: relative;
+
+  background-color: var(--card-bg);
+
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+
   overflow: hidden;
+
+  box-sizing: border-box;
 }
 
-/* Tablet (từ 640px trở lên) */
+/* =========================================================
+   TABLET
+   ========================================================= */
+
 @media (min-width: 640px) {
   .app-container {
     max-width: 600px;
-    border-left: 1px solid #E2E8F0;
-    border-right: 1px solid #E2E8F0;
+
+    border-left: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
   }
 }
 
-/* Desktop (từ 1024px trở lên) */
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
 @media (min-width: 1024px) {
   .app-container {
-    max-width: 768px; /* Giữ khung giả lập app di động chuyên nghiệp trên màn hình lớn */
+    max-width: 768px;
+
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
   }
 }
 
+/* =========================================================
+   APP CONTENT
+   ---------------------------------------------------------
+   Đây là vùng content của App.
+   Component nào cần scroll có thể tự quản lý
+   vùng scroll của chính nó.
+   ========================================================= */
+
 .app-content {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 auto;
+
+  width: 100%;
+
   box-sizing: border-box;
-  scrollbar-width: thin;
+
+  /*
+    Không ép safe-area ở đây.
+    Safe-area thuộc Footer.
+  */
 }
 
-.app-content::-webkit-scrollbar {
-  width: 5px;
-}
+/* =========================================================
+   INPUT CHUNG
+   ========================================================= */
 
-.app-content::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 3px;
-}
-
-/* Input chung gọn gàng */
 input {
   width: 100%;
+
   padding: 12px;
   margin: 8px 0;
+
   box-sizing: border-box;
+
   border-radius: 8px;
-  border: 1px solid #CBD5E1;
-  background: #FFFFFF;
+  border: 1px solid #cbd5e1;
+
+  background: #ffffff;
   color: var(--text-main);
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--primary-dark-red);
 }

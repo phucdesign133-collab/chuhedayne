@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Plus, Search } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { hubData } from "../datas/icons";
-import { ArrowLeft, Plus } from "lucide-react";
-import { supabase } from "./utils/supabaseClient";
-import Popup from "./popup/Popup";
-import "../css/Grid.css";
 
-// CÁC JSX COMPONENT CON
+import { hubData } from "../datas/icons";
+import { supabase } from "./utils/supabaseClient";
+
+import Popup from "./popup/Popup";
+
 import PrizeManager from "../pages/PrizeManager";
 import CustomerManager from "../pages/CustomerManager";
 import BookingManager from "../pages/BookingManager";
@@ -16,424 +16,454 @@ import FundManager from "../pages/FundManager";
 import PurchaseManager from "../pages/PurchaseManager";
 import ShippedPrizesManager from "../pages/ShippedPrizesManager";
 import WarehouseManager from "../pages/WarehouseManager";
+import PriceManager from "../pages/PriceManager";
+
+import "../css/Grid.css";
 
 export default function Grid() {
   const navigate = useNavigate();
   const { categoryId } = useParams();
 
+  // =========================================================
+  // STATE
+  // =========================================================
+
   const [searchTerm, setSearchTerm] = useState("");
+
   const [itemCount, setItemCount] = useState(0);
+
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+
   const [editingData, setEditingData] = useState(null);
-  const [savedData, setSavedData] = useState(null);
 
-  // ============================================================
-  // TÌM CATEGORY HIỆN TẠI
-  // ============================================================
+  const [savedData, setSavedData] = useState([]);
 
+  // =========================================================
+  // CATEGORY
+  // =========================================================
+
+  // Tất cả category của toàn bộ Hub
   const allCategories = useMemo(() => {
-    if (!hubData) return [];
+    return Object.values(hubData || {}).flatMap((hub) => {
+      const sections = hub?.sections || [];
 
-    const items = [];
-
-    Object.values(hubData).forEach((tab) => {
-      if (!tab?.sections) return;
-
-      tab.sections.forEach((section) => {
-        if (section?.items) {
-          items.push(...section.items);
-        }
-      });
+      return sections.flatMap((section) => section.items || []);
     });
-
-    return items;
   }, []);
 
-  const currentCategory = useMemo(() => allCategories.find((item) => item.id === categoryId), [allCategories, categoryId]);
+  // Riêng category thuộc Hub Content
+  const contentCategories = useMemo(() => {
+    const sections = hubData?.content?.sections || [];
 
-  const currentCategoryLabel = currentCategory?.name || "Quản lý";
+    return sections.flatMap((section) => section.items || []);
+  }, []);
 
-  // ============================================================
-  // POPUP
-  // ============================================================
+  const currentCategory = useMemo(() => {
+    return allCategories.find((item) => item.id === categoryId);
+  }, [allCategories, categoryId]);
+
+  const currentCategoryLabel = currentCategory?.name || currentCategory?.title || "";
+
+  // =========================================================
+  // SPECIAL CATEGORIES
+  // =========================================================
+
+  const isPriceCategory = categoryId === "price-decoration" || categoryId === "price-party";
+
+  const isWarehouseCategory = ["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId);
+
+  const isContentCategory = contentCategories.some((item) => item.id === categoryId);
+
+  // =========================================================
+  // ADD
+  // =========================================================
 
   const handleAddNewClick = () => {
     setEditingData(null);
     setIsPopupOpen(true);
   };
 
+  // =========================================================
+  // CLOSE
+  // =========================================================
+
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     setEditingData(null);
   };
 
-  const handleEdit = (data) => {
-    setEditingData(data);
+  // =========================================================
+  // EDIT
+  // =========================================================
+
+  const handleEdit = (item) => {
+    setEditingData(item);
     setIsPopupOpen(true);
   };
 
-  // ============================================================
-  // ẢNH
-  // ============================================================
+  // =========================================================
+  // IMAGE PREPARE
+  // =========================================================
 
-  const fileToDataUrl = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
+  const prepareImages = (images) => {
+    if (!images) {
+      return [];
+    }
 
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    if (Array.isArray(images)) {
+      return images;
+    }
 
-  const prepareImages = async (images = []) => {
-    const result = [];
+    if (typeof images === "string") {
+      try {
+        const parsed = JSON.parse(images);
 
-    for (const image of images) {
-      // URL ảnh đã tồn tại
-      if (typeof image === "string") {
-        result.push(image);
-        continue;
-      }
-
-      // Trường hợp dữ liệu cũ có dạng { file }
-      if (image?.file instanceof File) {
-        result.push(await fileToDataUrl(image.file));
-        continue;
-      }
-
-      // Trường hợp dữ liệu có dạng { url }
-      if (image?.url) {
-        result.push(image.url);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
       }
     }
 
-    return result;
+    return [];
   };
 
-  // ============================================================
+  // =========================================================
   // SAVE POPUP
-  // Mỗi category có payload + table riêng
-  // ============================================================
+  // =========================================================
 
   const handleSavePopup = async (formData) => {
-    console.log("📥 Grid nhận dữ liệu Popup:", formData);
-
     try {
-      let payload;
-      let table;
+      // =====================================================
+      // PRICE
+      //
+      // Tạm thời KHÔNG ghi DB.
+      // Chỉ lưu local vào Grid để test UI/formula.
+      // Sau khi chốt schema giá -> chuyển sang Supabase.
+      // =====================================================
 
-      // ========================================================
-      // PRIZES
-      // ========================================================
-      if (categoryId === "prizes") {
-        const images = await prepareImages(formData.images);
+      if (isPriceCategory) {
+        const data = {
+          ...formData,
 
-        table = "prizes";
+          category: categoryId,
 
-        payload = {
-          text: String(formData.text || "").trim(),
-
-          cost: Number(formData.cost) || 0,
-
-          unit: String(formData.unit || "").trim(),
-
-          packaging: Number(formData.packaging) || 0,
-
-          quantity: Number(formData.quantity) || 0,
-
-          unit_cost: Number(formData.unit_cost) || 0,
-
-          priority: Boolean(formData.priority),
-
-          is_active: formData.is_active ?? true,
-
-          note: String(formData.note || "").trim(),
-
-          image: images,
+          // đảm bảo ID cho item mới
+          id: formData.id || `price-${Date.now()}`,
         };
-      }
 
-      // ========================================================
-      // CUSTOMER
-      // ========================================================
-      if (categoryId === "customer-info") {
-        table = "customer";
+        setSavedData((prev) => {
+          const current = Array.isArray(prev) ? prev : [];
 
-        const events = Array.isArray(formData.events)
-          ? formData.events.filter(
-              (item) => String(item?.eventName || "").trim() || String(item?.eventDate || "").trim() || Number(item?.orderValue) > 0,
-            )
-          : [];
+          const sameCategory = current.filter((item) => item.category === categoryId);
 
-        const firstEvent = events[0] || null;
+          const otherCategory = current.filter((item) => item.category !== categoryId);
 
-        // ------------------------------------------------------
-        // event_date là NOT NULL trong Supabase.
-        // ------------------------------------------------------
+          const existingIndex = sameCategory.findIndex((item) => {
+            if (data.id && item.id === data.id) {
+              return true;
+            }
 
-        let eventName = String(firstEvent?.eventName || "").trim();
+            return (
+              String(item.title || "")
+                .trim()
+                .toLowerCase() ===
+              String(data.title || "")
+                .trim()
+                .toLowerCase()
+            );
+          });
 
-        let eventDate = String(firstEvent?.eventDate || "").trim();
-
-        let orderValue = Number(firstEvent?.orderValue) || 0;
-
-        // ------------------------------------------------------
-        // FALLBACK HISTORY
-        // ------------------------------------------------------
-
-        if (!eventDate) {
-          const validHistory = Array.isArray(formData.history) ? formData.history.filter((item) => String(item?.event_date || "").trim()) : [];
-
-          const latestHistory = validHistory.length > 0 ? validHistory[validHistory.length - 1] : null;
-
-          if (latestHistory) {
-            eventName = String(latestHistory.event_name || "").trim();
-
-            eventDate = String(latestHistory.event_date || "").trim();
-
-            orderValue = Number(latestHistory.order_value) || 0;
+          if (existingIndex >= 0) {
+            sameCategory[existingIndex] = data;
+          } else {
+            sameCategory.push(data);
           }
-        }
 
-        // ------------------------------------------------------
-        // Không cho gửi null xuống DB.
-        // ------------------------------------------------------
+          return [...otherCategory, ...sameCategory];
+        });
 
-        if (!eventDate) {
-          throw new Error("Khách hàng chưa có ngày sự kiện. Vui lòng nhập ngày sự kiện.");
-        }
+        setIsPopupOpen(false);
+        setEditingData(null);
 
-        payload = {
-          customer_name: String(formData.customer_name || "").trim(),
-
-          phone: String(formData.phone || "").replace(/\D/g, ""),
-
-          event_name: eventName,
-
-          event_date: eventDate,
-
-          order_value: Number(formData.order_value) || orderValue,
-
-          referral_phone: String(formData.referral_phone || "").replace(/\D/g, ""),
-
-          cashback: Number(formData.cashback) || 0,
-
-          member_tier: Number(formData.member_tier) || 0,
-
-          member_percent: Number(formData.member_percent) || 0,
-
-          note: String(formData.note || "").trim(),
-
-          history: Array.isArray(formData.history) ? formData.history : [],
-
-          repeat_event: Boolean(formData.repeat_event),
-
-          is_active: formData.is_active ?? true,
+        return {
+          success: true,
+          data,
         };
       }
-      // ========================================================
-      // CALENDAR / BOOKING
-      // ========================================================
+
+      // =====================================================
+      // PRIZES
+      // =====================================================
+
+      if (categoryId === "prizes") {
+        const payload = {
+          ...formData,
+          images: prepareImages(formData.images),
+        };
+
+        let result;
+
+        if (formData.id) {
+          result = await supabase.from("prizes").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("prizes").insert(payload).select().single();
+        }
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        setSavedData(result.data);
+
+        setIsPopupOpen(false);
+        setEditingData(null);
+
+        return {
+          success: true,
+          data: result.data,
+        };
+      }
+
+      // =====================================================
+      // CUSTOMER
+      // =====================================================
+
+      if (categoryId === "customer-info") {
+        const payload = {
+          ...formData,
+          images: prepareImages(formData.images),
+        };
+
+        let result;
+
+        if (formData.id) {
+          result = await supabase.from("customer").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("customer").insert(payload).select().single();
+        }
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        setSavedData(result.data);
+
+        setIsPopupOpen(false);
+        setEditingData(null);
+
+        return {
+          success: true,
+          data: result.data,
+        };
+      }
+
+      // =====================================================
+      // BOOKING
+      // =====================================================
+
       if (categoryId === "calendar") {
-        table = "bookings";
+        const payload = {
+          ...formData,
+          images: prepareImages(formData.images),
+        };
 
-        payload = {
-          title: String(formData.title || "").trim(),
+        let result;
 
-          category: String(formData.category || "").trim(),
+        if (formData.id) {
+          result = await supabase.from("bookings").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("bookings").insert(payload).select().single();
+        }
 
-          date: formData.date || null,
+        if (result.error) {
+          throw result.error;
+        }
 
-          time_slot: String(formData.time_slot || "").trim(),
+        setSavedData(result.data);
 
-          staff_note: formData.staff_note || null,
+        setIsPopupOpen(false);
+        setEditingData(null);
 
-          amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
+        return {
+          success: true,
+          data: result.data,
         };
       }
 
-      // ========================================================
+      // =====================================================
       // INCOME
-      // ========================================================
+      // =====================================================
+
       if (categoryId === "income") {
-        table = "incomes";
+        const payload = {
+          ...formData,
+        };
 
-        payload = {
-          source: String(formData.source || "other").trim(),
+        let result;
 
-          title: String(formData.title || "").trim(),
+        if (formData.id) {
+          result = await supabase.from("incomes").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("incomes").insert(payload).select().single();
+        }
 
-          date: formData.date || null,
+        if (result.error) {
+          throw result.error;
+        }
 
-          received: formData.received !== "" && formData.received !== null && formData.received !== undefined ? Number(formData.received) || 0 : 0,
+        setSavedData(result.data);
 
-          note: String(formData.note || "").trim(),
+        setIsPopupOpen(false);
+        setEditingData(null);
+
+        return {
+          success: true,
+          data: result.data,
         };
       }
-      // ========================================================
+
+      // =====================================================
       // PURCHASE
-      // ========================================================
+      // =====================================================
+
       if (categoryId === "purchase") {
-        table = "purchases";
+        const payload = {
+          ...formData,
+        };
 
-        const quantity = Number(formData.quantity) || 0;
-        const unitPrice = Number(formData.unit_price) || 0;
+        let result;
 
-        const amount = quantity * unitPrice;
+        if (formData.id) {
+          result = await supabase.from("purchases").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("purchases").insert(payload).select().single();
+        }
 
-        payload = {
-          title: String(formData.title || "").trim(),
+        if (result.error) {
+          throw result.error;
+        }
 
-          quantity,
+        setSavedData(result.data);
 
-          unit: String(formData.unit || "").trim(),
+        setIsPopupOpen(false);
+        setEditingData(null);
 
-          packaging: Number(formData.packaging) || 0,
-
-          unit_price: unitPrice,
-
-          amount,
-
-          note: String(formData.note || "").trim(),
+        return {
+          success: true,
+          data: result.data,
         };
       }
-      // ========================================================
+
+      // =====================================================
       // SHIPPED PRIZES
-      // ========================================================
+      // =====================================================
 
       if (categoryId === "shipped-prizes") {
-        table = "shipped_prizes";
+        const payload = {
+          ...formData,
+          images: prepareImages(formData.images),
+        };
 
-        const images = await prepareImages(formData.images);
+        let result;
 
-        payload = {
-          customer_name: String(formData.customer_name || "").trim(),
+        if (formData.id) {
+          result = await supabase.from("shipped_prizes").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("shipped_prizes").insert(payload).select().single();
+        }
 
-          phone: String(formData.phone || "").replace(/\D/g, ""),
+        if (result.error) {
+          throw result.error;
+        }
 
-          address: String(formData.address || "").trim(),
+        setSavedData(result.data);
 
-          images,
+        setIsPopupOpen(false);
+        setEditingData(null);
 
-          note: String(formData.note || "").trim(),
+        return {
+          success: true,
+          data: result.data,
         };
       }
-      // ========================================================
+
+      // =====================================================
       // WAREHOUSE
-      // balloons / zip-bags / stamps / costumes
-      // ========================================================
+      // =====================================================
 
-      const warehouseCategories = ["balloons", "zip-bags", "stamps", "costumes"];
+      if (isWarehouseCategory) {
+        const payload = {
+          ...formData,
 
-      if (warehouseCategories.includes(categoryId)) {
-        table = "warehouse_items";
-
-        const images = await prepareImages(formData.images);
-
-        payload = {
           category: categoryId,
 
-          title: String(formData.title || "").trim(),
+          images: prepareImages(formData.images),
+        };
 
-          quantity: Number(formData.quantity) || 0,
+        let result;
 
-          unit: String(formData.unit || "").trim(),
+        if (formData.id) {
+          result = await supabase.from("warehouse_items").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("warehouse_items").insert(payload).select().single();
+        }
 
-          unit_price: Number(formData.unit_price) || 0,
+        if (result.error) {
+          throw result.error;
+        }
 
-          source: String(formData.source || "").trim(),
+        setSavedData(result.data);
 
-          break_even_usage: Number(formData.break_even_usage) || 0,
+        setIsPopupOpen(false);
+        setEditingData(null);
 
-          usage_count: Number(formData.usage_count) || 0,
-
-          images,
-
-          note: String(formData.note || "").trim(),
+        return {
+          success: true,
+          data: result.data,
         };
       }
-      // ========================================================
-      // CONTENT / SOCIAL / PRICE
-      //
-      // Dùng chung cho TẤT CẢ category trong hubData.content
-      // ========================================================
 
-      const contentItems = hubData.content.sections.flatMap((section) => section.items);
-
-      const isContentCategory = contentItems.some((item) => item.id === categoryId);
+      // =====================================================
+      // CONTENT / SERVICES
+      // =====================================================
 
       if (isContentCategory) {
-        table = "services";
+        const payload = {
+          ...formData,
 
-        const images = await prepareImages(formData.images);
+          images: prepareImages(formData.images),
+        };
 
-        payload = {
-          category: categoryId,
+        let result;
 
-          location: String(formData.location || "").trim(),
+        if (formData.id) {
+          result = await supabase.from("services").update(payload).eq("id", formData.id).select().single();
+        } else {
+          result = await supabase.from("services").insert(payload).select().single();
+        }
 
-          date: formData.date || null,
+        if (result.error) {
+          throw result.error;
+        }
 
-          // ContentPopup đang gửi title
-          // nên fallback sang title.
-          description: String(formData.description || formData.title || "").trim(),
+        setSavedData(result.data);
 
-          // Ảnh đầu tiên đồng bộ sang image_url
-          image_url: images[0] || "",
+        setIsPopupOpen(false);
+        setEditingData(null);
 
-          // Toàn bộ ảnh
-          images,
+        return {
+          success: true,
+          data: result.data,
         };
       }
 
-      // ========================================================
-      // CATEGORY CHƯA CÓ LOGIC SAVE
-      // ========================================================
-
-      if (!table || !payload) {
-        throw new Error(`Chưa có logic lưu cho: ${categoryId}`);
-      }
-
-      let data;
-
-      // ========================================================
-      // UPDATE
-      // ========================================================
-
-      if (formData.id) {
-        const { data: updatedData, error } = await supabase.from(table).update(payload).eq("id", formData.id).select("*").single();
-
-        if (error) throw error;
-
-        data = updatedData;
-      }
-
-      // ========================================================
-      // INSERT
-      // ========================================================
-      else {
-        const { data: insertedData, error } = await supabase.from(table).insert(payload).select("*").single();
-
-        if (error) throw error;
-
-        data = insertedData;
-      }
-
-      console.log(`☁️ ${table} lưu thành công:`, data);
-
-      // Record vừa INSERT/UPDATE
-      // được truyền trực tiếp xuống Manager.
-      setSavedData(data);
-
-      setIsPopupOpen(false);
-      setEditingData(null);
-
       return {
-        success: true,
-        data,
+        success: false,
       };
     } catch (error) {
-      console.error(`❌ Lỗi lưu ${categoryId}:`, error);
+      console.error("Lỗi lưu dữ liệu:", error);
+
+      alert(error?.message || "Không thể lưu dữ liệu.");
 
       return {
         success: false,
@@ -442,88 +472,222 @@ export default function Grid() {
     }
   };
 
-  // ============================================================
-  // CHECK CONTENT CATEGORY
-  // ============================================================
+  // =========================================================
+  // RENDER MANAGER
+  // =========================================================
 
-  const isContentCategory = useMemo(() => {
-    if (!hubData?.content?.sections) {
-      return false;
+  const renderManager = () => {
+    // -------------------------------------------------------
+    // PRICE
+    // -------------------------------------------------------
+
+    if (isPriceCategory) {
+      const categorySavedData = Array.isArray(savedData) ? savedData.filter((item) => item.category === categoryId) : [];
+
+      return (
+        <PriceManager
+          categoryId={categoryId}
+          searchTerm={searchTerm}
+          savedData={categorySavedData}
+          onCountChange={setItemCount}
+          onEdit={handleEdit}
+        />
+      );
     }
 
-    return hubData.content.sections.some((section) => section?.items?.some((item) => item.id === categoryId));
-  }, [categoryId]);
+    // -------------------------------------------------------
+    // PRIZES
+    // -------------------------------------------------------
 
-  // ============================================================
-  // UI
-  // ============================================================
+    if (categoryId === "prizes") {
+      return <PrizeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
+    // CUSTOMER
+    // -------------------------------------------------------
+
+    if (categoryId === "customer-info") {
+      return <CustomerManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
+    // BOOKING
+    // -------------------------------------------------------
+
+    if (categoryId === "calendar") {
+      return <BookingManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
+    // INCOME
+    // -------------------------------------------------------
+
+    if (categoryId === "income") {
+      return <IncomeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
+    // FUND
+    // -------------------------------------------------------
+
+    if (categoryId === "marketing-fund") {
+      return <FundManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
+    // PURCHASE
+    // -------------------------------------------------------
+
+    if (categoryId === "purchase") {
+      return <PurchaseManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
+    // SHIPPED PRIZES
+    // -------------------------------------------------------
+
+    if (categoryId === "shipped-prizes") {
+      return <ShippedPrizesManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
+    // WAREHOUSE
+    // -------------------------------------------------------
+
+    if (isWarehouseCategory) {
+      return (
+        <WarehouseManager categoryId={categoryId} searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
+      );
+    }
+
+    // -------------------------------------------------------
+    // CONTENT
+    // -------------------------------------------------------
+
+    if (isContentCategory) {
+      return (
+        <ContentManager categoryId={categoryId} searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
+      );
+    }
+
+    // -------------------------------------------------------
+    // NO MANAGER
+    // -------------------------------------------------------
+
+    return null;
+  };
+
+  // =========================================================
+  // POPUP TITLE
+  // =========================================================
+
+  const getPopupTitle = () => {
+    const action = editingData ? "Cập nhật" : "Thêm mới";
+
+    if (categoryId === "prizes") {
+      return `${action} món quà`;
+    }
+
+    if (categoryId === "customer-info") {
+      return `${action} khách hàng`;
+    }
+
+    if (categoryId === "calendar") {
+      return `${action} Booking`;
+    }
+
+    if (categoryId === "income") {
+      return `${action} khoản thu`;
+    }
+
+    if (categoryId === "purchase") {
+      return `${action} khoản mua`;
+    }
+
+    if (categoryId === "shipped-prizes") {
+      return `${action} quà đã gửi`;
+    }
+
+    if (isWarehouseCategory) {
+      return `${action} vật tư`;
+    }
+
+    // =======================================================
+    // PRICE
+    // =======================================================
+
+    if (categoryId === "price-decoration") {
+      return `${action} giá trang trí`;
+    }
+
+    if (categoryId === "price-party") {
+      return `${action} giá biểu diễn`;
+    }
+
+    return `${action} nội dung`;
+  };
+
+  // =========================================================
+  // RENDER
+  // =========================================================
 
   return (
-    <div className="post-admin-container" style={{ padding: "20px" }}>
+    <div className="post-admin-container">
+      {/* =====================================================
+          HEADER
+      ====================================================== */}
+
       <div className="admin-grid-fixed-header">
         <div className="admin-grid-top-bar">
-          <button type="button" onClick={() => navigate(-1)} className="admin-grid-back-btn" title="Quay lại">
+          <button type="button" className="admin-grid-back-btn" onClick={() => navigate(-1)} aria-label="Quay lại">
             <ArrowLeft size={20} />
           </button>
 
           <h2 className="admin-grid-heading">
-            {currentCategoryLabel}:<span> {itemCount} mục</span>
+            <span>{currentCategoryLabel}</span>
+
+            <small>: {itemCount} mục</small>
           </h2>
         </div>
+
+        {/* ===================================================
+            TOOLBAR
+        ==================================================== */}
 
         <div className="admin-grid-toolbar">
           <div className="admin-grid-search-wrapper">
             <input
               type="text"
+              className="admin-search-input"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Tìm kiếm..."
-              className="admin-search-input"
             />
           </div>
 
-          <button type="button" onClick={handleAddNewClick} className="admin-grid-add-btn-main">
-            <Plus size={18} />
+          <button type="button" className="admin-grid-add-btn-main" onClick={handleAddNewClick} aria-label="Thêm mới">
+            <Plus size={20} />
             Thêm mới
           </button>
         </div>
       </div>
 
+      {/* =====================================================
+          BODY
+      ====================================================== */}
+
       <div className="admin-grid-body">
-        {categoryId === "prizes" && <PrizeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />}
-
-        {categoryId === "customer-info" && (
-          <CustomerManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
-        )}
-
-        {categoryId === "calendar" && (
-          <BookingManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
-        )}
-
-        {categoryId === "income" && <IncomeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />}
-
-        {categoryId === "marketing-fund" && <FundManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} />}
-
-        {categoryId === "purchase" && (
-          <PurchaseManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
-        )}
-        {categoryId === "shipped-prizes" && (
-          <ShippedPrizesManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
-        )}
-        {["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId) && (
-          <WarehouseManager searchTerm={searchTerm} categoryId={categoryId} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
-        )}
-        {/* ======================================================
-            CONTENT
-            Dùng chung cho mọi category thuộc hubData.content
-            ====================================================== */}
-
-        {isContentCategory && (
-          <ContentManager searchTerm={searchTerm} categoryId={categoryId} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
-        )}
+        <div className="admin-grid-outlet-wrapper">{renderManager()}</div>
       </div>
 
-      <Popup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} categoryId={categoryId} initialData={editingData} />
+      {/* =====================================================
+          POPUP
+      ====================================================== */}
+
+      {isPopupOpen && (
+        <Popup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} categoryId={categoryId} initialData={editingData} />
+      )}
     </div>
   );
 }
