@@ -1,6 +1,8 @@
 # 📝 NHẬT KÝ CÚ PHÁP CODE CỦA DUSTIN
+
 chuhedayne-db (projectName)
 ChuHeDayNe@ (pass Supabase)
+
 ## 1. Cách chèn Lordicon (Icon Động)
 
 - Thẻ style trong React bắt buộc phải nằm trong 2 cặp dấu ngoặc nhọn `{{ }}`.
@@ -245,23 +247,23 @@ $i++
 
 # Lọc tất cả các file có đuôi jpg, jpeg, png
 
-
 # Dùng -Include với mảng rõ ràng hơn
+
 $i = 1
 
-Get-ChildItem -Include *.jpg, *.jpeg, *.png -Recurse | ForEach-Object {
-    $newName = "sinhnhat-bedieusan-$i.jpg"
-    $originalPath = $_.FullName
-    
+Get-ChildItem -Include _.jpg, _.jpeg, \*.png -Recurse | ForEach-Object {
+$newName = "sinhnhat-bedieusan-$i.jpg"
+$originalPath = $\_.FullName
+
     Write-Host "Đang xử lý: $($_.Name)..." -ForegroundColor Yellow
-    
+
     try {
         # -auto-orient=false: TẮT tự động xoay
         # -resize 1200x: giữ nguyên tỷ lệ, chiều rộng 1200px
         # -strip: xóa metadata
         # -quality 75: nén dung lượng
         magick.exe $originalPath -define jpeg:auto-orient=false -resize 1200x -strip -quality 75 $newName
-        
+
         # Kiểm tra xem file mới có thực sự tồn tại không
         if (Test-Path $newName) {
             Remove-Item $originalPath
@@ -273,6 +275,7 @@ Get-ChildItem -Include *.jpg, *.jpeg, *.png -Recurse | ForEach-Object {
     } catch {
         Write-Host "-> LỖI khi xử lý $($_.Name): $($_.Exception.Message)" -ForegroundColor Red
     }
+
 }
 
 ----x----Xem dưới dạng đã Build:
@@ -290,22 +293,21 @@ Chỉ trả về code.
 ...100-200 dòng...
 
 -----x------
-*BIỂU DIỄN ẢO THUẬT
+\*BIỂU DIỄN ẢO THUẬT
 
-_Vest truyền thống 
+\_Vest truyền thống
 Sinh nhật + trường học
-          1.000.000
+1.000.000
 Các sự kiện : 1.500.000
 ( ngày lễ + 500.000)
 
-_Ảo thuật nhân vật 
+\_Ảo thuật nhân vật
 Tôn ngộ không : 1.500.000
 Chư bác giới : 1.500.000
 ( ngày lễ + 1.000.000)
 
-
-*ROBOT KHỔNG LỒ 
- ( giá báo khách )
+\*ROBOT KHỔNG LỒ
+( giá báo khách )
 
 Compo 1
 1 con / 1 giờ / 3.000.000
@@ -317,94 +319,101 @@ Compo 2
 
 ( giá anh nhận )
 
-Compo1 
+Compo1
 1 con / 1 giờ / 2.500.000
 1 con / 2 giờ / 4.000.000
 
-Compo2 
+Compo2
 2 con / 1 giờ / 4.500.000
 2 con / 2 giờ / 8.000.000
 
-
-*MÚA LÂN 
+\*MÚA LÂN
 2 lân 1 địa 1 thần tài 2.500.000
-   _Nếu khách có thêm nhu cầu 
+\_Nếu khách có thêm nhu cầu
 Cộng thêm 2 lân 1.000.000
 Cộng thêm múa rồng 1.000.000
-Cộng thêm trống hội  1.000.000
+Cộng thêm trống hội 1.000.000
 ( có tặng xiếc + bắn pháo free )
 
-
-*BONG BÓNG KÍCH NỔ
-     (Giá báo khách) 
+\*BONG BÓNG KÍCH NỔ
+(Giá báo khách)
 4 trái lớn : 3.600.000
 6 trái lớn : 5.000.000
 8 trái lớn : 6.400.000
 10 trái lớn : 7.500.000
 
     (Giá nhận làm)
+
 4 trái lớn : 2.800.000
 6 trái lớn : 4.600.000
 8 trái lớn : 5.600.000
 10 trái lớn :7.000.000
-=>> bảng giá chỉ là bóng kích nổ bay lên 
-_Bóng rớt từ trên xuống sẽ tính 
+=>> bảng giá chỉ là bóng kích nổ bay lên
+\_Bóng rớt từ trên xuống sẽ tính
 Khách là 300.000
 Nhận làm 200.000
 
+\*KẸO BÔNG GÒN
+Ngày thường
+1H 500.000
+Ngày lễ
+1H 900.000
 
-*KẸO BÔNG GÒN 
-    Ngày thường
-1H  500.000
-    Ngày lễ 
-1H  900.000
+\*TÒ HE
+Ngày thường
+1h 500.000 - 600.000
+Ngày lễ
+1h 900.000 - 1.000.000
 
-
-*TÒ HE 
- Ngày thường 
-1h  500.000 - 600.000
- Ngày lễ 
-1h  900.000 - 1.000.000
-
-
-*CHÚ HỀ BB XÀ PHÒNG
-    Tiệc sinh nhật 
+\*CHÚ HỀ BB XÀ PHÒNG
+Tiệc sinh nhật
 1.500.000 đến 2.000.000
 (Tùy vào xa hay gần )
 
-  Các tiệt event trung thu lễ vv.....
+Các tiệt event trung thu lễ vv.....
 2.500.000 đến 3.000.000
 (Tùy thuộc xa gần)
 
 +Nhược điểm của bb show
 Hạn chế khu vực diễn gió mưa bảo chổ chật hẹp vv........
 
-+Ưu điểm của bb show 
++Ưu điểm của bb show
 Tạo ra cơn mưa bong bóng hài hước thú vị vui nhộn cho các bạn nhỏ .........tạo ra bong bóng xà phòng khổng lồn chứa được người để chụp hình ......
 
 ------x-------
 Báo giá Chương trình Sự kiện tại Phúc Design: (chi phí áp dụng tại Khu vực HCM)
 
 ✨ Set 1 (gói cơ bản) - 1.500.000
+
 - Bong bóng tạo hình + chú hề hoạt náo (kiêm MC) / hoặc bong bóng tạo hình + ảo thuật
 - Tặng thêm 1 chú hề (tổng cộng 2 chú hề)
 - Không giới hạn: Thời gian, Trò chơi, Số lượng bóng tạo hình
 
 ✨ Set 2 (gói ảo thuật) - 2.300.000
+
 - Bong bóng tạo hình + chú hề hoạt náo (kiêm MC) + ảo thuật (trị giá 1.000.000)
 - Không giới hạn: Thời gian, Trò chơi, Số lượng bóng tạo hình
 
 ✨ Set 3 (gói nhiếp ảnh) - 2.600.000
+
 - Bong bóng tạo hình + chú hề hoạt náo (kiêm MC) + nhiếp ảnh xuyên suốt tiệc (trị giá 1.200.000)
 - Không giới hạn: Thời gian, Trò chơi, Số lượng bóng tạo hình
 
 ✨ Set 4 (gói trang trí) - Liên hệ
+
 - Bong bóng tạo hình + chú hề hoạt náo (kiêm MC) + trang trí (toàn bộ, cổng, sân khấu…)
 - Không giới hạn: Thời gian, Trò chơi, Số lượng bóng tạo hình
 
 ✨ Set 4 (gói cao cấp) - Liên hệ
+
 - Bong bóng tạo hình + chú hề hoạt náo (kiêm MC) + ảo thuật (trị giá 1.000.000) + nhiếp ảnh xuyên suốt tiệc (trị giá 1.200.000) + trang trí (toàn bộ, cổng, sân khấu…)
 - Không giới hạn: Thời gian, Trò chơi, Số lượng bóng tạo hình
 
+Thêm script vào index.html để chuyển hướng khi dùng mã qr cũ
 
-  
+   <script>
+      // Chỉ chuyển hướng khi người dùng truy cập đúng link GitHub Pages lỗi thời
+      if (window.location.hostname.includes("github.io")) {
+        window.location.replace("https://phucgroup.vercel.app/");
+      }
+    </script>

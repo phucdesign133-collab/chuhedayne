@@ -3,34 +3,122 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  /* Chừa khoảng trống an toàn ở đáy để cục liên hệ không bị menu footer fixed che mất */
-  padding-bottom: 80px; 
+  padding-bottom: 80px;
   box-sizing: border-box;
-}
-
-.home-header-section {
-  margin-bottom: 24px;
-}
-
-.home-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 4px;
-}
-
-.home-subtitle {
-  font-size: 14px;
-  color: #64748b;
 }
 
 .home-carousel-wrapper {
   margin-bottom: 30px;
 }
 
-.home-loading {
-  text-align: center;
-  padding: 40px;
+
+/* ================================
+   LUCKY SPIN TEASER
+================================ */
+
+.home-spin-teaser {
+  width: 100%;
+  padding: 16px 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border-radius: 16px;
+border:1px dashed #f00;
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+
+.home-spin-teaser:active {
+  transform: scale(0.98);
+}
+
+.home-spin-icon {
+  flex: 0 0 auto;
+
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 26px;
+
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.home-spin-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-spin-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+
+  line-height: 1.3;
+}
+
+.home-spin-subtitle {
+  margin-top: 3px;
+
+  font-size: 13px;
   color: #64748b;
-  font-size: 15px;
+
+  line-height: 1.4;
+}
+
+.home-spin-arrow {
+  flex: 0 0 auto;
+
+  font-size: 24px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+
+/* ================================
+   MOBILE
+================================ */
+
+@media (max-width: 768px) {
+  .home-page-container {
+    padding: 16px;
+    padding-bottom: 80px;
+  }
+
+  .home-carousel-wrapper {
+    margin-bottom: 24px;
+  }
+
+  .home-spin-teaser {
+    padding: 14px 16px;
+  }
+
+  .home-spin-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 24px;
+  }
+
+  .home-spin-title {
+    font-size: 15px;
+  }
+
+  .home-spin-subtitle {
+    font-size: 12px;
+  }
 }

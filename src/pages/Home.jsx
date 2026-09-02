@@ -1,52 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../components/utils/supabaseClient';
 import Carousel from '../components/Carousel';
 import '../css/Home.css';
 import Calendar from '../components/Calendar';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error) {
-      console.error('Lỗi tải danh sách bài viết:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="home-page-container">
-      <div className="home-header-section">
-        <h1 className="home-title">Recents</h1>
-        <p className="home-subtitle">*Guten Tag!* Những khoảnh khắc gần đây...</p>
-      </div>
 
+      {/* COMPONENT 1 — CAROUSEL */}
       <div className="home-carousel-wrapper">
-        {loading ? (
-          <div className="home-loading">Đang tải dữ liệu...</div>
-        ) : (
-          <Carousel items={posts} />
-        )}
+        <Carousel />
       </div>
 
-      <Calendar isAdmin={false}/>
+      {/* COMPONENT 2 — CALENDAR */}
+      <Calendar isAdmin={false} />
+
+      {/* COMPONENT 3 — LUCKY SPIN */}
+      <div
+        className="home-spin-teaser"
+        onClick={() => navigate('/spin')}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            navigate('/spin');
+          }
+        }}
+      >
+        <div className="home-spin-icon">🎁</div>
+
+        <div className="home-spin-content">
+          <div className="home-spin-title">
+            VÒNG QUAY MAY MẮN
+          </div>
+
+          <div className="home-spin-subtitle">
+            Thử vận may của bạn
+          </div>
+        </div>
+
+        <div className="home-spin-arrow">
+          →
+        </div>
+      </div>
+
     </div>
   );
 }

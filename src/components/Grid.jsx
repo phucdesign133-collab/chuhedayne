@@ -429,8 +429,10 @@ export default function Grid() {
 
       if (isContentCategory) {
         const payload = {
-          ...formData,
-
+          title: String(formData.title || "").trim(),
+          category: categoryId,
+          location: String(formData.location || "").trim(),
+          date: formData.date || null,
           images: prepareImages(formData.images),
         };
 

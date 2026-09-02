@@ -16,16 +16,11 @@
 
 .carousel-stage {
   position: relative;
-
   width: 100%;
   height: 200px;
-
-  display: flex;
-  align-items: flex-end;
-
   overflow: hidden;
-
   touch-action: pan-y;
+  perspective: 900px;
 }
 
 /* -------------------------------------------------------
@@ -33,18 +28,13 @@
 ------------------------------------------------------- */
 
 .carousel-center {
-  position: relative;
-
-  width: 90%;
-  height: 100px;
-
-  flex: 0 0 90%;
-
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  width: 54%;
+  height: 68%;
+  transform: translateX(-50%);
   z-index: 3;
-
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
 }
 
 /* -------------------------------------------------------
@@ -53,14 +43,8 @@
 
 .carousel-highlight {
   position: relative;
-
   width: 100%;
-  height: 100px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-
+  height: 100%;
   pointer-events: none;
 }
 
@@ -70,26 +54,17 @@
 
 .carousel-meta {
   position: absolute;
-
   left: 0;
   right: 0;
-
   bottom: 100%;
-
-  min-height: 0;
-
   padding: 0 8px 8px;
-
   text-align: center;
-
   pointer-events: none;
 }
 
 .carousel-title {
   margin: 0;
-
   color: #000;
-
   font-size: 15px;
   line-height: 1.25;
   font-weight: 600;
@@ -97,9 +72,7 @@
 
 .carousel-location {
   margin: 3px 0 0;
-
   color: #000;
-
   font-size: 13px;
   line-height: 1.2;
   font-weight: 400;
@@ -111,19 +84,13 @@
 
 .carousel-slot {
   display: block;
-
   padding: 0;
   margin: 0;
-
   border: 0;
   border-radius: 0;
-
   background: transparent;
-
   overflow: hidden;
-
   cursor: pointer;
-
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -131,34 +98,41 @@
   outline: none;
 }
 
+/* -------------------------------------------------------
+   MAIN
+------------------------------------------------------- */
+
 .carousel-slot-main {
   width: 100%;
   height: 100%;
-
   pointer-events: auto;
 }
 
+/* -------------------------------------------------------
+   SIDE
+------------------------------------------------------- */
+
 .carousel-slot-side {
-  width: 5%;
-  height: 200px;
-
-  flex: 0 0 5%;
-
-  position: relative;
-
-  z-index: 1;
-
+  position: absolute;
+  top: 16%;
+  width: 25%;
+  height: 68%;
+  z-index: 2;
   transition:
     transform 0.45s ease,
     opacity 0.45s ease;
 }
 
 .carousel-slot-left {
+  left: 0;
   transform-origin: right center;
+  transform: perspective(900px) rotateY(12deg);
 }
 
 .carousel-slot-right {
+  right: 0;
   transform-origin: left center;
+  transform: perspective(900px) rotateY(-12deg);
 }
 
 /* -------------------------------------------------------
@@ -168,39 +142,32 @@
 .carousel-image {
   width: 100%;
   height: 100%;
-
   overflow: hidden;
-
   background: #f1f1f1;
 }
 
 .carousel-image img {
   display: block;
-
   width: 100%;
   height: 100%;
-
-  object-fit: cover;
-
+  object-fit: fill;
   pointer-events: none;
-
   -webkit-user-drag: none;
-
-  transition:
-    transform 0.45s ease;
+  transition: transform 0.45s ease;
 }
 
 .carousel-slot-side:hover .carousel-image img {
-  transform: scale(1.03);
+  transform: scale(1.04);
 }
 
 .carousel-slot-main:hover .carousel-image img {
-  transform: scale(1.01);
+  transform: scale(1.02);
 }
 
 .carousel-image-empty {
   width: 100%;
   height: 100%;
+  background: #f1f1f1;
 }
 
 /* -------------------------------------------------------
@@ -211,13 +178,10 @@
 .carousel-error {
   width: 100%;
   min-height: 100px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   color: #000;
-
   font-size: 14px;
   text-align: center;
 }
@@ -232,13 +196,15 @@
   }
 
   .carousel-center {
-    width: 90%;
-    flex-basis: 90%;
+    width: 54%;
+    height: 68%;
+    top: 16%;
   }
 
   .carousel-slot-side {
-    width: 5%;
-    flex-basis: 5%;
+    width: 25%;
+    height: 68%;
+    top: 16%;
   }
 
   .carousel-title {

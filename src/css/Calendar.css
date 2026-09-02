@@ -1,169 +1,209 @@
-/* --- CSS CHO COMPONENT LỊCH (Hoàn toàn không có hover/focus) --- */
 .calendar-module-container {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  background: #ffffff;
-  border-radius: 16px;
   padding: 20px;
   box-sizing: border-box;
-  font-family: inherit;
+  background: #fff;
+  border-radius: 16px;
   color: #222;
+  font-family: inherit;
 }
+
+/* HEADER */
 
 .calendar-header-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.calendar-current-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-}
-
-.calendar-nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cal-add-btn {
-  background: #111;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-}
-
-.calendar-nav-buttons {
-  display: flex;
-  gap: 6px;
-}
-
-.cal-nav-btn {
-  background: #f1f3f5;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #444;
-}
-
-.calendar-month-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #666;
   margin-bottom: 16px;
 }
 
-.calendar-weekdays-grid {
+.calendar-month-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+}
+
+.calendar-nav-actions,
+.calendar-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar-nav-actions {
+  gap: 8px;
+}
+
+.cal-add-btn,
+.cal-nav-btn,
+.cal-action-btn,
+.cal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.cal-add-btn {
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cal-nav-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f1f3f5;
+  color: #444;
+}
+
+/* WEEKDAYS */
+
+.calendar-weekdays-grid,
+.calendar-days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-weekdays-grid {
+  margin-bottom: 8px;
   text-align: center;
-  margin-bottom: 10px;
 }
 
 .cal-weekday-item {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #888;
 }
 
+/* DAYS */
+
 .calendar-days-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  row-gap: 8px;
+  row-gap: 7px;
   column-gap: 4px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .cal-day-cell {
-  aspect-ratio: 1;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  position: relative;
+  color: #222;
   font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  width: 36px;
-  height: 36px;
-  margin: 0 auto;
+  font-weight: 600;
+  line-height: 1;
 }
 
-.cal-day-cell.empty {
-  cursor: default;
+.cal-day-num {
+  display: block;
+  width: 100%;
+  text-align: center;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-day-cell.other-month {
+  color: #c7c7c7;
+  font-weight: 400;
 }
 
 .cal-day-cell.selected {
-  background-color: #111;
+  background: #111;
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .cal-event-dot {
   position: absolute;
   bottom: 4px;
+  left: 50%;
   width: 4px;
   height: 4px;
-  background-color: #ff3b30;
+  transform: translateX(-50%);
   border-radius: 50%;
+  background: #ff3b30;
 }
 
 .cal-day-cell.selected .cal-event-dot {
-  background-color: #ffcc00;
+  background: #ffcc00;
 }
 
-/* Phần Task danh sách bên dưới */
+/* SCHEDULE */
+
 .calendar-tasks-section {
+  padding-top: 12px;
   border-top: 1px solid #eaeaea;
-  padding-top: 16px;
 }
 
 .calendar-tasks-header {
+  width: 100%;
+  padding: 4px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.calendar-tasks-title-group {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .calendar-tasks-header h3 {
-  font-size: 16px;
-  font-weight: 700;
   margin: 0;
   color: #111;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .task-count-badge {
-  font-size: 12px;
-  background: #f1f3f5;
-  padding: 2px 8px;
+  flex-shrink: 0;
+  padding: 2px 7px;
   border-radius: 10px;
+  background: #f1f3f5;
   color: #555;
+  font-size: 11px;
+}
+
+.calendar-collapse-icon {
+  flex-shrink: 0;
+  color: #777;
+  transition: transform 0.2s ease;
+}
+
+.calendar-collapse-icon.open {
+  transform: rotate(180deg);
+}
+
+.calendar-tasks-content {
+  margin-top: 12px;
 }
 
 .calendar-loading-text,
 .calendar-no-tasks {
-  font-size: 13px;
-  color: #666;
-  padding: 12px 0;
+  padding: 10px 0;
   text-align: center;
+  color: #666;
+  font-size: 13px;
 }
 
 .calendar-tasks-list {
@@ -172,65 +212,88 @@
   gap: 12px;
 }
 
+/* TASK CARD */
+
 .calendar-task-card {
-  background: #fcfcfc;
-  border: 1px solid #eaeaea;
-  border-radius: 12px;
-  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  background: #fcfcfc;
 }
 
 .cal-task-main-info {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  position: relative;
 }
 
 .cal-task-icon-box {
   width: 32px;
   height: 32px;
-  background: #f1f3f5;
-  border-radius: 8px;
+  flex-shrink: 0;
+  margin-top: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  background: #f1f3f5;
   color: #333;
-  flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .cal-task-detail {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  flex: 1;
 }
 
 .cal-task-type {
+  color: #888;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: #888;
 }
 
 .cal-task-title {
+  margin: 0;
+  color: #222;
   font-size: 14px;
   font-weight: 600;
-  color: #222;
-  margin: 0;
+}
+
+.cal-task-meta-row {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cal-task-time,
+.cal-task-amount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
 }
 
 .cal-task-time {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
   color: #555;
-  margin-top: 2px;
+  white-space: nowrap;
 }
+
+.cal-task-amount {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* ADMIN ACTIONS */
 
 .cal-admin-actions {
   display: flex;
@@ -238,15 +301,10 @@
 }
 
 .cal-action-btn {
-  background: #f1f3f5;
-  border: none;
-  border-radius: 6px;
   width: 28px;
   height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  border-radius: 6px;
+  background: #f1f3f5;
   color: #444;
 }
 
@@ -254,39 +312,47 @@
   color: #ff3b30;
 }
 
+/* STAFF */
+
 .cal-staff-availability-footer {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: #007aff;
-  background: #f0f6ff;
   padding: 6px 10px;
   border-radius: 6px;
+  font-size: 12px;
+}
+
+.cal-staff-availability-footer span {
   font-weight: 500;
 }
 
-/* Modal Popup cho Admin */
+.cal-staff-availability-footer strong {
+  font-weight: 700;
+}
+
+/* MODAL */
+
 .cal-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
+  z-index: 1000;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .cal-modal-content {
-  background: #fff;
   width: 90%;
   max-width: 400px;
-  border-radius: 14px;
   padding: 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-sizing: border-box;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .cal-modal-header {
@@ -297,15 +363,13 @@
 }
 
 .cal-modal-header h3 {
+  margin: 0;
   font-size: 16px;
   font-weight: 700;
-  margin: 0;
 }
 
 .cal-close-btn {
   background: none;
-  border: none;
-  cursor: pointer;
   color: #666;
 }
 
@@ -322,18 +386,19 @@
 }
 
 .cal-form-group label {
+  color: #444;
   font-size: 12px;
   font-weight: 600;
-  color: #444;
-  text-align: left;
 }
 
 .cal-form-group input {
+  width: 100%;
   padding: 8px 12px;
+  box-sizing: border-box;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 13px;
   outline: none;
+  font-size: 13px;
 }
 
 .cal-modal-buttons {
@@ -346,10 +411,10 @@
 .cal-btn-save {
   flex: 1;
   padding: 10px;
+  border: none;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
-  border: none;
   cursor: pointer;
 }
 
@@ -361,4 +426,22 @@
 .cal-btn-save {
   background: #111;
   color: #fff;
+}
+
+/* MOBILE */
+
+@media (max-width: 480px) {
+  .calendar-module-container {
+    padding: 16px;
+  }
+
+  .calendar-month-label {
+    font-size: 17px;
+  }
+
+  .cal-day-cell {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
 }
