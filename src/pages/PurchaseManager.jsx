@@ -1,14 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pencil, Trash2, Package } from "lucide-react";
+import { Trash2, Package } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
 
-export default function PurchaseManager({
-  searchTerm = "",
-  savedData = null,
-  onCountChange,
-  onEdit,
-}) {
+export default function PurchaseManager({ searchTerm = "", savedData = null, onCountChange, onEdit }) {
   const [purchases, setPurchases] = useState([]);
 
   // ============================================================
@@ -20,6 +15,7 @@ export default function PurchaseManager({
       const { data, error } = await supabase
         .from("purchases")
         .select("*")
+        .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -47,15 +43,9 @@ export default function PurchaseManager({
         return [savedData, ...prev];
       }
 
-      const exists = prev.some(
-        (item) => item.id === savedData.id,
-      );
+      const exists = prev.some((item) => item.id === savedData.id);
 
-      return exists
-        ? prev.map((item) =>
-            item.id === savedData.id ? savedData : item,
-          )
-        : [savedData, ...prev];
+      return exists ? prev.map((item) => (item.id === savedData.id ? savedData : item)) : [savedData, ...prev];
     });
   }, [savedData]);
 
@@ -94,45 +84,24 @@ export default function PurchaseManager({
   }, [filteredPurchases.length, onCountChange]);
 
   // ============================================================
-  // EDIT
-  // ============================================================
-
-  const handleEdit = (purchase) => {
-    if (typeof onEdit === "function") {
-      onEdit(purchase);
-    }
-  };
-
-  // ============================================================
   // DELETE
   // ============================================================
 
   const handleDelete = async (purchase) => {
-    const confirmed = window.confirm(
-      `Xóa "${purchase.title || "vật tư"}" khỏi danh sách mua hàng?`,
-    );
+    const confirmed = window.confirm(`Xóa "${purchase.title || "vật tư"}" khỏi danh sách mua hàng?`);
 
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from("purchases")
-        .delete()
-        .eq("id", purchase.id);
+      const { error } = await supabase.from("purchases").delete().eq("id", purchase.id);
 
       if (error) throw error;
 
-      setPurchases((prev) =>
-        prev.filter((item) => item.id !== purchase.id),
-      );
+      setPurchases((prev) => prev.filter((item) => item.id !== purchase.id));
     } catch (error) {
       console.error("❌ Lỗi xóa mua hàng:", error);
 
-      alert(
-        `Không thể xóa mua hàng:\n${
-          error?.message || "Lỗi không xác định"
-        }`,
-      );
+      alert(`Không thể xóa mua hàng:\n${error?.message || "Lỗi không xác định"}`);
     }
   };
 
@@ -156,10 +125,20 @@ export default function PurchaseManager({
     });
   };
 
-  const formatPackaging = (value) => {
-    if (!value || Number(value) <= 0) return "";
+  // ============================================================
+  // FORMAT DATE
+  // ============================================================
 
-    return formatQuantity(value);
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "Không xác định";
+
+    const [year, month, day] = String(dateValue).slice(0, 10).split("-");
+
+    if (!year || !month || !day) {
+      return String(dateValue);
+    }
+
+    return `${day}/${month}/${year}`;
   };
 
   // ============================================================
@@ -167,11 +146,7 @@ export default function PurchaseManager({
   // ============================================================
 
   const totalPurchase = useMemo(() => {
-    return filteredPurchases.reduce(
-      (total, purchase) =>
-        total + Number(purchase.amount || 0),
-      0,
-    );
+    return filteredPurchases.reduce((total, purchase) => total + Number(purchase.amount || 0), 0);
   }, [filteredPurchases]);
 
   // ============================================================
@@ -183,8 +158,7 @@ export default function PurchaseManager({
     const map = new Map();
 
     filteredPurchases.forEach((purchase) => {
-      const title =
-        String(purchase.title || "Không tên").trim();
+      const title = String(purchase.title || "Không tên").trim();
 
       if (!map.has(title)) {
         map.set(title, {
@@ -202,12 +176,8 @@ export default function PurchaseManager({
 
       item.amount += Number(purchase.amount || 0);
 
-      if (
-        Number(purchase.packaging || 0) > 0
-      ) {
-        item.packaging +=
-          Number(purchase.quantity || 0) *
-          Number(purchase.packaging || 0);
+      if (Number(purchase.packaging || 0) > 0) {
+        item.packaging += Number(purchase.quantity || 0) * Number(purchase.packaging || 0);
       }
     });
 
@@ -215,18 +185,39 @@ export default function PurchaseManager({
   }, [filteredPurchases]);
 
   // ============================================================
+  // GROUP BY DATE
+  // ============================================================
+
+  const purchaseGroups = useMemo(() => {
+    const groups = new Map();
+
+    filteredPurchases.forEach((purchase) => {
+      const date = purchase.date || "unknown";
+
+      if (!groups.has(date)) {
+        groups.set(date, []);
+      }
+
+      groups.get(date).push(purchase);
+    });
+
+    return Array.from(groups.entries()).map(([date, items]) => ({
+      date,
+      items,
+    }));
+  }, [filteredPurchases]);
+
+  // ============================================================
   // UI
   // ============================================================
 
   return (
-    <div className="manager purchase-manager">
-
+    <div className="manager">
       {/* ======================================================
           PURCHASE SUMMARY
       ====================================================== */}
 
       <div
-        className="purchase-summary"
         style={{
           position: "fixed",
           top: 90,
@@ -275,10 +266,8 @@ export default function PurchaseManager({
                     color: "#4b5563",
                   }}
                 >
-                  {formatQuantity(item.quantity)}{" "}
-                  {item.unit}
-                  {item.packaging > 0 &&
-                    ` · ${formatPackaging(item.packaging)}`}
+                  {formatQuantity(item.quantity)} {item.unit}
+                  {item.packaging > 0 && ` · ${formatQuantity(item.packaging)}`}
                 </span>
 
                 <strong
@@ -325,129 +314,145 @@ export default function PurchaseManager({
       <div
         className="list"
         style={{
-          paddingTop:
-            purchaseSummary.length > 0
-              ? `${Math.min(
-                  60 + purchaseSummary.length * 28,
-                  350,
-                )}px`
-              : "145px",
+          paddingTop: purchaseSummary.length > 0 ? `${Math.min(60 + purchaseSummary.length * 28, 350)}px` : "145px",
         }}
       >
         {filteredPurchases.length === 0 ? (
           <div className="empty">
             <Package size={32} />
-            <span>
-              Chưa có khoản mua hàng phù hợp
-            </span>
+            <span>Chưa có khoản mua hàng phù hợp</span>
           </div>
         ) : (
-          filteredPurchases.map((purchase, index) => (
+          purchaseGroups.map((group) => (
             <div
-              className="card"
-              key={
-                purchase.id ||
-                `purchase-${index}`
-              }
+              key={group.date}
+              style={{
+                marginBottom: "18px",
+              }}
             >
-              <div className="info">
+              {/* ==================================================
+                  DATE
+              ================================================== */}
 
-                {/* ==================================================
-                    TITLE
-                ================================================== */}
-
-                <div className="row name">
-                  {purchase.title || ""}
-                </div>
-
-                {/* ==================================================
-                    QUANTITY
-                ================================================== */}
-
-                <div className="row">
-                  <span>Số lượng: </span>
-
-                  <strong>
-                    {formatQuantity(
-                      purchase.quantity,
-                    )}{" "}
-                    {purchase.unit || ""}
-                  </strong>
-                </div>
-
-                {/* ==================================================
-                    PACKAGING
-                ================================================== */}
-
-                {Number(purchase.packaging || 0) > 0 && (
-                  <div className="row">
-                    <span>Quy cách: </span>
-
-                    {formatPackaging(
-                      purchase.packaging,
-                    )}
-                  </div>
-                )}
-
-                {/* ==================================================
-                    AMOUNT
-                ================================================== */}
-
-                <div className="row">
-                  <span>Số tiền: </span>
-
-                  <strong
-                    style={{
-                      color: "#b91c1c",
-                    }}
-                  >
-                    {formatMoney(
-                      purchase.amount,
-                    )}
-                  </strong>
-                </div>
-
-                {/* ==================================================
-                    NOTE
-                ================================================== */}
-
-                {purchase.note && (
-                  <div className="row">
-                    <span>Ghi chú: </span>
-                    {purchase.note}
-                  </div>
-                )}
-
+              <div
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#6b7280",
+                  marginBottom: "7px",
+                  padding: "0 4px",
+                }}
+              >
+                {formatDate(group.date)}
               </div>
 
-              {/* ====================================================
-                  FOOTER
-              ==================================================== */}
+              {/* ==================================================
+                  GROUP
+              ================================================== */}
 
-              <div className="card-footer">
-
-                <button
-                  type="button"
-                  className="action-btn edit-btn"
-                  onClick={() =>
-                    handleEdit(purchase)
-                  }
+              <div className="card">
+                <div
+                  className="card-main"
+                  style={{
+                    padding: 0,
+                  }}
                 >
-                  <Pencil size={16} />
-                  Sửa
-                </button>
+                  <ul
+                    className="info"
+                    style={{
+                      listStyle: "none",
+                      margin: 0,
+                      padding: 0,
+                      background: "#fff",
+                      width: "100%",
+                    }}
+                  >
+                    {group.items.map((purchase, index) => (
+                      <li
+                        className="row"
+                        key={purchase.id || `purchase-${group.date}-${index}`}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "minmax(0, 1fr) auto auto 10%",
+                          gap: "10px",
+                          alignItems: "center",
+                          width: "100%",
+                          boxSizing: "border-box",
+                          padding: "11px 8px",
+                          borderBottom: index < group.items.length - 1 ? "1px solid #e5e7eb" : "none",
+                        }}
+                      >
+                        {/* ==============================
+                              NAME
+                          ============================== */}
 
-                <button
-                  type="button"
-                  className="action-btn delete-btn"
-                  onClick={() =>
-                    handleDelete(purchase)
-                  }
-                >
-                  <Trash2 size={16} />
-                  Xóa
-                </button>
+                        <span
+                          className="name"
+                          style={{
+                            minWidth: 0,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {purchase.title || ""}
+                        </span>
 
+                        {/* ==============================
+                              QUANTITY
+                          ============================== */}
+
+                        <span
+                          style={{
+                            whiteSpace: "nowrap",
+                            textAlign: "right",
+                            color: "#4b5563",
+                          }}
+                        >
+                          {formatQuantity(purchase.quantity)} {purchase.unit || ""}
+                        </span>
+
+                        {/* ==============================
+                              AMOUNT
+                          ============================== */}
+
+                        <strong
+                          style={{
+                            whiteSpace: "nowrap",
+                            textAlign: "right",
+                            color: "#b91c1c",
+                          }}
+                        >
+                          {formatMoney(purchase.amount)}
+                        </strong>
+
+                        {/* ==============================
+                              DELETE
+                          ============================== */}
+
+                        <button
+                          type="button"
+                          className="action-btn delete-btn"
+                          onClick={() => handleDelete(purchase)}
+                          title="Xóa"
+                          aria-label={`Xóa ${purchase.title || "vật tư"}`}
+                          style={{
+                            justifySelf: "end",
+                            width: "32px",
+                            height: "32px",
+                            minWidth: "32px",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           ))

@@ -6,7 +6,7 @@
   right: 0;
   z-index: 100;
   background: #fff;
-  padding:10px;
+  padding: 10px;
 }
 .post-admin-container {
   display: flex;
@@ -16,8 +16,8 @@
   min-height: 100%;
   box-sizing: border-box;
 }
-.admin-grid-body{
-  margin:90px 0 0 0;
+.admin-grid-body {
+  margin: 90px 0 0 0;
 }
 .admin-grid-top-bar {
   display: flex;
@@ -93,10 +93,6 @@
   gap: 6px;
   white-space: nowrap;
   transition: background-color 0.2s;
-}
-
-.admin-grid-add-btn-main:hover {
-  background-color: #b91c1c;
 }
 
 .admin-grid-outlet-wrapper {

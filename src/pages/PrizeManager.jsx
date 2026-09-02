@@ -104,118 +104,150 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
     }
   };
 
-  // ============================================================
-  // FORMAT
-  // ============================================================
+ // ============================================================
+// FORMAT
+// ============================================================
 
-  const formatMoney = (value) => {
-    if (value === null || value === undefined || value === "") return "";
-    return Number(value).toLocaleString("vi-VN");
-  };
+const formatMoney = (value) => {
+  if (value === null || value === undefined || value === "") return "";
+  return Number(value).toLocaleString("vi-VN");
+};
 
-  const formatPrizeName = (text) => {
-    if (!text) return "";
+const getNoteClass = (note) => {
+  if (!note) return "";
 
-    return String(text)
-      .toLowerCase()
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  };
+  const normalized = String(note).toLowerCase();
 
-  const getNoteClass = (note) => {
-    if (!note) return "";
+  if (normalized.includes("giảm")) return "prize-note-decrease";
+  if (normalized.includes("tăng")) return "prize-note-increase";
 
-    const normalized = String(note).toLowerCase();
+  return "";
+};
 
-    if (normalized.includes("giảm")) return "prize-note-decrease";
-    if (normalized.includes("tăng")) return "prize-note-increase";
+// ============================================================
+// UI
+// ============================================================
 
-    return "";
-  };
+return (
+  <div className="manager">
+    <div className="list">
+      {filteredPrizes.length === 0 ? (
+        <div className="empty">
+          <PackageOpen size={32} />
+          <span>Không có quà phù hợp</span>
+        </div>
+      ) : (
+        filteredPrizes.map((prize, index) => {
+          const firstImage = Array.isArray(prize.image)
+            ? prize.image[0] || ""
+            : typeof prize.image === "string"
+              ? prize.image
+              : "";
 
-  // ============================================================
-  // UI
-  // ============================================================
-
-  return (
-    <div className="manager">
-      <div className="list">
-        {filteredPrizes.length === 0 ? (
-          <div className="empty">
-            <PackageOpen size={32} />
-            <span>Không có quà phù hợp</span>
-          </div>
-        ) : (
-          filteredPrizes.map((prize, index) => (
-            <div className="card" key={prize.id || `prize-${index}`}>
-              <div className="info">
-                <div className="row name">{formatPrizeName(prize.text)}</div>
-
-                <div className="row">
-                  <span>Đơn giá: </span>
-                  <strong>{formatMoney(prize.unit_cost)}</strong>
-                </div>
-
-                <div className="row">
-                  <span>Đơn vị: </span>
-                  {prize.unit || ""}
-                </div>
-
-                <div className="row">
-                  <span>Đóng gói: </span>
-                  {prize.packaging ?? 0}
-                </div>
-
-                <div className="row">
-                  <span>Tồn kho: </span>
-                  <strong>{prize.quantity ?? 0}</strong>
-                </div>
-
-                <div className="row">
-                  <span>Ưu tiên: </span>
-                  {/* prettier-ignore */}
-                  <strong
-                  className={
-                    prize.priority
-                      ? "priority-yes"
-                      : "priority-no"
-                  }
-                >
-                  {prize.priority
-                    ? "Có"
-                    : "Không"}
-                </strong>
-                </div>
-
-                {prize.note && <div className={`row prize-note ${getNoteClass(prize.note)}`}>{prize.note}</div>}
-              </div>
-
-              <div className="prize-image-wrapper">
-                {Array.isArray(prize.image) && prize.image.length > 0 ? (
-                  <img src={prize.image[0]} alt={prize.text || "Quà"} className="prize-image" />
-                ) : typeof prize.image === "string" && prize.image ? (
-                  <img src={prize.image} alt={prize.text || "Quà"} className="prize-image" />
-                ) : (
-                  <div className="prize-image-empty">
-                    <PackageOpen size={28} />
+          return (
+            <div
+              className="card"
+              key={prize.id || `prize-${index}`}
+            >
+              <div className="card-main">
+                <div className="info">
+                  <div className="row name">
+                    {prize.text || ""}
                   </div>
-                )}
+
+                  <div className="row">
+                    <span>Đơn giá: </span>
+                    <strong>
+                      {formatMoney(prize.unit_cost)}
+                    </strong>
+                  </div>
+
+                  <div className="row">
+                    <span>Đơn vị: </span>
+                    <strong>
+                      {prize.unit || ""}
+                    </strong>
+                  </div>
+
+                  <div className="row">
+                    <span>Đóng gói: </span>
+                    <strong>
+                      {prize.packaging ?? 0}
+                    </strong>
+                  </div>
+
+                  <div className="row">
+                    <span>Tồn kho: </span>
+                    <strong>
+                      {prize.quantity ?? 0}
+                    </strong>
+                  </div>
+
+                  <div className="row">
+                    <span>Ưu tiên: </span>
+                    <strong
+                      className={
+                        prize.priority
+                          ? "priority-yes"
+                          : "priority-no"
+                      }
+                    >
+                      {prize.priority
+                        ? "Có"
+                        : "Không"}
+                    </strong>
+                  </div>
+
+                  {prize.note && (
+                    <div
+                      className={`row prize-note ${getNoteClass(
+                        prize.note
+                      )}`}
+                    >
+                      {prize.note}
+                    </div>
+                  )}
+                </div>
+
+                <div className="image-box">
+                  {firstImage ? (
+                    <img
+                      src={firstImage}
+                      alt={prize.text || "Quà"}
+                      className="image"
+                    />
+                  ) : (
+                    <div className="image-empty">
+                      <PackageOpen size={28} />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="card-footer">
-                <button type="button" className="action-btn edit-btn" onClick={() => handleEdit(prize)}>
+                <button
+                  type="button"
+                  className="action-btn edit-btn"
+                  onClick={() => handleEdit(prize)}
+                >
                   <Pencil size={16} />
                   Sửa
                 </button>
 
-                <button type="button" className="action-btn delete-btn" onClick={() => handleDelete(prize)}>
+                <button
+                  type="button"
+                  className="action-btn delete-btn"
+                  onClick={() => handleDelete(prize)}
+                >
                   <Trash2 size={16} />
                   Xóa
                 </button>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          );
+        })
+      )}
     </div>
-  );
+  </div>
+);
 }

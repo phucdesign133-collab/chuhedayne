@@ -9,10 +9,9 @@ export default function PurchasePopup({
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
   const [packaging, setPackaging] = useState("");
-  const [amount, setAmount] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
   const [note, setNote] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [date, setDate] = useState("");
 
   // ============================================================
   // FORMAT MONEY
@@ -38,7 +37,7 @@ export default function PurchasePopup({
       setQuantity("");
       setUnit("");
       setPackaging("");
-      setAmount("");
+      setUnitPrice("");
       setNote("");
       return;
     }
@@ -61,10 +60,10 @@ export default function PurchasePopup({
         : "",
     );
 
-    setAmount(
-      initialData.amount !== null &&
-        initialData.amount !== undefined
-        ? String(initialData.amount)
+    setUnitPrice(
+      initialData.unit_price !== null &&
+        initialData.unit_price !== undefined
+        ? String(initialData.unit_price)
         : "",
     );
 
@@ -80,10 +79,18 @@ export default function PurchasePopup({
 
     if (isSaving) return;
 
+    // ----------------------------------------------------------
+    // VẬT TƯ
+    // ----------------------------------------------------------
+
     if (!title.trim()) {
       alert("Vui lòng nhập tên vật tư!");
       return;
     }
+
+    // ----------------------------------------------------------
+    // SỐ LƯỢNG
+    // ----------------------------------------------------------
 
     const numericQuantity = Number(quantity) || 0;
 
@@ -92,29 +99,52 @@ export default function PurchasePopup({
       return;
     }
 
-    const rawAmount = getRawMoney(amount);
-    const numericAmount = Number(rawAmount) || 0;
+    // ----------------------------------------------------------
+    // ĐƠN GIÁ
+    // ----------------------------------------------------------
 
-    if (numericAmount <= 0) {
-      alert("Vui lòng nhập số tiền mua hàng!");
+    const rawUnitPrice = getRawMoney(unitPrice);
+    const numericUnitPrice = Number(rawUnitPrice) || 0;
+
+    if (numericUnitPrice <= 0) {
+      alert("Vui lòng nhập đơn giá!");
       return;
     }
+
+    // ----------------------------------------------------------
+    // CHECK onSave
+    // ----------------------------------------------------------
 
     if (typeof onSave !== "function") {
       alert("Không thể lưu mua hàng.");
       return;
     }
 
+    // ----------------------------------------------------------
+    // FORM DATA
+    //
+    // amount sẽ được Grid tính:
+    // quantity × unit_price
+    //
+    // date không gửi.
+    // Supabase tự động lấy current_date.
+    // ----------------------------------------------------------
+
     const formData = {
-  id: initialData?.id || null,
-  title: title.trim(),
-  quantity: numericQuantity,
-  unit: unit.trim(),
-  packaging: Number(packaging) || 0,
-  amount: numericAmount,
-  date: date || null,
-  note: note.trim(),
-};
+      id: initialData?.id || null,
+
+      title: title.trim(),
+
+      quantity: numericQuantity,
+
+      unit: unit.trim(),
+
+      packaging: Number(packaging) || 0,
+
+      unit_price: numericUnitPrice,
+
+      note: note.trim(),
+    };
 
     console.log("📤 PurchasePopup gửi Grid:", formData);
 
@@ -151,7 +181,9 @@ export default function PurchasePopup({
   return (
     <form onSubmit={handleSubmit} className="popup-form">
 
-      {/* VẬT TƯ */}
+      {/* ======================================================
+          VẬT TƯ
+          ====================================================== */}
 
       <div className="popup-row">
         <label className="popup-label">
@@ -167,7 +199,9 @@ export default function PurchasePopup({
         />
       </div>
 
-      {/* SỐ LƯỢNG */}
+      {/* ======================================================
+          SỐ LƯỢNG
+          ====================================================== */}
 
       <div className="popup-row">
         <label className="popup-label">
@@ -175,6 +209,7 @@ export default function PurchasePopup({
         </label>
 
         <div className="popup-inline">
+
           <input
             className="popup-input"
             inputMode="decimal"
@@ -195,10 +230,13 @@ export default function PurchasePopup({
             onChange={(e) => setUnit(e.target.value)}
             disabled={isSaving}
           />
+
         </div>
       </div>
 
-      {/* PACKAGING */}
+      {/* ======================================================
+          QUY CÁCH
+          ====================================================== */}
 
       <div className="popup-row">
         <label className="popup-label">
@@ -219,26 +257,30 @@ export default function PurchasePopup({
         />
       </div>
 
-      {/* TIỀN */}
+      {/* ======================================================
+          ĐƠN GIÁ
+          ====================================================== */}
 
       <div className="popup-row">
         <label className="popup-label">
-          Số tiền
+          Đơn giá
         </label>
 
         <input
           className="popup-input"
           inputMode="numeric"
-          placeholder="Số tiền mua"
-          value={formatMoneyInput(amount)}
+          placeholder="Ví dụ: 45.000"
+          value={formatMoneyInput(unitPrice)}
           onChange={(e) =>
-            setAmount(getRawMoney(e.target.value))
+            setUnitPrice(getRawMoney(e.target.value))
           }
           disabled={isSaving}
         />
       </div>
 
-      {/* GHI CHÚ */}
+      {/* ======================================================
+          GHI CHÚ
+          ====================================================== */}
 
       <div className="popup-row">
         <label className="popup-label">
@@ -253,7 +295,9 @@ export default function PurchasePopup({
         />
       </div>
 
-      {/* FOOTER */}
+      {/* ======================================================
+          FOOTER
+          ====================================================== */}
 
       <div className="popup-footer">
         <button

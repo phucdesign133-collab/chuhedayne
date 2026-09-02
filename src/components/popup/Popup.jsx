@@ -5,6 +5,8 @@ import BookingPopup from "./BookingPopup";
 import ContentPopup from "./ContentPopup";
 import IncomePopup from "./IncomePopup";
 import PurchasePopup from "./PurchasePopup";
+import ShippedPrizesPopup from "./ShippedPrizesPopup";
+import WarehousePopup from "./WarehousePopup";
 import "../../css/Popup.css";
 
 // RENDER POPUP CÁC CHỨC NĂNG
@@ -31,6 +33,12 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
     }
     if (categoryId === "income") {
       return `${action} khoản thu`;
+    }
+    if (categoryId === "shipped-prizes") {
+      return `${action} quà đã gửi`;
+    }
+    if (["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId)) {
+      return `${action} vật tư`;
     }
     return `${action} nội dung`;
   };
@@ -76,6 +84,18 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
 
     if (categoryId === "purchase") {
       return <PurchasePopup initialData={initialData} onSave={onSave} onClose={onClose} />;
+    }
+    // ============================================================
+    // QUÀ ĐÃ GỬI
+    // ============================================================
+    if (categoryId === "shipped-prizes") {
+      return <ShippedPrizesPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
+    }
+    // ============================================================
+    // KHO VẬT TƯ: BÓNG - ZIP - TEM - TRANG PHỤC
+    // ============================================================
+    if (["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId)) {
+      return <WarehousePopup initialData={initialData} categoryId={categoryId} onSave={onSave} onClose={onClose} />;
     }
     // ----------------------------------------------------------
     // CONTENT

@@ -18,6 +18,8 @@
   gap: 12px;
 }
 
+
+
 /* === CARD === */
 
 .card {
@@ -28,16 +30,33 @@
   border-radius: 16px;
   padding: 14px;
   box-sizing: border-box;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  column-gap: 12px;
-  row-gap: 10px;
+  display: block;
 }
+
+
+
+/* === CARD MAIN === */
+
+.card-main {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  align-items: center;
+  column-gap: 16px;
+}
+
+
 
 /* === THÔNG TIN === */
 
 .info {
+  width: 100%;
   min-width: 0;
+  max-width: none;
+
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -45,6 +64,7 @@
 
 .row {
   min-width: 0;
+  width: 100%;
   font-size: 13px;
   line-height: 1.4;
   color: #2c3e50;
@@ -63,6 +83,8 @@
   font-weight: 700;
 }
 
+
+
 /* === PRIORITY === */
 
 .priority-yes {
@@ -72,6 +94,8 @@
 .priority-no {
   color: #64748b;
 }
+
+
 
 /* === PRIZE NOTE === */
 
@@ -88,47 +112,92 @@
   color: #c0392b;
 }
 
-/* === PRIZE IMAGE === */
 
-.prize-image-wrapper {
-  width: 96px;
-  height: 96px;
-  border-radius: 12px;
+
+/* === IMAGE === */
+
+.image-box {
+  position: relative;
+
+  width: 130px;
+  height: 130px;
+
+  min-width: 130px;
+  max-width: 130px;
+
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
-  background: #f8f9fa;
+
+  background: #f1f3f5;
+  border: 1px solid #eaeaea;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: start;
+
+  margin: 0;
 }
 
-.prize-image {
+.image {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.prize-image-empty {
+
+
+/* === IMAGE COUNT === */
+
+.image-count {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+
+  padding: 2px 6px;
+
+  border-radius: 5px;
+
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+
+
+/* === EMPTY IMAGE === */
+
+.image-empty {
   width: 100%;
   height: 100%;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+
+  color: #999;
 }
+
+
 
 /* === FOOTER === */
 
 .card-footer {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+
+  width: 100%;
   padding-top: 10px;
+  margin-top: 10px;
+
   border-top: 1px solid #e2e8f0;
 }
+
+
 
 /* === ACTION === */
 
@@ -145,6 +214,10 @@
   cursor: pointer;
 }
 
+.view-btn {
+  color: #333;
+}
+
 .edit-btn {
   background: #f1f5f9;
   color: #2c3e50;
@@ -154,6 +227,8 @@
   background: #fcebea;
   color: #c0392b;
 }
+
+
 
 /* === EMPTY === */
 
@@ -168,160 +243,34 @@
   text-align: center;
 }
 
-/* ============================================================
-   CONTENT MANAGER
-   Chỉ bổ sung phần riêng của Content.
-   Các class Admin chung:
-   .manager
-   .list
-   .card
-   .info
-   .row
-   .card-footer
-   .action-btn
-   .edit-btn
-   .delete-btn
-   .empty
-   vẫn dùng CSS hiện tại.
-   ============================================================ */
 
 
-/* ============================================================
-   CARD CONTENT
-   ============================================================ */
-
-.content-card {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-
-/* ============================================================
-   MAIN
-   TEXT TRÁI - ẢNH PHẢI
-   ============================================================ */
-
-.content-card-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  width: 100%;
-}
-
-
-/* ============================================================
-   INFO
-   ============================================================ */
-
-.content-card-main .info {
-  flex: 1;
-  min-width: 0;
-}
-
-.content-card-main .row {
-  text-align: left;
-}
-
-
-/* ============================================================
-   IMAGE
-   ============================================================ */
-
-.content-image-box {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  flex: 0 0 150px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #f1f3f5;
-  border: 1px solid #eaeaea;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.content-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-
-/* ============================================================
-   IMAGE COUNT
-   ============================================================ */
-
-.content-image-count {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-
-  padding: 2px 6px;
-
-  border-radius: 5px;
-
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
-
-  font-size: 11px;
-  font-weight: 600;
-
-  line-height: 1.3;
-}
-
-
-/* ============================================================
-   EMPTY IMAGE
-   ============================================================ */
-
-.content-image-empty {
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #999;
-}
-
-
-/* ============================================================
-   VIEW BUTTON
-   ============================================================ */
-
-.view-btn {
-  color: #333;
-}
-
-
-/* ============================================================
-   MOBILE
-   ============================================================ */
+/* === MOBILE === */
 
 @media (max-width: 600px) {
-  .content-card-main {
-    gap: 12px;
+  .card-main {
+    grid-template-columns: minmax(0, 1fr) 110px;
+    column-gap: 12px;
   }
 
-  .content-image-box {
+  .image-box {
     width: 110px;
     height: 110px;
-    flex-basis: 110px;
+    min-width: 110px;
+    max-width: 110px;
   }
 }
 
 @media (max-width: 420px) {
-  .content-image-box {
-    width: 90px;
-    height: 90px;
-    flex-basis: 90px;
+  .card-main {
+    grid-template-columns: minmax(0, 1fr) 90px;
+    column-gap: 10px;
   }
 
-  .content-card-main {
-    gap: 10px;
+  .image-box {
+    width: 90px;
+    height: 90px;
+    min-width: 90px;
+    max-width: 90px;
   }
 }

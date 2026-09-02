@@ -1,12 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, Plus } from "lucide-react";
 import "../../css/Popup.css";
+import { uploadImagesToStorage } from "../utils/utils";
 
 export default function ContentPopup({ onClose, onSave, initialData = null }) {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
   const [customer, setCustomer] = useState("");
+
+  // ============================================================
+  // IMAGE
+  //
+  // images:
+  // - URL string = ảnh đã có trên Supabase
+  // - File = ảnh mới vừa chọn, chưa upload
+  //
+  // KHÔNG lưu blob URL vào state dữ liệu.
+  // ============================================================
 
   const [images, setImages] = useState([]);
   const [activeImage, setActiveImage] = useState(0);
@@ -96,17 +107,39 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
   };
 
   // ============================================================
+  // IMAGE PREVIEW
+  // ============================================================
+
+  /**
+   * File mới cần một URL tạm để preview trên UI.
+   *
+   * QUAN TRỌNG:
+   * URL này CHỈ dùng để hiển thị preview.
+   * Nó KHÔNG được lưu vào Supabase.
+   */
+  const getImagePreview = (image) => {
+    if (typeof image === "string") {
+      return image;
+    }
+
+    if (image instanceof File) {
+      return URL.createObjectURL(image);
+    }
+
+    return "";
+  };
+
+  // ============================================================
   // IMAGE
   // ============================================================
+
   const handleAddImages = (event) => {
     const files = Array.from(event.target.files || []);
 
     if (!files.length) return;
 
-    const newImages = files.map((file) => URL.createObjectURL(file));
-
     setImages((prev) => {
-      const next = [...prev, ...newImages];
+      const next = [...prev, ...files];
 
       if (prev.length === 0) {
         setActiveImage(0);
@@ -172,23 +205,59 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
       return;
     }
 
-    const formData = {
-      id: initialData?.id || null,
-
-      title: title.trim(),
-
-      location: location.trim(),
-
-      date: databaseDate,
-
-      customer: customer.trim(),
-
-      images,
-    };
-
     setIsSaving(true);
 
     try {
+      // ========================================================
+      // UPLOAD ẢNH MỚI
+      //
+      // URL cũ:
+      // giữ nguyên
+      //
+      // File mới:
+      // upload lên Supabase Storage
+      // ↓
+      // nhận URL thật
+      // ========================================================
+
+      const existingImages = images.filter((image) => typeof image === "string");
+
+      const newImageFiles = images.filter((image) => image instanceof File);
+
+      let uploadedImages = [];
+
+      if (newImageFiles.length > 0) {
+        uploadedImages = await uploadImagesToStorage(newImageFiles, "content");
+      }
+
+      // ========================================================
+      // GHÉP ẢNH
+      // ========================================================
+
+      const finalImages = [...existingImages, ...uploadedImages];
+
+      // ========================================================
+      // FORM DATA
+      // ========================================================
+
+      const formData = {
+        id: initialData?.id || null,
+
+        title: title.trim(),
+
+        location: location.trim(),
+
+        date: databaseDate,
+
+        customer: customer.trim(),
+
+        images: finalImages,
+      };
+
+      // ========================================================
+      // SAVE
+      // ========================================================
+
       const result = await onSave(formData);
 
       if (!result || result.success !== true) {
@@ -208,6 +277,9 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
   // ============================================================
   // UI
   // ============================================================
+
+  const activeImageValue = images[activeImage];
+  const activeImagePreview = getImagePreview(activeImageValue);
 
   return (
     <form onSubmit={handleSubmit} className="popup-form content-popup-form">
@@ -277,22 +349,24 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
       </div>
 
       {/* ======================================================
-    HÌNH ẢNH
-====================================================== */}
+          HÌNH ẢNH
+      ====================================================== */}
 
       <div className="popup-row">
         <label className="popup-label">Hình ảnh</label>
 
         <div className="content-popup-image-box">
-          {images.length > 0 ? (
-            <img src={images[activeImage]} alt={`Ảnh ${activeImage + 1}`} className="content-popup-main-image" />
+          {activeImagePreview ? (
+            <img src={activeImagePreview} alt={`Ảnh ${activeImage + 1}`} className="content-popup-main-image" />
           ) : (
             <div className="content-popup-image-empty">Chưa có hình ảnh</div>
           )}
 
           {/* THANH ĐIỀU KHIỂN */}
+
           <div className="content-popup-image-controls">
             {/* TRÁI - THÊM ẢNH */}
+
             <button
               type="button"
               className="content-popup-image-btn"
@@ -304,6 +378,7 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
             </button>
 
             {/* GIỮA - ĐIỀU HƯỚNG + SỐ ẢNH */}
+
             <div className="content-popup-image-nav">
               {images.length > 1 && (
                 <button type="button" className="content-popup-image-btn" onClick={handlePreviousImage} disabled={isSaving} aria-label="Ảnh trước">
@@ -321,6 +396,7 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
             </div>
 
             {/* PHẢI - XÓA ẢNH */}
+
             <button
               type="button"
               className="content-popup-image-btn"
@@ -333,6 +409,7 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
           </div>
 
           {/* INPUT FILE ẨN */}
+
           <input ref={fileInputRef} type="file" accept="image/*" multiple className="popup-file-input" onChange={handleAddImages} />
         </div>
       </div>
@@ -342,8 +419,6 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
       ====================================================== */}
 
       <div className="popup-footer">
-        <input ref={fileInputRef} type="file" accept="image/*" multiple hidden onChange={handleAddImages} />
-
         <button type="submit" className="popup-submit" disabled={isSaving}>
           {isSaving ? "Đang đẩy lên mây..." : "Lưu lại"}
         </button>

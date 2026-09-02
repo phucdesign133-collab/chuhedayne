@@ -85,11 +85,6 @@
   border: 1px solid #e2e8f0;
 }
 
-.hub-icon-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e1;
-}
 
 .hub-icon-card:active {
   transform: scale(0.95);

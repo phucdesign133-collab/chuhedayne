@@ -1,6 +1,6 @@
 // ============================================================
-  // CLASSNAME CHUẨN — MANAGER
-  // ============================================================
+// CLASSNAME CHUẨN — MANAGER
+// ============================================================
 manager
 list
 empty
@@ -15,9 +15,9 @@ action-btn
 edit-btn
 delete-btn
 
- // ============================================================
-  // CLASSNAME CHUẨN — POPUP
-  // ============================================================
+// ============================================================
+// CLASSNAME CHUẨN — POPUP
+// ============================================================
 
 popup-form
 
@@ -34,19 +34,19 @@ popup-footer
 popup-submit
 
 // ============================================================
-  // QUY ƯỚC SỬ DỤNG
-  // ============================================================
-  Manager
-→ manager
-→ list
-→ card
-→ info
-→ row
-→ name
-→ card-footer
-→ action-btn
-→ edit-btn
-→ delete-btn
+// QUY ƯỚC SỬ DỤNG
+// ============================================================
+Manager
+card
+card-main
+info
+row
+name
+image-box
+card-footer
+action-btn
+edit-btn
+delete-btn
 
 Popup
 → popup-form
@@ -61,9 +61,9 @@ Popup
 → popup-submit
 
 // ============================================================
-  // KHÔNG FIX THEO KIỂU
-  // ============================================================
-  income-manager
+// KHÔNG FIX THEO KIỂU
+// ============================================================
+income-manager
 income-card
 income-row
 marketing-card
