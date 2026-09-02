@@ -1,119 +1,548 @@
 // src/components/Carousel.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from './utils/supabaseClient';
-import '../css/Carousel.css';
+
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "./utils/supabaseClient";
+import { hubData } from "../datas/icons";
+import "../css/Carousel.css";
+
+const MAX_ITEMS = 15;
+const AUTO_PLAY_MS = 5000;
+const SWIPE_THRESHOLD = 45;
 
 export default function Carousel() {
   const navigate = useNavigate();
+
   const [items, setItems] = useState([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [fade, setFade] = useState(true);
+
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
+  const isDragging = useRef(false);
+  const autoPlayRef = useRef(null);
+
+  // -------------------------------------------------------
+  // CONTENT CATEGORY IDS
+  // -------------------------------------------------------
+
+  const contentCategoryIds = useMemo(() => {
+    const sections = hubData?.content?.sections || [];
+
+    return sections
+      .flatMap((section) => section.items || [])
+      .map((item) => item.id)
+      .filter(
+        (id) =>
+          id &&
+          id !== "price-decoration" &&
+          id !== "price-party",
+      );
+  }, []);
+
+  // -------------------------------------------------------
+  // IMAGE
+  // -------------------------------------------------------
+
+  const getImage = (item) => {
+    if (!item) return "";
+
+    if (Array.isArray(item.images) && item.images.length > 0) {
+      const firstImage = item.images[0];
+
+      if (typeof firstImage === "string") {
+        return firstImage;
+      }
+
+      if (firstImage?.preview) {
+        return firstImage.preview;
+      }
+
+      if (firstImage?.url) {
+        return firstImage.url;
+      }
+
+      if (firstImage?.src) {
+        return firstImage.src;
+      }
+    }
+
+    if (item.image_url) {
+      return item.image_url;
+    }
+
+    if (item.image) {
+      return item.image;
+    }
+
+    return "";
+  };
+
+  // -------------------------------------------------------
+  // DATE
+  // -------------------------------------------------------
+
+  const getTimestamp = (item) => {
+    if (!item) return 0;
+
+    const value =
+      item.created_at ||
+      item.date ||
+      null;
+
+    if (!value) return 0;
+
+    const timestamp = new Date(value).getTime();
+
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  };
+
+  // -------------------------------------------------------
+  // NORMALIZE CONTENT
+  // -------------------------------------------------------
+
+  const normalizeContent = (item) => {
+    return {
+      id: item.id,
+      type: "content",
+
+      title:
+        item.title ||
+        item.description ||
+        "Khoảnh khắc",
+
+      location: item.location || "",
+
+      image: getImage(item),
+
+      date: item.date || "",
+      created_at: item.created_at || "",
+
+      link: item.id
+        ? `/posts/${item.id}`
+        : null,
+    };
+  };
+
+  // -------------------------------------------------------
+  // FETCH HOME FEED
+  // -------------------------------------------------------
 
   useEffect(() => {
-    const fetchServicesData = async () => {
+    let isMounted = true;
+
+    const fetchHomeFeed = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('services')
-          .select('*')
-          .order('created_at', { ascending: false });
+        setError(null);
 
-        if (error) throw error;
-        setItems(data || []);
+        if (!contentCategoryIds.length) {
+          if (isMounted) {
+            setItems([]);
+          }
+
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("services")
+          .select(
+            "id, title, description, location, date, created_at, images, image_url, image, category",
+          )
+          .in("category", contentCategoryIds);
+
+        if (error) {
+          throw error;
+        }
+
+        const contentItems = (data || [])
+          .map(normalizeContent)
+          .sort(
+            (a, b) =>
+              getTimestamp(b) -
+              getTimestamp(a),
+          )
+          .slice(0, MAX_ITEMS);
+
+        if (isMounted) {
+          setItems(contentItems);
+          setCurrent(0);
+        }
       } catch (err) {
-        setError(err.message);
+        if (isMounted) {
+          setError(
+            err?.message ||
+              "Không thể tải nội dung.",
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchServicesData();
-  }, []);
+    fetchHomeFeed();
 
-  useEffect(() => {
+    return () => {
+      isMounted = false;
+    };
+  }, [contentCategoryIds]);
+
+  // -------------------------------------------------------
+  // SAFE INDEX
+  // -------------------------------------------------------
+
+  const getIndex = (index) => {
+    if (!items.length) return 0;
+
+    return (
+      ((index % items.length) +
+        items.length) %
+      items.length
+    );
+  };
+
+  // -------------------------------------------------------
+  // THREE VISIBLE ITEMS
+  // -------------------------------------------------------
+
+  const visibleItems = useMemo(() => {
+    if (!items.length) {
+      return {
+        previous: null,
+        current: null,
+        next: null,
+      };
+    }
+
+    return {
+      previous: items[getIndex(current - 1)],
+      current: items[getIndex(current)],
+      next: items[getIndex(current + 1)],
+    };
+  }, [items, current]);
+
+  // -------------------------------------------------------
+  // MOVE
+  // -------------------------------------------------------
+
+  const moveNext = () => {
+    if (!items.length) return;
+
+    setCurrent((prev) =>
+      getIndex(prev + 1),
+    );
+  };
+
+  const movePrevious = () => {
+    if (!items.length) return;
+
+    setCurrent((prev) =>
+      getIndex(prev - 1),
+    );
+  };
+
+  const moveTo = (index) => {
+    if (!items.length) return;
+
+    setCurrent(getIndex(index));
+  };
+
+  // -------------------------------------------------------
+  // AUTO PLAY
+  // -------------------------------------------------------
+
+  const startAutoPlay = () => {
     if (items.length <= 1) return;
 
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => {
-        setCurrent((prev) => (prev + 1) % items.length);
-        setFade(true);
-      }, 300);
-    }, 5000);
+    clearInterval(autoPlayRef.current);
 
-    return () => clearInterval(interval);
+    autoPlayRef.current = setInterval(() => {
+      moveNext();
+    }, AUTO_PLAY_MS);
+  };
+
+  useEffect(() => {
+    startAutoPlay();
+
+    return () => {
+      clearInterval(autoPlayRef.current);
+    };
   }, [items.length]);
 
-  // Bấm vào card sẽ dẫn thẳng tới trang Detail của bài viết đó
-  const handleCardClick = () => {
-    const currentItem = items[current];
-    if (currentItem && currentItem.id) {
-      navigate(`/posts/${currentItem.id}`);
+  // -------------------------------------------------------
+  // PAUSE / RESUME
+  // -------------------------------------------------------
+
+  const pauseAutoPlay = () => {
+    clearInterval(autoPlayRef.current);
+  };
+
+  const resumeAutoPlay = () => {
+    startAutoPlay();
+  };
+
+  // -------------------------------------------------------
+  // NAVIGATION
+  // -------------------------------------------------------
+
+  const handleItemClick = (item) => {
+    if (!item) return;
+
+    if (item.link) {
+      navigate(item.link);
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    if (dateStr.includes('/')) return dateStr;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+  // -------------------------------------------------------
+  // TOUCH / SWIPE
+  // -------------------------------------------------------
+
+  const handlePointerDown = (event) => {
+    pauseAutoPlay();
+
+    touchStartX.current = event.clientX;
+    touchStartY.current = event.clientY;
+    isDragging.current = true;
   };
 
+  const handlePointerUp = (event) => {
+    if (!isDragging.current) return;
+
+    isDragging.current = false;
+
+    const startX = touchStartX.current;
+    const startY = touchStartY.current;
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    if (
+      startX === null ||
+      startY === null
+    ) {
+      resumeAutoPlay();
+      return;
+    }
+
+    const deltaX =
+      event.clientX - startX;
+
+    const deltaY =
+      event.clientY - startY;
+
+    const horizontalSwipe =
+      Math.abs(deltaX) >
+        SWIPE_THRESHOLD &&
+      Math.abs(deltaX) >
+        Math.abs(deltaY);
+
+    if (horizontalSwipe) {
+      if (deltaX < 0) {
+        moveNext();
+      } else {
+        movePrevious();
+      }
+    }
+
+    resumeAutoPlay();
+  };
+
+  const handlePointerCancel = () => {
+    isDragging.current = false;
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    resumeAutoPlay();
+  };
+
+  // -------------------------------------------------------
+  // LOADING
+  // -------------------------------------------------------
+
   if (loading) {
-    return <div className="carousel-loading">Đang tải dữ liệu...</div>;
+    return (
+      <section className="carousel">
+        <div className="carousel-loading">
+          Đang tải...
+        </div>
+      </section>
+    );
   }
+
+  // -------------------------------------------------------
+  // ERROR
+  // -------------------------------------------------------
 
   if (error) {
-    return <div className="carousel-error">Lỗi tải dữ liệu: {error}</div>;
+    return (
+      <section className="carousel">
+        <div className="carousel-error">
+          Không thể tải nội dung.
+        </div>
+      </section>
+    );
   }
 
-  if (!items || items.length === 0) {
-    return <div className="carousel-empty">Không có dữ liệu hiển thị</div>;
+  // -------------------------------------------------------
+  // EMPTY
+  // -------------------------------------------------------
+
+  if (!items.length) {
+    return null;
   }
 
-  const currentItem = items[current] || {};
-  
-  let displayImage = 'https://via.placeholder.com/600x600?text=No+Image';
-  if (Array.isArray(currentItem.images) && currentItem.images.length > 0) {
-    displayImage = currentItem.images[0]?.preview || currentItem.images[0] || displayImage;
-  } else if (currentItem.image_url) {
-    displayImage = currentItem.image_url;
-  }
+  // -------------------------------------------------------
+  // CURRENT TEXT
+  // -------------------------------------------------------
 
-  const displayTitle = currentItem.title || currentItem.description || 'Khoảnh khắc';
-  const displayLocation = currentItem.location || '';
-  const displayDate = formatDate(currentItem.date);
+  const currentItem =
+    visibleItems.current;
+
+  const currentTitle =
+    currentItem?.title || "";
+
+  const currentLocation =
+    currentItem?.location || "";
+
+  // -------------------------------------------------------
+  // RENDER
+  // -------------------------------------------------------
 
   return (
-    <div className="custom-carousel-container">
-      <div 
-        className="carousel-card-wrapper" 
-        onClick={handleCardClick}
-        style={{ cursor: 'pointer' }}
+    <section className="carousel">
+      <div
+        className="carousel-stage"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={
+          handlePointerCancel
+        }
+        onPointerLeave={(event) => {
+          if (isDragging.current) {
+            handlePointerUp(event);
+          }
+        }}
       >
-        <div 
-          className="carousel-card-active"
-          style={{
-            opacity: fade ? 1 : 0,
-            transition: 'opacity 0.3s ease-in-out'
+        {/* -------------------------------------------------
+            LEFT
+        ------------------------------------------------- */}
+
+        <button
+          type="button"
+          className="carousel-slot carousel-slot-side carousel-slot-left"
+          onClick={() => {
+            moveTo(
+              getIndex(current - 1),
+            );
           }}
+          aria-label="Nội dung trước"
         >
-          <div className="carousel-image-box">
-            <img src={displayImage} alt={displayTitle} />
+          <div className="carousel-image">
+            {visibleItems.previous?.image ? (
+              <img
+                src={
+                  visibleItems.previous.image
+                }
+                alt={
+                  visibleItems.previous.title ||
+                  ""
+                }
+                draggable="false"
+              />
+            ) : (
+              <div className="carousel-image-empty" />
+            )}
           </div>
-          <div className="carousel-text-box">
-            <h3 className="carousel-title">{displayTitle}</h3>
-            {displayLocation && <p className="carousel-location">📍 {displayLocation}</p>}
+        </button>
+
+        {/* -------------------------------------------------
+            CURRENT
+        ------------------------------------------------- */}
+
+        <div className="carousel-center">
+          <div className="carousel-highlight">
+            {(currentTitle ||
+              currentLocation) && (
+              <div className="carousel-meta">
+                {currentTitle && (
+                  <h3 className="carousel-title">
+                    {currentTitle}
+                  </h3>
+                )}
+
+                {currentLocation && (
+                  <p className="carousel-location">
+                    {currentLocation}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="carousel-slot carousel-slot-main"
+              onClick={() =>
+                handleItemClick(
+                  currentItem,
+                )
+              }
+              aria-label={
+                currentTitle ||
+                "Xem nội dung"
+              }
+            >
+              <div className="carousel-image">
+                {currentItem?.image ? (
+                  <img
+                    src={currentItem.image}
+                    alt={
+                      currentTitle ||
+                      ""
+                    }
+                    draggable="false"
+                  />
+                ) : (
+                  <div className="carousel-image-empty" />
+                )}
+              </div>
+            </button>
           </div>
         </div>
+
+        {/* -------------------------------------------------
+            RIGHT
+        ------------------------------------------------- */}
+
+        <button
+          type="button"
+          className="carousel-slot carousel-slot-side carousel-slot-right"
+          onClick={() => {
+            moveTo(
+              getIndex(current + 1),
+            );
+          }}
+          aria-label="Nội dung tiếp theo"
+        >
+          <div className="carousel-image">
+            {visibleItems.next?.image ? (
+              <img
+                src={visibleItems.next.image}
+                alt={
+                  visibleItems.next.title ||
+                  ""
+                }
+                draggable="false"
+              />
+            ) : (
+              <div className="carousel-image-empty" />
+            )}
+          </div>
+        </button>
       </div>
-    </div>
+    </section>
   );
 }

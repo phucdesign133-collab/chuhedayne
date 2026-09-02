@@ -1,66 +1,262 @@
-.custom-carousel-container {
-  width:95%;margin:0 auto;
-  margin: 0 auto;
-  padding: 10px;
+/* -------------------------------------------------------
+   CAROUSEL
+------------------------------------------------------- */
+
+.carousel {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
 }
 
-.carousel-multi-wrapper {
+/* -------------------------------------------------------
+   STAGE
+------------------------------------------------------- */
+
+.carousel-stage {
+  position: relative;
+
+  width: 100%;
+  height: 200px;
+
   display: flex;
-  gap: 16px;
+  align-items: flex-end;
+
+  overflow: hidden;
+
+  touch-action: pan-y;
+}
+
+/* -------------------------------------------------------
+   CENTER
+------------------------------------------------------- */
+
+.carousel-center {
+  position: relative;
+
+  width: 90%;
+  height: 100px;
+
+  flex: 0 0 90%;
+
+  z-index: 3;
+
+  display: flex;
+  align-items: flex-end;
   justify-content: center;
-  align-items: center;
-  width:95%;margin:0 auto;
 }
 
-.carousel-card-active {
-  flex: 1;width:95%;margin:0 auto;
-  background: #ffffff;
-  border-radius: 20px;
-  overflow: hidden;
-  transition: transform 0.3s ease;
+/* -------------------------------------------------------
+   CENTER HIGHLIGHT
+------------------------------------------------------- */
+
+.carousel-highlight {
+  position: relative;
+
+  width: 100%;
+  height: 100px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  pointer-events: none;
 }
 
+/* -------------------------------------------------------
+   TEXT
+------------------------------------------------------- */
 
+.carousel-meta {
+  position: absolute;
 
-.carousel-image-box {
-  width:100%;
-  height: 250px;
-  overflow: hidden;
-  background: #f1f5f9;
-}
+  left: 0;
+  right: 0;
 
-.carousel-image-box img {
-  width:100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+  bottom: 100%;
 
-.carousel-text-box {
-  padding: 16px;
-  text-align: left;
+  min-height: 0;
+
+  padding: 0 8px 8px;
+
+  text-align: center;
+
+  pointer-events: none;
 }
 
 .carousel-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 8px 0;
+  margin: 0;
+
+  color: #000;
+
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 600;
 }
 
-.carousel-location, .carousel-date {
+.carousel-location {
+  margin: 3px 0 0;
+
+  color: #000;
+
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+/* -------------------------------------------------------
+   SLOTS
+------------------------------------------------------- */
+
+.carousel-slot {
+  display: block;
+
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.carousel-slot:focus {
+  outline: none;
+}
+
+.carousel-slot-main {
+  width: 100%;
+  height: 100%;
+
+  pointer-events: auto;
+}
+
+.carousel-slot-side {
+  width: 5%;
+  height: 200px;
+
+  flex: 0 0 5%;
+
+  position: relative;
+
+  z-index: 1;
+
+  transition:
+    transform 0.45s ease,
+    opacity 0.45s ease;
+}
+
+.carousel-slot-left {
+  transform-origin: right center;
+}
+
+.carousel-slot-right {
+  transform-origin: left center;
+}
+
+/* -------------------------------------------------------
+   IMAGE
+------------------------------------------------------- */
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  background: #f1f1f1;
+}
+
+.carousel-image img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  pointer-events: none;
+
+  -webkit-user-drag: none;
+
+  transition:
+    transform 0.45s ease;
+}
+
+.carousel-slot-side:hover .carousel-image img {
+  transform: scale(1.03);
+}
+
+.carousel-slot-main:hover .carousel-image img {
+  transform: scale(1.01);
+}
+
+.carousel-image-empty {
+  width: 100%;
+  height: 100%;
+}
+
+/* -------------------------------------------------------
+   LOADING / ERROR
+------------------------------------------------------- */
+
+.carousel-loading,
+.carousel-error {
+  width: 100%;
+  min-height: 100px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #000;
+
   font-size: 14px;
-  color: #64748b;
-  margin: 4px 0;
+  text-align: center;
 }
 
-/* Responsive cho màn hình nhỏ (mobile chỉ hiện 1 card cho gọn) */
+/* -------------------------------------------------------
+   RESPONSIVE
+------------------------------------------------------- */
+
 @media (max-width: 768px) {
-  .carousel-multi-wrapper {
-    flex-direction: column;
+  .carousel-stage {
+    height: 200px;
   }
-  .carousel-card-active {
-    max-width:95%;margin:0 auto;
-    width:95%;margin:0 auto;
+
+  .carousel-center {
+    width: 90%;
+    flex-basis: 90%;
+  }
+
+  .carousel-slot-side {
+    width: 5%;
+    flex-basis: 5%;
+  }
+
+  .carousel-title {
+    font-size: 14px;
+  }
+
+  .carousel-location {
+    font-size: 12px;
+  }
+}
+
+/* -------------------------------------------------------
+   REDUCE MOTION
+------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel-slot-side,
+  .carousel-image img {
+    transition: none;
   }
 }

@@ -249,8 +249,6 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
 
         date: databaseDate,
 
-        customer: customer.trim(),
-
         images: finalImages,
       };
 
@@ -328,22 +326,6 @@ export default function ContentPopup({ onClose, onSave, initialData = null }) {
           placeholder="DD/MM/YYYY"
           value={initialData && String(date).includes("-") ? dateToDisplay(date) : formatDateInput(date)}
           onChange={(event) => setDate(formatDateInput(event.target.value))}
-          disabled={isSaving}
-        />
-      </div>
-
-      {/* ======================================================
-          KHÁCH HÀNG
-      ====================================================== */}
-
-      <div className="popup-row">
-        <label className="popup-label">Khách hàng</label>
-
-        <input
-          className="popup-input"
-          placeholder="Nhập tên khách hàng"
-          value={customer}
-          onChange={(event) => setCustomer(event.target.value)}
           disabled={isSaving}
         />
       </div>
