@@ -10,6 +10,9 @@ import PrizeManager from "../pages/PrizeManager";
 import CustomerManager from "../pages/CustomerManager";
 import BookingManager from "../pages/BookingManager";
 import ContentManager from "../pages/ContentManager";
+import IncomeManager from "../pages/IncomeManager";
+import FundManager from "../pages/FundManager";
+import PurchaseManager from "../pages/PurchaseManager";
 
 export default function Grid() {
   const navigate = useNavigate();
@@ -227,6 +230,29 @@ export default function Grid() {
           amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
         };
       }
+      // === INCOME ===
+      if (categoryId === "income") {
+        table = "incomes";
+
+        payload = {
+          source: String(formData.source || "other").trim(),
+          title: String(formData.title || "").trim(),
+          date: formData.date || null,
+          received: formData.received !== "" && formData.received !== null && formData.received !== undefined ? Number(formData.received) || 0 : 0,
+          note: String(formData.note || "").trim(),
+        };
+      }
+      // === PURCHASE ===
+      if (categoryId === "purchase") {
+        table = "purchases";
+
+        payload = {
+          title: String(formData.title || "").trim(),
+          amount: Number(formData.packaging) || 0,
+          packaging: Number(formData.packaging) || 0,
+          note: String(formData.note || "").trim(),
+        };
+      }
       // === CONTENT / SOCIAL / PRICE ===
       const contentItems = hubData.content.sections.flatMap((section) => section.items);
 
@@ -251,6 +277,7 @@ export default function Grid() {
           images,
         };
       }
+
       // === CATEGORY CHƯA CÓ LOGIC SAVE ===
       if (!table || !payload) {
         throw new Error(`Chưa có logic lưu cho: ${categoryId}`);
@@ -314,7 +341,7 @@ export default function Grid() {
           </button>
 
           <h2 className="admin-grid-heading">
-            Danh sách {currentCategoryLabel}:<span> {itemCount} mục</span>
+            {currentCategoryLabel}:<span> {itemCount} mục</span>
           </h2>
         </div>
 
@@ -338,13 +365,16 @@ export default function Grid() {
 
       <div className="admin-grid-body">
         {categoryId === "prizes" && <PrizeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />}
-
         {categoryId === "customer-info" && (
           <CustomerManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
         )}
-
         {categoryId === "calendar" && (
           <BookingManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
+        )}
+        {categoryId === "income" && <IncomeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />}
+        {categoryId === "marketing-fund" && <FundManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} />}
+        {categoryId === "purchase" && (
+          <PurchaseManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
         )}
       </div>
 

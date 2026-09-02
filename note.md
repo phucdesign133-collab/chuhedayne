@@ -405,3 +405,6 @@ Báo giá Chương trình Sự kiện tại Phúc Design: (chi phí áp dụng t
 ✨ Set 4 (gói cao cấp) - Liên hệ
 - Bong bóng tạo hình + chú hề hoạt náo (kiêm MC) + ảo thuật (trị giá 1.000.000) + nhiếp ảnh xuyên suốt tiệc (trị giá 1.200.000) + trang trí (toàn bộ, cổng, sân khấu…)
 - Không giới hạn: Thời gian, Trò chơi, Số lượng bóng tạo hình
+
+
+  

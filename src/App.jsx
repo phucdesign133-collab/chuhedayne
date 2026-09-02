@@ -1,6 +1,12 @@
 // src/App.jsx
 import React, { useState } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
 import "./App.css";
 
@@ -23,6 +29,15 @@ import Grid from "./components/Grid";
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ==============================
+  // ẨN FOOTER KHI ĐANG Ở GRID
+  // /admin/:tab/:categoryId
+  // ==============================
+  const isGridPage = /^\/admin\/[^/]+\/[^/]+$/.test(
+    location.pathname,
+  );
 
   // ==============================
   // ADMIN AUTH
@@ -51,11 +66,22 @@ export default function App() {
               USER ROUTES
           ======================================== */}
 
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route
+            path="/"
+            element={<Navigate to="/home" replace />}
+          />
 
           <Route path="/home" element={<Home />} />
 
-          <Route path="/tools" element={<Tools isAuthenticated={isAuthenticated} onAdminLogin={handleAdminLoginSuccess} />} />
+          <Route
+            path="/tools"
+            element={
+              <Tools
+                isAuthenticated={isAuthenticated}
+                onAdminLogin={handleAdminLoginSuccess}
+              />
+            }
+          />
 
           <Route path="/spin" element={<LuckySpin />} />
 
@@ -66,45 +92,149 @@ export default function App() {
               5 TAB FOOTER
           ======================================== */}
 
-          <Route path="/admin/content" element={isAuthenticated ? <HubIcon currentTab="content" /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/content"
+            element={
+              isAuthenticated ? (
+                <HubIcon currentTab="content" />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/booking" element={isAuthenticated ? <HubIcon currentTab="booking" /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/booking"
+            element={
+              isAuthenticated ? (
+                <HubIcon currentTab="booking" />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/warehouse" element={isAuthenticated ? <HubIcon currentTab="warehouse" /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/warehouse"
+            element={
+              isAuthenticated ? (
+                <HubIcon currentTab="warehouse" />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/finance" element={isAuthenticated ? <HubIcon currentTab="finance" /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/finance"
+            element={
+              isAuthenticated ? (
+                <HubIcon currentTab="finance" />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/tools" element={isAuthenticated ? <HubIcon currentTab="tools" /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/tools"
+            element={
+              isAuthenticated ? (
+                <HubIcon currentTab="tools" />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
           {/* ========================================
               ADMIN GRID
-              HubIcon → Grid → Outlet
+              HubIcon → Grid
           ======================================== */}
 
-          <Route path="/admin/content/:categoryId" element={isAuthenticated ? <Grid isAdmin={true} /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/content/:categoryId"
+            element={
+              isAuthenticated ? (
+                <Grid isAdmin={true} />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/booking/:categoryId" element={isAuthenticated ? <Grid isAdmin={true} /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/booking/:categoryId"
+            element={
+              isAuthenticated ? (
+                <Grid isAdmin={true} />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/warehouse/:categoryId" element={isAuthenticated ? <Grid isAdmin={true} /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/warehouse/:categoryId"
+            element={
+              isAuthenticated ? (
+                <Grid isAdmin={true} />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/finance/:categoryId" element={isAuthenticated ? <Grid isAdmin={true} /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/finance/:categoryId"
+            element={
+              isAuthenticated ? (
+                <Grid isAdmin={true} />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
-          <Route path="/admin/tools/:categoryId" element={isAuthenticated ? <Grid isAdmin={true} /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/tools/:categoryId"
+            element={
+              isAuthenticated ? (
+                <Grid isAdmin={true} />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
 
           {/* ========================================
               ADMIN DETAIL
           ======================================== */}
 
-          <Route path="/admin/posts/:id" element={isAuthenticated ? <Detail /> : <Navigate to="/tools" replace />} />
+          <Route
+            path="/admin/posts/:id"
+            element={
+              isAuthenticated ? (
+                <Detail />
+              ) : (
+                <Navigate to="/tools" replace />
+              )
+            }
+          />
         </Routes>
       </div>
 
       {/* ========================================
           FOOTER
-          USER / ADMIN
+          ẨN KHI ĐANG Ở GRID
       ======================================== */}
 
-      {isAuthenticated ? <FooterAdmin onLogout={handleAdminLogout} /> : <Footer />}
+      {!isGridPage &&
+        (isAuthenticated ? (
+          <FooterAdmin onLogout={handleAdminLogout} />
+        ) : (
+          <Footer />
+        ))}
     </div>
   );
 }

@@ -204,7 +204,7 @@ export const hubData = {
         items: [
           { id: "marketing-fund", name: "Quỹ marketing", icon: <Megaphone size={22} />, path: "/admin/finance/marketing-fund" },
           { id: "income", name: "Thu nhập", icon: <DollarSign size={22} />, path: "/admin/finance/income" },
-          { id: "outcome", name: "Mua hàng", icon: <DollarSign size={22} />, path: "/admin/finance/income" },
+          { id: "purchase", name: "Mua hàng", icon: <DollarSign size={22} />, path: "/admin/finance/purchase" },
         ],
       },
     ],
