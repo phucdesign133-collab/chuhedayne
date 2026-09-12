@@ -8,7 +8,10 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
 
   const loadCustomers = async () => {
     try {
-      const { data, error } = await supabase.from("customer").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("customer")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -31,7 +34,9 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
 
       const exists = prev.some((item) => item.id === savedData.id);
 
-      return exists ? prev.map((item) => (item.id === savedData.id ? savedData : item)) : [savedData, ...prev];
+      return exists
+        ? prev.map((item) => (item.id === savedData.id ? savedData : item))
+        : [savedData, ...prev];
     });
   }, [savedData]);
 
@@ -74,7 +79,10 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase.from("customer").delete().eq("id", customer.id);
+      const { error } = await supabase
+        .from("customer")
+        .delete()
+        .eq("id", customer.id);
 
       if (error) throw error;
 
@@ -85,7 +93,35 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
     }
   };
 
-  const formatMoney = (value) => Number(value || 0).toLocaleString("vi-VN");
+  const formatPhone = (value) => {
+    const digits = String(value ?? "")
+      .replace(/\D/g, "")
+      .slice(0, 10);
+
+    if (digits.length <= 3) {
+      return digits;
+    }
+
+    // Đầu 09 → 0907.123.062
+    if (digits.startsWith("09")) {
+      if (digits.length <= 4) {
+        return digits;
+      }
+
+      if (digits.length <= 7) {
+        return `${digits.slice(0, 4)}.${digits.slice(4)}`;
+      }
+
+      return `${digits.slice(0, 4)}.${digits.slice(4, 7)}.${digits.slice(7)}`;
+    }
+
+    // Đầu 07 và các đầu khác → 079.991.0603
+    if (digits.length <= 6) {
+      return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    }
+
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  };
 
   const formatDate = (value) => {
     if (!value) return "";
@@ -111,37 +147,54 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
               <div className="info">
                 <div className="row name">
                   {customer.customer_name || ""}
-                  {customer.event_date && <span className="customer-birthday"> ({formatDate(customer.event_date)})</span>}
+                  {customer.event_date && (
+                    <span className="customer-birthday">
+                      {" "}
+                      ({formatDate(customer.event_date)})
+                    </span>
+                  )}
                 </div>
 
                 {customer.phone && (
                   <div className="row">
-                    <span>Liên lạc: </span> {customer.phone}
+                    <span>Liên lạc: </span>
+                    {formatPhone(customer.phone)}
                   </div>
                 )}
 
                 <div className="row">
                   <span>Bậc: </span>
                   <strong>
-                    {customer.member_tier || "0"} {customer.member_percent ? `(${customer.member_percent}%)` : ""}
+                    {customer.member_tier || "0"}{" "}
+                    {customer.member_percent
+                      ? `(${customer.member_percent}%)`
+                      : ""}
                   </strong>
                 </div>
 
                 {customer.referral_name || customer.referral_phone ? (
                   <div className="row">
                     <span>PR: </span>
-                    {customer.referral_name || customer.referral_phone}
+                    {customer.referral_name || formatPhone(customer.referral_phone)}
                   </div>
                 ) : null}
               </div>
 
               <div className="card-footer">
-                <button type="button" className="action-btn edit-btn" onClick={() => handleEdit(customer)}>
+                <button
+                  type="button"
+                  className="action-btn edit-btn"
+                  onClick={() => handleEdit(customer)}
+                >
                   <Pencil size={16} />
                   Sửa
                 </button>
 
-                <button type="button" className="action-btn delete-btn" onClick={() => handleDelete(customer)}>
+                <button
+                  type="button"
+                  className="action-btn delete-btn"
+                  onClick={() => handleDelete(customer)}
+                >
                   <Trash2 size={16} />
                   Xóa
                 </button>

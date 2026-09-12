@@ -230,8 +230,46 @@ export default function Grid() {
 
       if (categoryId === "customer-info") {
         const payload = {
-          ...formData,
-          images: prepareImages(formData.images),
+          customer_name: String(formData.customer_name || "").trim(),
+          phone: String(formData.phone || "")
+            .replace(/\D/g, "")
+            .slice(0, 10),
+
+          event_name: String(formData.event_name || "").trim(),
+          event_date: String(formData.event_date || "").trim(),
+
+          repeat_event: Boolean(formData.repeat_event),
+
+          order_value:
+            formData.order_value !== "" && formData.order_value !== null && formData.order_value !== undefined
+              ? Number(formData.order_value) || 0
+              : 0,
+
+          cashback_phone: String(formData.cashback_phone || "")
+            .replace(/\D/g, "")
+            .slice(0, 10),
+
+          cashback: formData.cashback !== "" && formData.cashback !== null && formData.cashback !== undefined ? Number(formData.cashback) || 0 : 0,
+
+          member_tier:
+            formData.member_tier !== "" && formData.member_tier !== null && formData.member_tier !== undefined
+              ? Number(formData.member_tier) || 0
+              : 0,
+
+          member_percent:
+            formData.member_percent !== "" && formData.member_percent !== null && formData.member_percent !== undefined
+              ? Number(formData.member_percent) || 0
+              : 0,
+
+          referral_phone: String(formData.referral_phone || "")
+            .replace(/\D/g, "")
+            .slice(0, 10),
+
+          note: String(formData.note || "").trim(),
+
+          history: Array.isArray(formData.history) ? formData.history : [],
+
+          is_active: formData.is_active !== undefined ? Boolean(formData.is_active) : true,
         };
 
         let result;
@@ -242,12 +280,9 @@ export default function Grid() {
           result = await supabase.from("customer").insert(payload).select().single();
         }
 
-        if (result.error) {
-          throw result.error;
-        }
+        if (result.error) throw result.error;
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -263,8 +298,12 @@ export default function Grid() {
 
       if (categoryId === "calendar") {
         const payload = {
-          ...formData,
-          images: prepareImages(formData.images),
+          title: String(formData.title || "").trim(),
+          category: String(formData.category || "").trim(),
+          date: formData.date || null,
+          time_slot: String(formData.time_slot || "").trim(),
+          staff_note: formData.staff_note || null,
+          amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
         };
 
         let result;
@@ -296,7 +335,11 @@ export default function Grid() {
 
       if (categoryId === "income") {
         const payload = {
-          ...formData,
+          source: formData.source,
+          title: formData.title,
+          date: formData.date,
+          received: formData.received,
+          note: formData.note,
         };
 
         let result;

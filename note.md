@@ -417,3 +417,25 @@ Thêm script vào index.html để chuyển hướng khi dùng mã qr cũ
         window.location.replace("https://phucgroup.vercel.app/");
       }
     </script>
+
+TIẾP THEO — CHÚ HỀ ĐÂY NÈ!
+
+☐ Bảng giá Admin
+☐ Bảng giá niêm yết
+☐ Bill
+☐ Tài nguyên / Link
+☐ Điều hướng mạng xã hội
+☐ Chỉnh lại Carousel
+☐ Chỉnh lại Popup Vòng quay
+   └─ CSS bị xóa do trùng với popup.css
+
+ĐÃ XỬ LÝ GẦN ĐÂY
+☑ Gallery
+☑ Detail
+☑ User /post/:slug
+☑ Admin /admin/posts/:id
+☑ Detail tự chạy ảnh
+☑ Bỏ zoom
+☑ Bỏ bài viết liên quan
+
+SQL contacts: thông báo đến mail khi user booking.

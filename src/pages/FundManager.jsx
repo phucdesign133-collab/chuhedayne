@@ -1,7 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pencil, Trash2, Wallet, PartyPopper, Palette, Car, CircleDollarSign, Package } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Wallet,
+  PartyPopper,
+  Palette,
+  Car,
+  CircleDollarSign,
+  Package,
+} from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
+import "../css/MonthlyList.css";
 
 export default function FundManager({ searchTerm = "", onCountChange }) {
   const [incomes, setIncomes] = useState([]);
@@ -58,7 +68,10 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
   }, [incomes]);
 
   const totalFund = useMemo(() => {
-    return Object.values(fundBySource).reduce((sum, value) => sum + value, 0);
+    return Object.values(fundBySource).reduce(
+      (sum, value) => sum + value,
+      0
+    );
   }, [fundBySource]);
 
   // Tạm thời chưa liên kết nhập hàng
@@ -117,6 +130,18 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
     return `${day}/${month}/${year}`;
   };
 
+  const formatMonth = (value) => {
+    if (!value) return "";
+
+    const match = String(value).match(/^(\d{4})-(\d{2})-\d{2}$/);
+
+    if (!match) return "";
+
+    const [, year, month] = match;
+
+    return `Tháng ${month}/${year}`;
+  };
+
   const sourceConfig = {
     event: {
       label: "Sự kiện",
@@ -137,37 +162,59 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
   };
 
   // ============================================================
+  // MONTHLY LIST
+  // ============================================================
+  //
+  // Hiển thị danh sách theo từng tháng.
+  //
+  // Mỗi tháng gồm:
+  // - Tiêu đề tháng
+  // - Tổng tiền của riêng tháng đó
+  // - Một cụm nền trắng
+  // - Các khoản nằm chung trong cụm
+  // - Các row ngăn nhau bằng đường line
+  //
+  // Layout:
+  // [Tháng MM/YYYY]                     [Tổng tháng]
+  //
+  // Trong cụm:
+  // [Icon + Nguồn] [Ngày] [Tiền]
+  //
+  // Pattern này được tái sử dụng cho PurchaseManager.
+  // ============================================================
+
+  const groupedByMonth = useMemo(() => {
+    const groups = {};
+
+    filteredIncomes.forEach((income) => {
+      if (!income.date) return;
+
+      const monthKey = String(income.date).slice(0, 7);
+
+      if (!groups[monthKey]) {
+        groups[monthKey] = [];
+      }
+
+      groups[monthKey].push(income);
+    });
+
+    return Object.entries(groups).sort(([monthA], [monthB]) =>
+      monthB.localeCompare(monthA)
+    );
+  }, [filteredIncomes]);
+
+  // ============================================================
   // UI
   // ============================================================
 
   return (
-    <div className="manager fund-manager">
+    <div className="manager">
       {/* ======================================================
-        FUND SUMMARY
-    ====================================================== */}
+        SUMMARY
+      ====================================================== */}
 
-      <div
-        className="fund-summary"
-        style={{
-          position: "fixed",
-          top: 90,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          background: "#fff",
-          borderBottom: "1px solid #e5e7eb",
-          padding: "16px 20px",
-          boxShadow: "0 3px 12px rgba(0,0,0,0.06)",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1px 1fr",
-            gap: "18px",
-            alignItems: "stretch",
-          }}
-        >
+      <div className="summary">
+        <div className="summary-grid">
           {/* LEFT */}
           <div>
             {[
@@ -176,94 +223,38 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
               ["Taxi", fundBySource.taxi],
               ["Khác", fundBySource.other],
             ].map(([label, value]) => (
-              <div
-                key={label}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  minHeight: "30px",
-                  fontSize: "14px",
-                }}
-              >
+              <div className="summary-row" key={label}>
                 <span>{label}</span>
-
                 <strong>{formatMoney(value)}</strong>
               </div>
             ))}
           </div>
 
           {/* DIVIDER */}
-          <div
-            style={{
-              width: "1px",
-              background: "#e5e7eb",
-            }}
-          />
+          <div className="summary-divider" />
 
           {/* RIGHT */}
           <div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                minHeight: "30px",
-                fontSize: "14px",
-              }}
-            >
+            <div className="summary-row">
               <span>Quỹ</span>
 
-              <strong
-                style={{
-                  color: "#15803d",
-                  fontSize: "15px",
-                }}
-              >
+              <strong className="summary-positive summary-highlight">
                 {formatMoney(totalFund)}
               </strong>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                minHeight: "30px",
-                fontSize: "14px",
-              }}
-            >
+            <div className="summary-row">
               <span>Nhập hàng</span>
 
-              <strong
-                style={{
-                  color: "#b91c1c",
-                }}
-              >
+              <strong className="summary-negative">
                 {formatMoney(purchaseAmount)}
               </strong>
             </div>
 
-            <div
-              style={{
-                borderTop: "1px solid #e5e7eb",
-                marginTop: "5px",
-                paddingTop: "5px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                minHeight: "30px",
-                fontSize: "14px",
-              }}
-            >
+            <div className="summary-row summary-total">
               <strong>Còn lại</strong>
 
-              <strong
-                style={{
-                  color: "#15803d",
-                  fontSize: "15px",
-                }}
-              >
+              <strong className="summary-positive summary-highlight">
                 {formatMoney(remainingFund)}
               </strong>
             </div>
@@ -272,85 +263,77 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
       </div>
 
       {/* ======================================================
-        LIST
-    ====================================================== */}
+        MONTHLY LIST
+      ====================================================== */}
 
-      <div
-        className="list"
-        style={{
-          paddingTop: "145px",
-        }}
-      >
-        {filteredIncomes.length === 0 ? (
+      <div className="list monthly-list">
+        {groupedByMonth.length === 0 ? (
           <div className="empty">
             <Wallet size={32} />
             <span>Chưa có khoản Quỹ phù hợp</span>
           </div>
         ) : (
-          filteredIncomes.map((income, index) => {
-            const config = sourceConfig[income.source] || sourceConfig.other;
-
-            const Icon = config.icon;
-
-            const fund = Number(income.received || 0) * 0.2;
+          groupedByMonth.map(([monthKey, monthIncomes]) => {
+            const monthlyTotal = monthIncomes.reduce(
+              (sum, income) =>
+                sum + Number(income.received || 0) * 0.2,
+              0
+            );
 
             return (
-              <div className="card" key={income.id || `fund-${index}`}>
-                <div className="info">
-                  <div
-                    className="row"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "minmax(0, 1fr) minmax(90px, 0.7fr) auto",
-                      alignItems: "center",
-                      columnGap: "12px",
-                      width: "100%",
-                    }}
-                  >
-                    {/* CỘT 1 — ICON + NGUỒN */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        minWidth: 0,
-                      }}
-                    >
-                      <Icon size={20} strokeWidth={2} />
+              <div className="monthly-list-month" key={monthKey}>
+                {/* MONTH HEADER */}
+                <div className="monthly-list-header">
+                  <span className="monthly-list-title">
+                    {formatMonth(`${monthKey}-01`)}
+                  </span>
 
-                      <strong
-                        style={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
+                  <strong className="monthly-list-total">
+                    {formatMoney(monthlyTotal)}
+                  </strong>
+                </div>
+
+                {/* MONTH GROUP */}
+                <div className="monthly-list-group">
+                  {monthIncomes.map((income, index) => {
+                    const config =
+                      sourceConfig[income.source] || sourceConfig.other;
+
+                    const Icon = config.icon;
+                    const fund =
+                      Number(income.received || 0) * 0.2;
+
+                    return (
+                      <div
+                        className={`monthly-list-row${
+                          index < monthIncomes.length - 1
+                            ? " monthly-list-row-border"
+                            : ""
+                        }`}
+                        key={
+                          income.id ||
+                          `fund-${monthKey}-${index}`
+                        }
                       >
-                        {config.label}
-                      </strong>
-                    </div>
+                        {/* SOURCE */}
+                        <div className="monthly-list-source">
+                          <Icon size={20} strokeWidth={2} />
 
-                    {/* CỘT 2 — NGÀY */}
-                    <div
-                      style={{
-                        textAlign: "left",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {formatDate(income.date)}
-                    </div>
+                          <strong>{config.label}</strong>
+                        </div>
 
-                    {/* CỘT 3 — QUỸ */}
-                    <div
-                      style={{
-                        textAlign: "right",
-                        whiteSpace: "nowrap",
-                        fontWeight: 700,
-                        color: "#15803d",
-                      }}
-                    >
-                      {formatMoney(fund)}
-                    </div>
-                  </div>
+                        {/* DATE */}
+                        <div className="monthly-list-date">
+                          {formatDate(income.date)}
+                        </div>
+
+                        {/* FUND */}
+                        <div className="monthly-list-amount">
+                          {formatMoney(fund)}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );

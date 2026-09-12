@@ -1,0 +1,141 @@
+/* ============================================================
+   SUMMARY
+   ============================================================ */
+
+.summary {
+  position: fixed;
+  top: 90px;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+  text-transform: capitalize;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 30px;
+  font-size: 14px;
+}
+
+.summary-divider {
+  width: 1px;
+  background: #e5e7eb;
+}
+
+.summary-positive {
+  color: #15803d;
+}
+
+.summary-negative {
+  color: #b91c1c;
+}
+
+.summary-highlight {
+  font-size: 15px;
+}
+
+.summary-total {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 5px;
+  padding-top: 5px;
+}
+
+
+/* ============================================================
+   MONTHLY LIST
+   ============================================================ */
+
+.monthly-list {
+  padding-top: 145px;
+  text-transform: capitalize;
+}
+
+.monthly-list-month {
+  margin-bottom: 18px;
+}
+
+.monthly-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.monthly-list-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.monthly-list-total {
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803d;
+  white-space: nowrap;
+}
+
+.monthly-list-group {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.monthly-list-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(90px, 0.7fr)
+    auto;
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  box-sizing: border-box;
+}
+
+.monthly-list-row-border {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.monthly-list-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.monthly-list-source strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monthly-list-date {
+  text-align: left;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.monthly-list-amount {
+  text-align: right;
+  white-space: nowrap;
+  font-weight: 700;
+  color: #15803d;
+  font-size: 14px;
+}

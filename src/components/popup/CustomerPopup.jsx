@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import { supabase } from "../utils/supabaseClient";
 
 export default function CustomerPopup({ initialData = null, onSave, onClose }) {
@@ -16,19 +15,14 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
   ]);
 
   const [orderValue, setOrderValue] = useState("");
-
   const [cashbackPhone, setCashbackPhone] = useState("");
   const [cashback, setCashback] = useState(0);
-
   const [memberTier, setMemberTier] = useState("");
   const [memberPercent, setMemberPercent] = useState("");
-
   const [referralPhone, setReferralPhone] = useState("");
   const [referralName, setReferralName] = useState("");
-
   const [note, setNote] = useState("");
   const [history, setHistory] = useState([]);
-
   const [isSaving, setIsSaving] = useState(false);
 
   // ============================================================
@@ -38,12 +32,16 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
   const formatName = (value) => {
     return String(value ?? "")
       .replace(/\s+/g, " ")
-      .replace(/(^|\s)(\p{L})/gu, (_, space, char) => space + char.toLocaleUpperCase("vi-VN"));
+      .replace(/(^|\s)(\p{L})/gu, (_, space, char) => {
+        return space + char.toLocaleUpperCase("vi-VN");
+      });
   };
 
   // ============================================================
   // FORMAT SĐT
-  // 0799910603 → 079.991.0603
+  //
+  // 07xxxxxxxx → 079.991.0603
+  // 09xxxxxxxx → 0907.123.062
   // ============================================================
 
   const formatPhone = (value) => {
@@ -55,6 +53,20 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       return digits;
     }
 
+    // Đầu 09 → 4-3-3
+    if (digits.startsWith("09")) {
+      if (digits.length <= 4) {
+        return digits;
+      }
+
+      if (digits.length <= 7) {
+        return `${digits.slice(0, 4)}.${digits.slice(4)}`;
+      }
+
+      return `${digits.slice(0, 4)}.${digits.slice(4, 7)}.${digits.slice(7)}`;
+    }
+
+    // Đầu 07 và các đầu khác → 3-3-4
     if (digits.length <= 6) {
       return `${digits.slice(0, 3)}.${digits.slice(3)}`;
     }
@@ -63,7 +75,9 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
   };
 
   const getRawPhone = (value) => {
-    return String(value ?? "").replace(/\D/g, "");
+    return String(value ?? "")
+      .replace(/\D/g, "")
+      .slice(0, 10);
   };
 
   // ============================================================
@@ -128,9 +142,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
   // ============================================================
   // KIỂM TRA BOOKING ĐÃ QUA NGÀY HAY CHƯA
-  //
-  // Hôm nay / tương lai → giữ lại ở Sự kiện
-  // Quá khứ → chuyển History
   // ============================================================
 
   const isPastEvent = (eventDate) => {
@@ -141,7 +152,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     }
 
     const today = new Date();
-
     today.setHours(0, 0, 0, 0);
 
     return eventDateObject < today;
@@ -149,7 +159,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
   // ============================================================
   // SORT HISTORY
-  // Cũ nhất → mới nhất
   // ============================================================
 
   const sortHistory = (items) => {
@@ -202,24 +211,19 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       ]);
 
       setOrderValue("");
-
       setCashbackPhone("");
       setCashback(0);
-
       setMemberTier("");
       setMemberPercent("");
-
       setReferralPhone("");
       setReferralName("");
-
       setNote("");
-      setHistory([]);
+      setHistory("");
 
       return;
     }
 
     setCustomerName(formatName(initialData.customer_name || ""));
-
     setPhone(getRawPhone(initialData.phone || ""));
 
     // ----------------------------------------------------------
@@ -253,9 +257,7 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     }
 
     // ----------------------------------------------------------
-    // TÁCH:
-    // QUÁ KHỨ → HISTORY
-    // HÔM NAY / TƯƠNG LAI → EVENTS
+    // TÁCH QUÁ KHỨ / HIỆN TẠI / TƯƠNG LAI
     // ----------------------------------------------------------
 
     const pastEvents = [];
@@ -264,22 +266,16 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     sourceEvents.forEach((item, index) => {
       const normalizedItem = {
         eventName: String(item.eventName ?? "").trim(),
-
         eventDate: String(item.eventDate ?? ""),
-
         orderValue: Number(getRawMoney(item.orderValue)) || 0,
-
         repeat: Boolean(item.repeat),
       };
 
       if (normalizedItem.eventDate && isPastEvent(normalizedItem.eventDate)) {
         pastEvents.push({
           id: item.id || `event-history-${Date.now()}-${index}`,
-
           event_name: normalizedItem.eventName,
-
           event_date: normalizedItem.eventDate,
-
           order_value: normalizedItem.orderValue,
         });
       } else {
@@ -292,8 +288,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     // ----------------------------------------------------------
 
     const mergedHistory = [...existingHistory, ...pastEvents];
-
-    // Tránh duplicate nếu dữ liệu đã tồn tại
     const uniqueHistory = [];
 
     mergedHistory.forEach((item) => {
@@ -313,7 +307,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
     // ----------------------------------------------------------
     // NẾU KHÔNG CÒN BOOKING TƯƠNG LAI
-    // → LUÔN HIỆN 1 HÀNG TRỐNG
     // ----------------------------------------------------------
 
     if (futureEvents.length === 0) {
@@ -329,7 +322,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       setOrderValue("");
     } else {
       setEvents(futureEvents);
-
       setOrderValue(String(calculateTotalOrderValue(futureEvents)));
     }
 
@@ -338,7 +330,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     // ----------------------------------------------------------
 
     setCashbackPhone(getRawPhone(initialData.cashback_phone || ""));
-
     setCashback(initialData.cashback ?? 0);
 
     // ----------------------------------------------------------
@@ -356,7 +347,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     // ----------------------------------------------------------
 
     setReferralPhone(getRawPhone(initialData.referral_phone || ""));
-
     setReferralName(initialData.referral_name || "");
 
     // ----------------------------------------------------------
@@ -381,10 +371,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
           : item,
       );
 
-      // --------------------------------------------------------
-      // TỰ TÍNH TỔNG GIÁ TRỊ BOOKING
-      // --------------------------------------------------------
-
       setOrderValue(String(calculateTotalOrderValue(updated)));
 
       return updated;
@@ -393,9 +379,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
   // ============================================================
   // CHECKBOX EVENT
-  //
-  // TÍCH → mở dòng mới
-  // BỎ TÍCH → xóa dòng kế tiếp
   // ============================================================
 
   const handleEventRepeat = (index, checked) => {
@@ -471,7 +454,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       }
     } catch (error) {
       console.error("❌ Lỗi tìm người PR:", error);
-
       setReferralName("");
     }
   };
@@ -508,12 +490,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
   // ============================================================
   // TÍNH % THEO BẬC
-  //
-  // 1 → 3%
-  // 2 → 6%
-  // 3 → 9%
-  // 4 → 12%
-  // 5 → 15%
   // ============================================================
 
   const getMemberPercent = (tier) => {
@@ -536,14 +512,11 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     const percent = getMemberPercent(value);
 
     setMemberTier(value);
-
     setMemberPercent(percent ? String(percent) : "");
   };
 
   // ============================================================
   // TÍNH CASHBACK
-  //
-  // Tổng giá trị booking × % của SĐT Cashback
   // ============================================================
 
   const calculateCashback = async (phoneNumber, currentOrderValue) => {
@@ -572,7 +545,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       setCashback((order * percent) / 100);
     } catch (error) {
       console.error("❌ Lỗi tra hạng Cashback:", error);
-
       setCashback(0);
     }
   };
@@ -585,7 +557,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     const value = getRawPhone(e.target.value);
 
     setCashbackPhone(value);
-
     calculateCashback(value, orderValue);
   };
 
@@ -613,10 +584,8 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       return;
     }
 
-    if (!customerName.trim()) {
-      alert("Vui lòng nhập tên khách hàng!");
-      return;
-    }
+    // Không bắt buộc tên khách hàng.
+    // Có gì lưu nấy, thiếu thông tin vẫn cho lưu.
 
     // ----------------------------------------------------------
     // TÁCH EVENT QUÁ KHỨ / HIỆN TẠI / TƯƠNG LAI
@@ -627,42 +596,24 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
     events.forEach((item, index) => {
       const eventName = String(item.eventName ?? "").trim();
-
       const eventDate = String(item.eventDate ?? "");
-
       const rawValue = getRawMoney(item.orderValue);
-
       const eventValue = Number(rawValue) || 0;
-
-      // ------------------------------------------------------
-      // HÀNG HOÀN TOÀN TRỐNG
-      // ------------------------------------------------------
 
       if (!eventName && !eventDate && !eventValue) {
         return;
       }
 
-      // ------------------------------------------------------
-      // ĐÃ QUA NGÀY → HISTORY
-      // ------------------------------------------------------
-
       if (eventDate && isPastEvent(eventDate)) {
         newHistory.push({
           id: `event-${Date.now()}-${index}`,
-
           event_name: eventName,
-
           event_date: eventDate,
-
           order_value: eventValue,
         });
 
         return;
       }
-
-      // ------------------------------------------------------
-      // HÔM NAY / TƯƠNG LAI
-      // ------------------------------------------------------
 
       currentEvents.push({
         eventName,
@@ -677,7 +628,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
     // ----------------------------------------------------------
 
     const mergedHistory = [...history, ...newHistory];
-
     const uniqueHistory = [];
 
     mergedHistory.forEach((item) => {
@@ -697,7 +647,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
     // ----------------------------------------------------------
     // NẾU KHÔNG CÒN EVENT HIỆN TẠI
-    // → GIỮ 1 EVENT TRỐNG
     // ----------------------------------------------------------
 
     const finalEvents =
@@ -720,9 +669,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
     // ----------------------------------------------------------
     // EVENT CHÍNH
-    //
-    // Nếu không có booking hiện tại:
-    // gửi "" thay vì null để không vi phạm NOT NULL.
     // ----------------------------------------------------------
 
     const firstEvent = currentEvents[0] || {
@@ -738,37 +684,21 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
 
     const formData = {
       id: initialData?.id || null,
-
       customer_name: formatName(customerName),
-
       phone: getRawPhone(phone),
-
       event_name: firstEvent.eventName,
-
       event_date: firstEvent.eventDate || "",
-
       repeat_event: currentEvents.length > 1,
-
       events: finalEvents,
-
       order_value: finalOrderValue,
-
       cashback_phone: getRawPhone(cashbackPhone),
-
       cashback: Number(cashback) || 0,
-
       member_tier: Number(memberTier) || 0,
-
       member_percent: getMemberPercent(memberTier),
-
       referral_phone: getRawPhone(referralPhone),
-
       referral_name: referralName || "",
-
       note: note.trim(),
-
       history: finalHistory,
-
       is_active: initialData?.is_active ?? true,
     };
 
@@ -807,7 +737,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
   return (
     <form onSubmit={handleSubmit} className="popup-form">
       {/* TÊN KHÁCH HÀNG */}
-
       <div className="popup-row">
         <label className="popup-label">Tên khách hàng</label>
 
@@ -815,7 +744,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       </div>
 
       {/* SỐ ĐIỆN THOẠI */}
-
       <div className="popup-row">
         <label className="popup-label">Số điện thoại</label>
 
@@ -829,7 +757,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       </div>
 
       {/* SỰ KIỆN */}
-
       {events.map((event, index) => (
         <div className="popup-row" key={index}>
           <label className="popup-label">Sự kiện</label>
@@ -869,7 +796,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       ))}
 
       {/* GIÁ TRỊ ĐƠN / CASHBACK */}
-
       <div className="popup-row">
         <label className="popup-label">Giá trị đơn / Cashback</label>
 
@@ -881,7 +807,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       </div>
 
       {/* HẠNG THÀNH VIÊN / NGƯỜI PR */}
-
       <div className="popup-row">
         <label className="popup-label">Hạng thành viên / Người PR</label>
 
@@ -907,7 +832,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       </div>
 
       {/* GHI CHÚ */}
-
       <div className="popup-row">
         <label className="popup-label">Ghi chú</label>
 
@@ -915,7 +839,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       </div>
 
       {/* LỊCH SỬ BOOKING */}
-
       {history.length > 0 && (
         <div className="popup-row">
           <label className="popup-label">Lịch sử Booking</label>
@@ -937,7 +860,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose }) {
       )}
 
       {/* FOOTER */}
-
       <div className="popup-footer">
         <button type="submit" className="popup-submit" disabled={isSaving}>
           {isSaving ? "Đang đẩy lên mây..." : "Lưu lại"}

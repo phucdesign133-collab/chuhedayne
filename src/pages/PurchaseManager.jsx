@@ -1,10 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Trash2, Package } from "lucide-react";
+import { Package } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
+import "../css/MonthlyList.css";
 
 export default function PurchaseManager({ searchTerm = "", savedData = null, onCountChange, onEdit }) {
   const [purchases, setPurchases] = useState([]);
+  const [swipeState, setSwipeState] = useState({
+    id: null,
+    x: 0,
+    startX: 0,
+    startY: 0,
+    dragging: false,
+  });
 
   // ============================================================
   // LOAD DATA
@@ -84,28 +92,6 @@ export default function PurchaseManager({ searchTerm = "", savedData = null, onC
   }, [filteredPurchases.length, onCountChange]);
 
   // ============================================================
-  // DELETE
-  // ============================================================
-
-  const handleDelete = async (purchase) => {
-    const confirmed = window.confirm(`Xóa "${purchase.title || "vật tư"}" khỏi danh sách mua hàng?`);
-
-    if (!confirmed) return;
-
-    try {
-      const { error } = await supabase.from("purchases").delete().eq("id", purchase.id);
-
-      if (error) throw error;
-
-      setPurchases((prev) => prev.filter((item) => item.id !== purchase.id));
-    } catch (error) {
-      console.error("❌ Lỗi xóa mua hàng:", error);
-
-      alert(`Không thể xóa mua hàng:\n${error?.message || "Lỗi không xác định"}`);
-    }
-  };
-
-  // ============================================================
   // FORMAT
   // ============================================================
 
@@ -139,6 +125,16 @@ export default function PurchaseManager({ searchTerm = "", savedData = null, onC
     }
 
     return `${day}/${month}/${year}`;
+  };
+
+  const formatMonth = (dateValue) => {
+    if (!dateValue) return "";
+
+    const [year, month] = String(dateValue).slice(0, 7).split("-");
+
+    if (!year || !month) return "";
+
+    return `Tháng ${month}/${year}`;
   };
 
   // ============================================================
@@ -185,26 +181,163 @@ export default function PurchaseManager({ searchTerm = "", savedData = null, onC
   }, [filteredPurchases]);
 
   // ============================================================
-  // GROUP BY DATE
+  // DELETE
   // ============================================================
 
-  const purchaseGroups = useMemo(() => {
-    const groups = new Map();
+  const handleDelete = async (purchase) => {
+    const confirmed = window.confirm(`Xóa "${purchase.title || "vật tư"}" khỏi danh sách mua hàng?`);
 
-    filteredPurchases.forEach((purchase) => {
-      const date = purchase.date || "unknown";
+    if (!confirmed) return;
 
-      if (!groups.has(date)) {
-        groups.set(date, []);
-      }
+    try {
+      const { error } = await supabase.from("purchases").delete().eq("id", purchase.id);
 
-      groups.get(date).push(purchase);
+      if (error) throw error;
+
+      setPurchases((prev) => prev.filter((item) => item.id !== purchase.id));
+    } catch (error) {
+      console.error("❌ Lỗi xóa mua hàng:", error);
+
+      alert(`Không thể xóa mua hàng:\n${error?.message || "Lỗi không xác định"}`);
+    }
+  };
+
+  // ============================================================
+  // SWIPE
+  // ============================================================
+  //
+  // Row trượt theo đúng khoảng cách ngón tay.
+  //
+  // Vuốt trái:
+  // - Ngày created_at nằm phía bên phải.
+  // - >= 85% width row -> Xóa.
+  //
+  // Vuốt phải:
+  // - Ngày created_at nằm phía bên trái.
+  // - >= 85% width row -> Sửa.
+  //
+  // Dưới 85% -> tự trả row về.
+  // Khoảng 30% đã đủ để nhìn thấy ngày rõ ràng.
+  // ============================================================
+
+  const handlePointerDown = (event, purchase) => {
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    setSwipeState({
+      id: purchase.id,
+      x: 0,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragging: false,
     });
 
-    return Array.from(groups.entries()).map(([date, items]) => ({
-      date,
-      items,
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event) => {
+    if (swipeState.id === null) return;
+
+    const deltaX = event.clientX - swipeState.startX;
+    const deltaY = event.clientY - swipeState.startY;
+
+    // Nếu người dùng đang vuốt dọc -> không can thiệp.
+    if (!swipeState.dragging) {
+      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 8) {
+        setSwipeState((prev) => ({
+          ...prev,
+          id: null,
+          x: 0,
+          dragging: false,
+        }));
+
+        return;
+      }
+
+      if (Math.abs(deltaX) < 8) {
+        return;
+      }
+
+      setSwipeState((prev) => ({
+        ...prev,
+        dragging: true,
+      }));
+    }
+
+    event.preventDefault();
+
+    const rowWidth = event.currentTarget.getBoundingClientRect().width;
+
+    // Không cho row trượt quá chính chiều rộng của nó.
+    const limitedX = Math.max(-rowWidth, Math.min(rowWidth, deltaX));
+
+    setSwipeState((prev) => ({
+      ...prev,
+      x: limitedX,
+      dragging: true,
     }));
+  };
+
+  const handlePointerUp = async (event, purchase) => {
+    if (swipeState.id !== purchase.id) return;
+
+    const rowWidth = event.currentTarget.getBoundingClientRect().width;
+    const threshold = rowWidth * 0.85;
+    const deltaX = event.clientX - swipeState.startX;
+
+    setSwipeState({
+      id: null,
+      x: 0,
+      startX: 0,
+      startY: 0,
+      dragging: false,
+    });
+
+    if (Math.abs(deltaX) < threshold) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      await handleDelete(purchase);
+      return;
+    }
+
+    if (deltaX > 0 && typeof onEdit === "function") {
+      onEdit(purchase);
+    }
+  };
+
+  const handlePointerCancel = () => {
+    setSwipeState({
+      id: null,
+      x: 0,
+      startX: 0,
+      startY: 0,
+      dragging: false,
+    });
+  };
+
+  // ============================================================
+  // MONTHLY LIST
+  // ============================================================
+
+  const groupedByMonth = useMemo(() => {
+    const groups = {};
+
+    filteredPurchases.forEach((purchase) => {
+      if (!purchase.date) return;
+
+      const monthKey = String(purchase.date).slice(0, 7);
+
+      if (!groups[monthKey]) {
+        groups[monthKey] = [];
+      }
+
+      groups[monthKey].push(purchase);
+    });
+
+    return Object.entries(groups).sort(([monthA], [monthB]) => monthB.localeCompare(monthA));
   }, [filteredPurchases]);
 
   // ============================================================
@@ -251,24 +384,24 @@ export default function PurchaseManager({ searchTerm = "", savedData = null, onC
               <div
                 key={item.title}
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto auto",
-                  gap: "14px",
+                  display: "flex",
+                  justifyContent: "space-between",
                   alignItems: "center",
+                  gap: "12px",
+                  minHeight: "28px",
                   fontSize: "14px",
                 }}
               >
-                <strong>{item.title}</strong>
-
-                <span
+                <strong
                   style={{
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
-                    color: "#4b5563",
                   }}
                 >
-                  {formatQuantity(item.quantity)} {item.unit}
-                  {item.packaging > 0 && ` · ${formatQuantity(item.packaging)}`}
-                </span>
+                  {item.title}
+                </strong>
 
                 <strong
                   style={{
@@ -308,154 +441,115 @@ export default function PurchaseManager({ searchTerm = "", savedData = null, onC
       </div>
 
       {/* ======================================================
-          LIST
+          MONTHLY LIST
       ====================================================== */}
 
-      <div
-        className="list"
-        style={{
-          paddingTop: purchaseSummary.length > 0 ? `${Math.min(60 + purchaseSummary.length * 28, 350)}px` : "145px",
-        }}
-      >
-        {filteredPurchases.length === 0 ? (
+      <div className="list monthly-list purchase-monthly-list">
+        {groupedByMonth.length === 0 ? (
           <div className="empty">
             <Package size={32} />
             <span>Chưa có khoản mua hàng phù hợp</span>
           </div>
         ) : (
-          purchaseGroups.map((group) => (
-            <div
-              key={group.date}
-              style={{
-                marginBottom: "18px",
-              }}
-            >
-              {/* ==================================================
-                  DATE
-              ================================================== */}
+          groupedByMonth.map(([monthKey, monthPurchases]) => {
+            const monthlyTotal = monthPurchases.reduce((sum, purchase) => sum + Number(purchase.amount || 0), 0);
 
-              <div
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#6b7280",
-                  marginBottom: "7px",
-                  padding: "0 4px",
-                }}
-              >
-                {formatDate(group.date)}
-              </div>
+            return (
+              <div className="monthly-list-month" key={monthKey}>
+                {/* MONTH HEADER */}
 
-              {/* ==================================================
-                  GROUP
-              ================================================== */}
+                <div className="monthly-list-header">
+                  <span className="monthly-list-title">{formatMonth(`${monthKey}-01`)}</span>
 
-              <div className="card">
-                <div
-                  className="card-main"
-                  style={{
-                    padding: 0,
-                  }}
-                >
-                  <ul
-                    className="info"
-                    style={{
-                      listStyle: "none",
-                      margin: 0,
-                      padding: 0,
-                      background: "#fff",
-                      width: "100%",
-                    }}
-                  >
-                    {group.items.map((purchase, index) => (
-                      <li
-                        className="row"
-                        key={purchase.id || `purchase-${group.date}-${index}`}
+                  <strong className="monthly-list-total purchase-monthly-total">{formatMoney(monthlyTotal)}</strong>
+                </div>
+
+                {/* MONTH GROUP */}
+
+                <div className="monthly-list-group">
+                  {monthPurchases.map((purchase, index) => {
+                    const isSwiping = swipeState.id === purchase.id;
+                    const swipeX = isSwiping ? swipeState.x : 0;
+
+                    return (
+                      <div
+                        key={purchase.id || `purchase-${monthKey}-${index}`}
                         style={{
-                          display: "grid",
-                          gridTemplateColumns: "minmax(0, 1fr) auto auto 10%",
-                          gap: "10px",
-                          alignItems: "center",
-                          width: "100%",
-                          boxSizing: "border-box",
-                          padding: "11px 8px",
-                          borderBottom: index < group.items.length - 1 ? "1px solid #e5e7eb" : "none",
+                          position: "relative",
+                          overflow: "hidden",
+                          background: "#fff",
                         }}
                       >
-                        {/* ==============================
-                              NAME
-                          ============================== */}
+                        {/* ==================================================
+                            SWIPE DATE
+                        ================================================== */}
 
-                        <span
-                          className="name"
+                        <div
                           style={{
-                            minWidth: 0,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {purchase.title || ""}
-                        </span>
-
-                        {/* ==============================
-                              QUANTITY
-                          ============================== */}
-
-                        <span
-                          style={{
-                            whiteSpace: "nowrap",
-                            textAlign: "right",
-                            color: "#4b5563",
-                          }}
-                        >
-                          {formatQuantity(purchase.quantity)} {purchase.unit || ""}
-                        </span>
-
-                        {/* ==============================
-                              AMOUNT
-                          ============================== */}
-
-                        <strong
-                          style={{
-                            whiteSpace: "nowrap",
-                            textAlign: "right",
-                            color: "#b91c1c",
-                          }}
-                        >
-                          {formatMoney(purchase.amount)}
-                        </strong>
-
-                        {/* ==============================
-                              DELETE
-                          ============================== */}
-
-                        <button
-                          type="button"
-                          className="action-btn delete-btn"
-                          onClick={() => handleDelete(purchase)}
-                          title="Xóa"
-                          aria-label={`Xóa ${purchase.title || "vật tư"}`}
-                          style={{
-                            justifySelf: "end",
-                            width: "32px",
-                            height: "32px",
-                            minWidth: "32px",
-                            padding: 0,
+                            position: "absolute",
+                            inset: 0,
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
+                            justifyContent: "space-between",
+                            padding: "0 14px",
+                            boxSizing: "border-box",
+                            color: "#6b7280",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            pointerEvents: "none",
                           }}
                         >
-                          <Trash2 size={15} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                          <span>{swipeX > 0 ? formatDate(purchase.created_at) : ""}</span>
+
+                          <span>{swipeX < 0 ? formatDate(purchase.created_at) : ""}</span>
+                        </div>
+
+                        {/* ==================================================
+                            ROW
+                        ================================================== */}
+
+                        <div
+                          className={`monthly-list-row purchase-monthly-row${index < monthPurchases.length - 1 ? " monthly-list-row-border" : ""}`}
+                          onPointerDown={(event) => handlePointerDown(event, purchase)}
+                          onPointerMove={handlePointerMove}
+                          onPointerUp={(event) => handlePointerUp(event, purchase)}
+                          onPointerCancel={handlePointerCancel}
+                          style={{
+                            transform: `translateX(${swipeX}px)`,
+                            transition: isSwiping && swipeState.dragging ? "none" : "transform 180ms ease",
+                            touchAction: "pan-y",
+                            userSelect: "none",
+                            cursor: isSwiping && swipeState.dragging ? "grabbing" : "default",
+                            position: "relative",
+                            zIndex: 1,
+                            background: "#fff",
+                          }}
+                        >
+                          {/* NAME */}
+
+                          <div className="monthly-list-source">
+                            <Package size={20} strokeWidth={2} />
+
+                            <strong>{purchase.title || ""}</strong>
+                          </div>
+
+                          {/* QUANTITY */}
+
+                          <div className="monthly-list-date purchase-monthly-quantity">
+                            {formatQuantity(purchase.quantity)} {purchase.unit || ""}
+                          </div>
+
+                          {/* AMOUNT */}
+
+                          <div className="monthly-list-amount purchase-monthly-amount">{formatMoney(purchase.amount)}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

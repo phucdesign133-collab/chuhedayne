@@ -1,12 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 
-export default function WarehousePopup({
-  initialData = null,
-  categoryId,
-  onSave,
-  onClose,
-}) {
+export default function WarehousePopup({ initialData = null, categoryId, onSave, onClose }) {
   const [title, setTitle] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
@@ -67,43 +62,21 @@ export default function WarehousePopup({
 
     setTitle(initialData.title || "");
 
-    setQuantity(
-      initialData.quantity !== null &&
-        initialData.quantity !== undefined
-        ? String(initialData.quantity)
-        : "",
-    );
+    setQuantity(initialData.quantity !== null && initialData.quantity !== undefined ? String(initialData.quantity) : "");
 
     setUnit(initialData.unit || "");
 
-    setUnitPrice(
-      initialData.unit_price !== null &&
-        initialData.unit_price !== undefined
-        ? String(initialData.unit_price)
-        : "",
-    );
+    setUnitPrice(initialData.unit_price !== null && initialData.unit_price !== undefined ? String(initialData.unit_price) : "");
 
     setSource(initialData.source || "");
 
     setBreakEvenUsage(
-      initialData.break_even_usage !== null &&
-        initialData.break_even_usage !== undefined
-        ? String(initialData.break_even_usage)
-        : "",
+      initialData.break_even_usage !== null && initialData.break_even_usage !== undefined ? String(initialData.break_even_usage) : "",
     );
 
-    setUsageCount(
-      initialData.usage_count !== null &&
-        initialData.usage_count !== undefined
-        ? String(initialData.usage_count)
-        : "0",
-    );
+    setUsageCount(initialData.usage_count !== null && initialData.usage_count !== undefined ? String(initialData.usage_count) : "0");
 
-    setImages(
-      Array.isArray(initialData.images)
-        ? initialData.images.filter(Boolean)
-        : [],
-    );
+    setImages(Array.isArray(initialData.images) ? initialData.images.filter(Boolean) : []);
 
     setNote(initialData.note || "");
   }, [initialData]);
@@ -156,9 +129,7 @@ export default function WarehousePopup({
   // ============================================================
 
   const handleRemoveImage = (index) => {
-    setImages((prev) =>
-      prev.filter((_, imageIndex) => imageIndex !== index),
-    );
+    setImages((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
   };
 
   // ============================================================
@@ -210,14 +181,11 @@ export default function WarehousePopup({
     let numericUsageCount = 0;
 
     if (initialData) {
-      numericBreakEvenUsage =
-        Number(initialData.break_even_usage) || 0;
+      numericBreakEvenUsage = Number(initialData.break_even_usage) || 0;
 
-      numericUsageCount =
-        Number(getRawNumber(usageCount)) || 0;
+      numericUsageCount = Number(getRawNumber(usageCount)) || 0;
     } else {
-      numericBreakEvenUsage =
-        Number(getRawNumber(breakEvenUsage)) || 0;
+      numericBreakEvenUsage = Number(getRawNumber(breakEvenUsage)) || 0;
 
       numericUsageCount = 0;
     }
@@ -240,7 +208,7 @@ export default function WarehousePopup({
     // ----------------------------------------------------------
 
     const formData = {
-      id: initialData?.id || null,
+      ...(initialData?.id ? { id: initialData.id } : {}),
 
       category: categoryId,
 
@@ -271,24 +239,14 @@ export default function WarehousePopup({
       const result = await onSave(formData);
 
       if (!result || result.success !== true) {
-        throw (
-          result?.error ||
-          new Error("Không thể lưu kho.")
-        );
+        throw result?.error || new Error("Không thể lưu kho.");
       }
 
       onClose();
     } catch (error) {
-      console.error(
-        "❌ WarehousePopup save error:",
-        error,
-      );
+      console.error("❌ WarehousePopup save error:", error);
 
-      alert(
-        `Không thể lưu kho:\n${
-          error?.message || "Lỗi không xác định"
-        }`,
-      );
+      alert(`Không thể lưu kho:\n${error?.message || "Lỗi không xác định"}`);
     } finally {
       setIsSaving(false);
     }
@@ -300,23 +258,18 @@ export default function WarehousePopup({
 
   return (
     <form onSubmit={handleSubmit} className="popup-form">
-
       {/* ======================================================
           TÊN
           ====================================================== */}
 
       <div className="popup-row">
-        <label className="popup-label">
-          Vật tư
-        </label>
+        <label className="popup-label">Vật tư</label>
 
         <input
           className="popup-input"
           placeholder="Ví dụ: Trang phục MC"
           value={title}
-          onChange={(e) =>
-            setTitle(e.target.value)
-          }
+          onChange={(e) => setTitle(e.target.value)}
           disabled={isSaving}
         />
       </div>
@@ -326,38 +279,19 @@ export default function WarehousePopup({
           ====================================================== */}
 
       <div className="popup-row">
-        <label className="popup-label">
-          Số lượng
-        </label>
+        <label className="popup-label">Số lượng</label>
 
         <div className="popup-inline">
-
           <input
             className="popup-input"
             inputMode="decimal"
             placeholder="Ví dụ: 1"
             value={quantity}
-            onChange={(e) =>
-              setQuantity(
-                e.target.value.replace(
-                  /[^\d.]/g,
-                  "",
-                ),
-              )
-            }
+            onChange={(e) => setQuantity(e.target.value.replace(/[^\d.]/g, ""))}
             disabled={isSaving}
           />
 
-          <input
-            className="popup-input"
-            placeholder="Đơn vị"
-            value={unit}
-            onChange={(e) =>
-              setUnit(e.target.value)
-            }
-            disabled={isSaving}
-          />
-
+          <input className="popup-input" placeholder="Đơn vị" value={unit} onChange={(e) => setUnit(e.target.value)} disabled={isSaving} />
         </div>
       </div>
 
@@ -366,20 +300,14 @@ export default function WarehousePopup({
           ====================================================== */}
 
       <div className="popup-row">
-        <label className="popup-label">
-          Giá nhập
-        </label>
+        <label className="popup-label">Giá nhập</label>
 
         <input
           className="popup-input"
           inputMode="numeric"
           placeholder="Ví dụ: 2.500.000"
           value={formatMoneyInput(unitPrice)}
-          onChange={(e) =>
-            setUnitPrice(
-              getRawMoney(e.target.value),
-            )
-          }
+          onChange={(e) => setUnitPrice(getRawMoney(e.target.value))}
           disabled={isSaving}
         />
       </div>
@@ -389,17 +317,13 @@ export default function WarehousePopup({
           ====================================================== */}
 
       <div className="popup-row">
-        <label className="popup-label">
-          Nguồn
-        </label>
+        <label className="popup-label">Nguồn</label>
 
         <input
           className="popup-input"
           placeholder="Ví dụ: Shopee / Nhà cung cấp ABC"
           value={source}
-          onChange={(e) =>
-            setSource(e.target.value)
-          }
+          onChange={(e) => setSource(e.target.value)}
           disabled={isSaving}
         />
       </div>
@@ -410,20 +334,14 @@ export default function WarehousePopup({
 
       {!initialData && (
         <div className="popup-row">
-          <label className="popup-label">
-            Hòa vốn
-          </label>
+          <label className="popup-label">Hòa vốn</label>
 
           <input
             className="popup-input"
             inputMode="numeric"
             placeholder="Ví dụ: 10 lần"
             value={breakEvenUsage}
-            onChange={(e) =>
-              setBreakEvenUsage(
-                getRawNumber(e.target.value),
-              )
-            }
+            onChange={(e) => setBreakEvenUsage(getRawNumber(e.target.value))}
             disabled={isSaving}
           />
         </div>
@@ -435,20 +353,14 @@ export default function WarehousePopup({
 
       {initialData && (
         <div className="popup-row">
-          <label className="popup-label">
-            Số lần sử dụng
-          </label>
+          <label className="popup-label">Số lần sử dụng</label>
 
           <input
             className="popup-input"
             inputMode="numeric"
             placeholder="Ví dụ: 3"
             value={usageCount}
-            onChange={(e) =>
-              setUsageCount(
-                getRawNumber(e.target.value),
-              )
-            }
+            onChange={(e) => setUsageCount(getRawNumber(e.target.value))}
             disabled={isSaving}
           />
         </div>
@@ -459,9 +371,7 @@ export default function WarehousePopup({
           ====================================================== */}
 
       <div className="popup-row">
-        <label className="popup-label">
-          Hình ảnh
-        </label>
+        <label className="popup-label">Hình ảnh</label>
 
         <label
           className="popup-input"
@@ -470,30 +380,19 @@ export default function WarehousePopup({
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
-            cursor: isSaving
-              ? "not-allowed"
-              : "pointer",
+            cursor: isSaving ? "not-allowed" : "pointer",
           }}
         >
           <ImagePlus size={18} />
           Thêm ảnh
-
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={handleImageChange}
-            disabled={isSaving}
-          />
+          <input type="file" accept="image/*" multiple hidden onChange={handleImageChange} disabled={isSaving} />
         </label>
 
         {images.length > 0 && (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns:
-                "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(3, 1fr)",
               gap: "8px",
               marginTop: "8px",
             }}
@@ -521,9 +420,7 @@ export default function WarehousePopup({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    handleRemoveImage(index)
-                  }
+                  onClick={() => handleRemoveImage(index)}
                   disabled={isSaving}
                   style={{
                     position: "absolute",
@@ -552,18 +449,9 @@ export default function WarehousePopup({
           ====================================================== */}
 
       <div className="popup-row">
-        <label className="popup-label">
-          Ghi chú
-        </label>
+        <label className="popup-label">Ghi chú</label>
 
-        <textarea
-          className="popup-input popup-textarea"
-          value={note}
-          onChange={(e) =>
-            setNote(e.target.value)
-          }
-          disabled={isSaving}
-        />
+        <textarea className="popup-input popup-textarea" value={note} onChange={(e) => setNote(e.target.value)} disabled={isSaving} />
       </div>
 
       {/* ======================================================
@@ -571,17 +459,10 @@ export default function WarehousePopup({
           ====================================================== */}
 
       <div className="popup-footer">
-        <button
-          type="submit"
-          className="popup-submit"
-          disabled={isSaving}
-        >
-          {isSaving
-            ? "Đang đẩy lên mây..."
-            : "Lưu lại"}
+        <button type="submit" className="popup-submit" disabled={isSaving}>
+          {isSaving ? "Đang đẩy lên mây..." : "Lưu lại"}
         </button>
       </div>
-
     </form>
   );
 }
