@@ -1,12 +1,14 @@
 <!doctype html>
 <html>
 <head>
-  <script>
-    // Chuyển hướng ngay lập tức nếu truy cập từ link GitHub Pages cũ
-    if (window.location.hostname.includes("github.io")) {
-      window.location.replace("https://chuhedayne.vercel.app/spin");
-    }
-  </script>
+<script>
+  // Nếu truy cập từ link GitHub Pages (bất kể có path con phía sau như /#/lucky-spin)
+  if (window.location.hostname.includes("github.io")) {
+    // Lấy toàn bộ phần đường dẫn phía sau (pathname + hash) để đá sang Vercel kèm theo đúng trang đó luôn
+    var currentPath = window.location.pathname + window.location.search + window.location.hash;
+    window.location.replace("https://chuhedayne.vercel.app" + currentPath.replace("/phucparty", ""));
+  }
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Chú Hề Đây Nè!</title>
