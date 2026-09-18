@@ -2,10 +2,9 @@
 <html>
 <head>
 <script>
+  // Nếu đang đứng trên GitHub Pages, lập tức chuyển hướng thẳng tắp sang Vercel
   if (window.location.hostname.includes("github.io")) {
-    var hash = window.location.hash || ''; // Lấy phần #/lucky-spin
-    // Ép chuyển hướng thẳng sang Vercel kèm theo đúng route hash phía sau
-    window.location.replace("https://chuhedayne.vercel.app/" + hash);
+    window.location.replace("https://chuhedayne.vercel.app/spin");
   }
 </script>
   <meta charset="UTF-8" />
