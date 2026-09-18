@@ -1,29 +1,28 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Chú Hề Đây Nè!</title>
-
-    <!-- Cấu hình chuẩn PWA cho iOS và Mobile -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Chú Hề Đây Nè" />
-
-    <!-- Icon hiển thị cho iOS và trình duyệt web (Dùng chung file favicon.png trong thư mục public) -->
-    <link rel="apple-touch-icon" href="/public/favicon.png" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <script>
-      // Chuyển hướng link GitHub Pages cũ về domain mới
-      if (window.location.hostname.includes("github.io")) {
-        window.location.replace("https://chuhedayne.vercel.app/spin");
-      }
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <!-- Script chạy React của bạn ở đây -->
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <script>
+    // Chuyển hướng ngay lập tức nếu truy cập từ link GitHub Pages cũ
+    if (window.location.hostname.includes("github.io")) {
+      window.location.replace("https://chuhedayne.vercel.app/spin");
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chú Hề Đây Nè!</title>
+  
+  <!-- Cấu hình chuẩn PWA cho iOS và Mobile -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Chú Hề Đây Nè" />
+  
+  <!-- Icon hiển thị cho iOS và trình duyệt web -->
+  <link rel="apple-touch-icon" href="/public/favicon.png" />
+  <link rel="icon" type="image/png" href="/public/favicon.png" />
+</head>
+<body>
+  <div id="root"></div>
+  <!-- Script chạy React của bạn ở đây -->
+  <script type="module" src="/src/main.jsx"></script>
+</body>
 </html>
