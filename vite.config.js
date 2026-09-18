@@ -12,7 +12,7 @@ export default defineConfig({
       manifest: {
         name: 'Hồng Phúc',
         short_name: 'Hồng Phúc',
-        description: 'Web Phúc Group V2 - Chú Hè Đây Né!',
+        description: 'Web Phúc Group V2 - Chú Hè Đây Nè!',
         theme_color: '#b71c1c',
         background_color: '#ffffff',
         display: 'standalone',
