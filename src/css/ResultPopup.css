@@ -1,197 +1,283 @@
-/* Khóa cuộn trang bằng cách thêm class này vào body từ JSX */
-.overflow-hidden {
-  overflow: hidden;
-  height: 100vh;
-}
-.popup-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9998;
+/* ============================================================
+   RESULT POPUP
+   CSS RIÊNG CHO RESULTPOPUP
+   Chỉ chứa bố cục đặc thù của popup vòng quay.
+   ============================================================ */
+
+/* ============================================================
+   WRAPPER
+   ============================================================ */
+
+.result-popup-wrapper {
+  max-width: 380px;
+  border-radius: 16px;
+  margin: 30px;
 }
 
-.popup-container {
-  position: relative; /* Để đặt icon close */
-  background: white;
-  padding: 30px;
-  /* border-radius: 20px; */
-  /* max-width: 350px; */
-  /* width: 90%; */
-  text-align: center;
-  margin-top: -5vh;
-}
+/* ============================================================
+   HEADER TITLE
+   ============================================================ */
 
-.instruction {
-  font-size: 0.9em;
-  color: #666;
-  margin: 15px 0;
-}
-
-.button-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.close-icon {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-}
-.instructions {
-  margin: 20px 0;
-  font-size: 0.9rem;
+.result-popup-title {
+  font-size: 1rem;
   line-height: 1.4;
-  color: #444;
-  text-align: left;
 }
 
-.zalo-btn {
-  background: #0068ff;
-  color: #fff;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-}
-.wa-btn {
-  background: #25d366;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-}
-.retry-btn {
-  background: #f59e0b;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-}
-/* Thêm style cho nút xem ảnh */
-.view-img-btn {
-  width: 100%;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  margin: 15px 0;
-  font-weight: 600;
-  cursor: pointer;
+/* ============================================================
+   BODY
+   ============================================================ */
+
+.result-popup-body {
+  padding: 24px;
+  text-align: center;
 }
 
-/* Chia hàng nút liên hệ */
-.contact-row {
-  display: flex;
-  gap: 10px;
-}
+/* ============================================================
+   ROW 2 - PRIZE NAME
+   ============================================================ */
 
-.contact-row button {
-  flex: 1;
-}
-
-.popup-title,
-.prize-display,
-.code-badge,
-.wa-btn,
-.retry-btn {
-  color: #333;
-  font-weight: 600;
+.result-popup-name {
+  margin-bottom: 12px;
+  color: #222;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.35;
   text-transform: capitalize;
 }
-.zalo-btn,
-.wa-btn,
-.retry-btn {
+
+/* ============================================================
+   ROW 3 - CODE
+   ============================================================ */
+
+.result-popup-code {
+  margin-bottom: 22px;
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   ROW 4 - ACTIONS
+   ============================================================ */
+
+.result-popup-footer {
+  margin-top: 0;
+}
+
+.result-popup-actions {
+  gap: 10px;
+}
+
+.result-popup-action-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 11px 8px;
+  font-size: 0.95rem;
+}
+
+.result-popup-primary {
+  background: #22c55e;
+}
+
+.result-popup-secondary {
+  background: #f59e0b;
+}
+
+/* ============================================================
+   ROW 5 - GUIDE
+   ============================================================ */
+
+.result-popup-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-top: 20px;
+}
+
+.result-popup-guide-text {
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.result-popup-guide-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
-/* Container chứa các chấm tròn */
-.wheel-lights-container {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .result-popup-wrapper {
+    max-width: 380px;
+  }
+
+  .result-popup-body {
+    padding: 20px;
+  }
+
+  .result-popup-name {
+    font-size: 1.3rem;
+  }
+
+  .result-popup-action-btn {
+    font-size: 0.9rem;
+  }
+}
+
+/* ==========================================
+   RESULT POPUP - ORDER STEP
+========================================== */
+
+.result-popup-order {
   width: 100%;
-  height: 100%;
-  z-index: 100;
-  pointer-events: none;
-  display: block;
-  margin-top: -2px;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
-.light-dot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  background-color: #fff;
-  border-radius: 50%;
-  margin-left: -5px;
-  margin-top: -5px;
-  transition: background-color 0.3s;
-}
-
-/* KHI QUAY: Đổi màu và chớp */
-.spinning .light-dot {
-  background-color: #ffd700 !important;
-  animation: blink-light 0.8s infinite ease-in-out !important;
-}
-
-@keyframes blink-light {
-  0% {
-    opacity: 0.3;
-    box-shadow: 0 0 0px #ffd700;
-  }
-  50% {
-    opacity: 1;
-    box-shadow: 0 0 10px #ffd700;
-  }
-  100% {
-    opacity: 0.3;
-    box-shadow: 0 0 0px #ffd700;
-  }
-}
-
-/* UI Lightbox mới */
-.lightbox-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.95);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.result-popup-order-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 60px 110px;
   align-items: center;
-  z-index: 999999;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #ddd;
+  font-size: 13px;
+  font-weight: 700;
+  color: #555;
 }
-.lightbox-content {
-  display: flex;
-  flex-direction: column;
+
+.result-popup-order-head > div:nth-child(2),
+.result-popup-order-head > div:nth-child(3) {
+  text-align: right;
+}
+
+.result-popup-order-list {
+  width: 100%;
+}
+
+.result-popup-gift-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 60px 110px;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
 }
-.lightbox-content img {
-  max-width: 85vw;
-  max-height: 70vh;
-  border: 4px solid #fff;
-  border-radius: 15px;
+
+.result-popup-gift-row-selected {
+  background: #fff8f7;
 }
-.lightbox-hint {
-  color: #fff;
+
+.result-popup-gift-main {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  gap: 10px;
+}
+
+.result-popup-gift-main input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: #c0392b;
+  cursor: pointer;
+}
+
+.result-popup-gift-info {
+  min-width: 0;
+  background: none;border: none;
+}
+
+.result-popup-gift-name {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #222;
+}
+
+.result-popup-gift-code {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: #777;
+}
+
+.result-popup-gift-quantity {
+  text-align: right;
   font-size: 14px;
-  font-weight: bold;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 8px 20px;
-  border-radius: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.result-popup-gift-price {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.result-popup-order-total {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.result-popup-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 12px;
+  font-size: 14px;
+  color: #555;
+}
+
+.result-popup-total-row strong {
+  color: #222;
+  font-size: 15px;
+}
+
+@media (max-width: 480px) {
+  .result-popup-order-head {
+    grid-template-columns: minmax(0, 1fr) 45px 85px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .result-popup-gift-row {
+    grid-template-columns: minmax(0, 1fr) 45px 85px;
+    gap: 8px;
+    padding: 10px 8px;
+  }
+
+  .result-popup-gift-name {
+    font-size: 14px;
+  }
+
+  .result-popup-gift-code {
+    font-size: 11px;
+  }
+
+  .result-popup-gift-quantity,
+  .result-popup-gift-price {
+    font-size: 13px;
+  }
+
+  .result-popup-total-row {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }

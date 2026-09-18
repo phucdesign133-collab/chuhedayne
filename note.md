@@ -418,6 +418,15 @@ Thêm script vào index.html để chuyển hướng khi dùng mã qr cũ
       }
     </script>
 
+    <script>
+      // Chỉ chuyển hướng khi người dùng truy cập đúng link GitHub Pages lỗi thời
+      if (window.location.hostname.includes("github.io")) {
+        window.location.replace("https://phucgroup.vercel.app/");
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-C5kzXAkw.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CLl7Bjb6.css">
+
 TIẾP THEO — CHÚ HỀ ĐÂY NÈ!
 
 ☐ Bảng giá Admin

@@ -1,5 +1,7 @@
 // Bộ sưu tập Icon toàn cục và dữ liệu HubIcon cho Phúc Group V2 (Đã fix các icon mạng xã hội)
 
+// src\datas\icon.jsx
+
 import {
   Home,
   Image as ImageIcon,
@@ -63,6 +65,7 @@ import {
   Video,
   Grid,
   PackageCheck,
+  ReceiptText,
 } from "lucide-react";
 
 // Các icon dạng component cho hệ thống
@@ -191,6 +194,7 @@ export const hubData = {
         items: [
           { id: "prizes", name: "Kho quà", icon: <Puzzle size={22} />, path: "/admin/warehouse/prizes" },
           { id: "shipped-prizes", name: "Quà đã gửi", icon: <PackageCheck size={22} />, path: "/admin/warehouse/shipped-prizes" },
+          { id: "gift-orders", name: "Đơn đổi quà", icon: <ClipboardList size={22} />, path: "/admin/warehouse/gift-orders" },
         ],
       },
     ],
@@ -207,6 +211,13 @@ export const hubData = {
           { id: "purchase", name: "Mua hàng", icon: <DollarSign size={22} />, path: "/admin/finance/purchase" },
         ],
       },
+      {
+        sectionName: "Hóa đơn",
+        items: [
+         
+          { id: "bills", name: "Đổi quà", icon: <ReceiptText size={22} />, path: "/admin/finance/bills/gift-orders" },
+        ],
+      }
     ],
   },
   tools: {

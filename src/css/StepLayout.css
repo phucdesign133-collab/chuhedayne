@@ -1,0 +1,203 @@
+/* ============================================================
+   STEP LAYOUT
+   Layout dùng chung cho các bước dạng full-screen.
+   ============================================================ */
+
+.step-layout {
+  --primary-red: #c0392b;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100vw;
+  height: 100vh;
+
+  overflow: hidden;
+
+  background: #fff;
+  color: #222;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.step-layout-header {
+  position: relative;
+  z-index: 2;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  min-height: 56px;
+
+  box-sizing: border-box;
+  padding: 0 16px;
+
+  background: var(--primary-red);
+  color: #fff;
+}
+
+/* ============================================================
+   BACK
+   ============================================================ */
+
+.step-layout-back {
+  flex: 0 0 auto;
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+/* ============================================================
+   TITLE
+   ============================================================ */
+
+.step-layout-title {
+  flex: 1 1 auto;
+
+  margin: 0;
+  padding: 0 12px;
+
+  color: #fff;
+
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+
+  text-align: center;
+}
+
+/* ============================================================
+   CONTENT
+   ============================================================ */
+
+.step-layout-content {
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  padding: 16px;
+
+  scrollbar-width: none;
+}
+
+.step-layout-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.step-layout-footer {
+  flex: 0 0 auto;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 10px 16px;
+
+  background: #fff;
+
+  border-top: 1px solid #eee;
+}
+
+/* ============================================================
+   NEXT BUTTON
+   ============================================================ */
+
+.step-layout-next {
+  width: 100%;
+
+  min-height: 46px;
+
+  padding: 11px 16px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: var(--primary-red);
+
+  color: #fff;
+
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+
+  cursor: pointer;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .step-layout-header {
+    min-height: 54px;
+    padding: 0 12px;
+  }
+
+  .step-layout-title {
+    font-size: 16px;
+  }
+
+  .step-layout-content {
+    padding: 14px;
+  }
+
+  .step-layout-footer {
+    padding: 10px 12px;
+  }
+}
+
+.step-layout-next {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary-red);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.step-layout-next:disabled {
+  background: #ccc;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 1;
+}

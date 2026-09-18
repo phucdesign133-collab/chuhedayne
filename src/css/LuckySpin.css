@@ -16,9 +16,9 @@
   box-shadow: 0 25px 50px rgba(0, 245, 212, 0.25);
 }
 
-.party-container:not(.party-container-premium) {
+/* .party-container:not(.party-container-premium) {
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-}
+} */
 
 .header-area {
   text-align: center;
@@ -151,7 +151,7 @@
 
 
 .form-title {
-  margin: 0 0 18px 0;
+  margin: 0;
   text-align: center;
   color: #94a3b8;
   font-size: 16px;
@@ -161,9 +161,7 @@
   color: #ffbf00;
 }
 
-.input-group {
-  margin-bottom: 15px;
-}
+
 
 .input-field {
   width: 100%;

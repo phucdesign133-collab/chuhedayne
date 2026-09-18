@@ -1,11 +1,13 @@
+// src/components/Grid.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Plus, Search } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { hubData } from "../datas/icons";
 import { supabase } from "./utils/supabaseClient";
 
 import Popup from "./popup/Popup";
+import BillGrid from "../pages/BillGrid";
 
 import PrizeManager from "../pages/PrizeManager";
 import CustomerManager from "../pages/CustomerManager";
@@ -20,9 +22,11 @@ import PriceManager from "../pages/PriceManager";
 
 import "../css/Grid.css";
 
-export default function Grid() {
+export default function Grid({ categoryIdOverride = null }) {
   const navigate = useNavigate();
-  const { categoryId } = useParams();
+  const { categoryId: routeCategoryId } = useParams();
+
+  const categoryId = categoryIdOverride || routeCategoryId;
 
   // =========================================================
   // STATE
@@ -42,7 +46,6 @@ export default function Grid() {
   // CATEGORY
   // =========================================================
 
-  // Tất cả category của toàn bộ Hub
   const allCategories = useMemo(() => {
     return Object.values(hubData || {}).flatMap((hub) => {
       const sections = hub?.sections || [];
@@ -51,7 +54,6 @@ export default function Grid() {
     });
   }, []);
 
-  // Riêng category thuộc Hub Content
   const contentCategories = useMemo(() => {
     const sections = hubData?.content?.sections || [];
 
@@ -59,6 +61,13 @@ export default function Grid() {
   }, []);
 
   const currentCategory = useMemo(() => {
+    if (categoryId === "bills/gift-orders") {
+      return {
+        id: "bills/gift-orders",
+        name: "Đổi quà",
+      };
+    }
+
     return allCategories.find((item) => item.id === categoryId);
   }, [allCategories, categoryId]);
 
@@ -73,6 +82,16 @@ export default function Grid() {
   const isWarehouseCategory = ["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId);
 
   const isContentCategory = contentCategories.some((item) => item.id === categoryId);
+
+  // =========================================================
+  // BILL CATEGORIES
+  // =========================================================
+
+  const isWarehouseGiftOrders = categoryId === "gift-orders";
+
+  const isFinanceGiftOrders = categoryId === "bills/gift-orders";
+
+  const isBillCategory = isWarehouseGiftOrders || isFinanceGiftOrders;
 
   // =========================================================
   // ADD
@@ -135,19 +154,12 @@ export default function Grid() {
     try {
       // =====================================================
       // PRICE
-      //
-      // Tạm thời KHÔNG ghi DB.
-      // Chỉ lưu local vào Grid để test UI/formula.
-      // Sau khi chốt schema giá -> chuyển sang Supabase.
       // =====================================================
 
       if (isPriceCategory) {
         const data = {
           ...formData,
-
           category: categoryId,
-
-          // đảm bảo ID cho item mới
           id: formData.id || `price-${Date.now()}`,
         };
 
@@ -214,7 +226,6 @@ export default function Grid() {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -231,6 +242,7 @@ export default function Grid() {
       if (categoryId === "customer-info") {
         const payload = {
           customer_name: String(formData.customer_name || "").trim(),
+
           phone: String(formData.phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
@@ -280,7 +292,9 @@ export default function Grid() {
           result = await supabase.from("customer").insert(payload).select().single();
         }
 
-        if (result.error) throw result.error;
+        if (result.error) {
+          throw result.error;
+        }
 
         setSavedData(result.data);
         setIsPopupOpen(false);
@@ -303,6 +317,7 @@ export default function Grid() {
           date: formData.date || null,
           time_slot: String(formData.time_slot || "").trim(),
           staff_note: formData.staff_note || null,
+
           amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
         };
 
@@ -319,7 +334,6 @@ export default function Grid() {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -355,7 +369,6 @@ export default function Grid() {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -387,7 +400,6 @@ export default function Grid() {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -420,7 +432,6 @@ export default function Grid() {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -437,9 +448,7 @@ export default function Grid() {
       if (isWarehouseCategory) {
         const payload = {
           ...formData,
-
           category: categoryId,
-
           images: prepareImages(formData.images),
         };
 
@@ -456,7 +465,6 @@ export default function Grid() {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -492,7 +500,6 @@ export default function Grid() {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
 
@@ -522,6 +529,22 @@ export default function Grid() {
   // =========================================================
 
   const renderManager = () => {
+    // -------------------------------------------------------
+    // BILL
+    // -------------------------------------------------------
+
+    if (isBillCategory) {
+      return (
+        <BillGrid
+          billType="gift-orders"
+          source={isFinanceGiftOrders ? "finance" : "warehouse"}
+          searchTerm={searchTerm}
+          onCountChange={setItemCount}
+          onEdit={handleEdit}
+        />
+      );
+    }
+
     // -------------------------------------------------------
     // PRICE
     // -------------------------------------------------------
@@ -658,10 +681,6 @@ export default function Grid() {
       return `${action} vật tư`;
     }
 
-    // =======================================================
-    // PRICE
-    // =======================================================
-
     if (categoryId === "price-decoration") {
       return `${action} giá trang trí`;
     }
@@ -730,7 +749,7 @@ export default function Grid() {
           POPUP
       ====================================================== */}
 
-      {isPopupOpen && (
+      {isPopupOpen && !isBillCategory && (
         <Popup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} categoryId={categoryId} initialData={editingData} />
       )}
     </div>
