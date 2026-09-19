@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Package } from "lucide-react";
+import { ChevronDown, ChevronUp, Package } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
 import "../css/MonthlyList.css";
 
 export default function PurchaseManager({ searchTerm = "", savedData = null, onCountChange, onEdit }) {
   const [purchases, setPurchases] = useState([]);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [swipeState, setSwipeState] = useState({
     id: null,
     x: 0,
@@ -350,101 +351,57 @@ export default function PurchaseManager({ searchTerm = "", savedData = null, onC
           PURCHASE SUMMARY
       ====================================================== */}
 
-      <div
-        style={{
-          position: "fixed",
-          top: 90,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          background: "#fff",
-          borderBottom: "1px solid #e5e7eb",
-          padding: "14px 20px",
-          boxShadow: "0 3px 12px rgba(0,0,0,0.06)",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gap: "6px",
-          }}
-        >
-          {purchaseSummary.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                fontSize: "14px",
-                color: "#6b7280",
-              }}
-            >
-              Chưa có dữ liệu mua hàng
-            </div>
-          ) : (
-            purchaseSummary.map((item) => (
-              <div
-                key={item.title}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "12px",
-                  minHeight: "28px",
-                  fontSize: "14px",
-                }}
-              >
-                <strong
-                  style={{
-                    minWidth: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.title}
-                </strong>
+      <div className={`summary purchase-summary${isSummaryOpen ? " summary-open" : ""}`}>
+        {!isSummaryOpen ? (
+          /* ====================================================
+             SUMMARY CLOSED
+          ==================================================== */
 
-                <strong
-                  style={{
-                    whiteSpace: "nowrap",
-                    color: "#b91c1c",
-                  }}
-                >
-                  {formatMoney(item.amount)}
-                </strong>
-              </div>
-            ))
-          )}
-
-          <div
-            style={{
-              borderTop: "1px solid #e5e7eb",
-              marginTop: "6px",
-              paddingTop: "7px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              fontSize: "14px",
-            }}
-          >
+          <button type="button" className="summary-row purchase-summary-closed" onClick={() => setIsSummaryOpen(true)}>
             <strong>Tổng mua hàng</strong>
 
-            <strong
-              style={{
-                color: "#b91c1c",
-                fontSize: "15px",
-              }}
-            >
-              {formatMoney(totalPurchase)}
-            </strong>
+            <strong className="summary-negative summary-highlight">{formatMoney(totalPurchase)}</strong>
+
+            <ChevronDown size={20} strokeWidth={2} />
+          </button>
+        ) : (
+          /* ====================================================
+             SUMMARY OPEN
+          ==================================================== */
+
+          <div className="summary-grid purchase-summary-open">
+            {purchaseSummary.length === 0 ? (
+              <div className="purchase-summary-empty">Chưa có dữ liệu mua hàng</div>
+            ) : (
+              purchaseSummary.map((item) => (
+                <div key={item.title} className="summary-row purchase-summary-item">
+                  <strong>{item.title}</strong>
+
+                  <strong className="summary-negative">{formatMoney(item.amount)}</strong>
+                </div>
+              ))
+            )}
+
+            <div className="summary-row summary-total purchase-summary-total">
+              <strong>Tổng mua hàng</strong>
+
+              <div className="purchase-summary-total-right">
+                <strong className="summary-negative summary-highlight">{formatMoney(totalPurchase)}</strong>
+
+                <button type="button" className="purchase-summary-toggle" onClick={() => setIsSummaryOpen(false)} aria-label="Thu gọn tổng mua hàng">
+                  <ChevronUp size={20} strokeWidth={2} />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ======================================================
           MONTHLY LIST
       ====================================================== */}
 
-      <div className="list monthly-list purchase-monthly-list">
+      <div className="list monthly-list-1 purchase-monthly-list">
         {groupedByMonth.length === 0 ? (
           <div className="empty">
             <Package size={32} />

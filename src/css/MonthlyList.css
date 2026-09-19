@@ -10,15 +10,15 @@
   z-index: 20;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
-  padding: 16px 20px;
+  padding: 14px 20px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
   text-transform: capitalize;
+  box-sizing: border-box;
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: 1fr 1px 1fr;
-  gap: 18px;
+  gap: 6px;
   align-items: stretch;
 }
 
@@ -28,11 +28,6 @@
   align-items: center;
   min-height: 30px;
   font-size: 14px;
-}
-
-.summary-divider {
-  width: 1px;
-  background: #e5e7eb;
 }
 
 .summary-positive {
@@ -49,8 +44,89 @@
 
 .summary-total {
   border-top: 1px solid #e5e7eb;
-  margin-top: 5px;
-  padding-top: 5px;
+  margin-top: 6px;
+  padding-top: 7px;
+}
+
+.purchase-summary {
+  z-index: 20;
+}
+
+.purchase-summary-closed {
+  width: 100%;
+  min-height: 30px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.purchase-summary-closed > strong:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.purchase-summary-closed > strong:nth-child(2) {
+  margin-left: auto;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.purchase-summary-open {
+  width: 100%;
+}
+
+.purchase-summary-item {
+  gap: 12px;
+}
+
+.purchase-summary-item > strong:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.purchase-summary-item > strong:last-child {
+  white-space: nowrap;
+}
+
+.purchase-summary-total {
+  gap: 12px;
+}
+
+.purchase-summary-total-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.purchase-summary-toggle {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.purchase-summary-empty {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #6b7280;
 }
 
 /* ============================================================
@@ -59,6 +135,11 @@
 
 .monthly-list {
   padding-top: 145px;
+  text-transform: capitalize;
+}
+
+.monthly-list-1 {
+  padding-top: 66px;
   text-transform: capitalize;
 }
 
@@ -93,6 +174,7 @@
   overflow: hidden;
   border: 1px solid #e5e7eb;
 }
+
 .monthly-list-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
