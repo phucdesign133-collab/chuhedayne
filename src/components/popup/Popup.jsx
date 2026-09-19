@@ -9,6 +9,7 @@ import PurchasePopup from "./PurchasePopup";
 import ShippedPrizesPopup from "./ShippedPrizesPopup";
 import WarehousePopup from "./WarehousePopup";
 import PricePopup from "./PricePopup";
+import BillPopup from "./BillPopup";
 
 import "../../css/Popup.css";
 
@@ -62,6 +63,14 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
       return `${action} giá biểu diễn`;
     }
 
+    // ==========================================================
+    // BILL
+    // ==========================================================
+
+    if (categoryId === "bills/gift-orders") {
+      return `${action} bill đổi quà`;
+    }
+
     return `${action} nội dung`;
   };
 
@@ -104,6 +113,14 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
 
     if (categoryId === "price-decoration" || categoryId === "price-party") {
       return <PricePopup onClose={onClose} onSave={onSave} initialData={initialData} categoryId={categoryId} />;
+    }
+
+    // ==========================================================
+    // BILL
+    // ==========================================================
+
+    if (categoryId === "bills/gift-orders") {
+      return <BillPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     }
 
     // ==========================================================

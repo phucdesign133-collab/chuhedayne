@@ -1,20 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Pencil,
-  Trash2,
-  Wallet,
-  PartyPopper,
-  Palette,
-  Car,
-  CircleDollarSign,
-  Package,
-} from "lucide-react";
+import { Wallet, PartyPopper, Palette, Car, CircleDollarSign } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
 import "../css/MonthlyList.css";
 
 export default function FundManager({ searchTerm = "", onCountChange }) {
   const [incomes, setIncomes] = useState([]);
+  const [purchases, setPurchases] = useState([]);
 
   // ============================================================
   // LOAD INCOME
@@ -37,12 +29,60 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
     }
   };
 
+  // ============================================================
+  // LOAD PURCHASE
+  // ============================================================
+
+  const loadPurchases = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("purchases")
+        .select("id, amount, date, created_at")
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      setPurchases(data || []);
+    } catch (error) {
+      console.error("❌ Lỗi tải dữ liệu nhập hàng cho Quỹ:", error);
+
+      setPurchases([]);
+    }
+  };
+
   useEffect(() => {
     loadIncomes();
+    loadPurchases();
   }, []);
 
   // ============================================================
   // FUND
+  //
+  // Tái đầu tư = 20% thực nhận.
+  //
+  // Nếu kết quả <= 0 -> 0.
+  // Nếu kết quả > 0 -> lấy số nguyên.
+  // ============================================================
+
+  const calculateFund = (received) => {
+    const value = Number(received || 0);
+
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    const fund = value * 0.2;
+
+    if (fund <= 0) {
+      return 0;
+    }
+
+    return Math.floor(fund);
+  };
+
+  // ============================================================
+  // FUND BY SOURCE
   // ============================================================
 
   const fundBySource = useMemo(() => {
@@ -55,7 +95,7 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
 
     incomes.forEach((income) => {
       const source = income.source || "other";
-      const fund = Number(income.received || 0) * 0.2;
+      const fund = calculateFund(income.received);
 
       if (result[source] !== undefined) {
         result[source] += fund;
@@ -67,15 +107,25 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
     return result;
   }, [incomes]);
 
+  // ============================================================
+  // TOTAL FUND
+  // ============================================================
+
   const totalFund = useMemo(() => {
-    return Object.values(fundBySource).reduce(
-      (sum, value) => sum + value,
-      0
-    );
+    return Object.values(fundBySource).reduce((sum, value) => sum + value, 0);
   }, [fundBySource]);
 
-  // Tạm thời chưa liên kết nhập hàng
-  const purchaseAmount = 0;
+  // ============================================================
+  // PURCHASE
+  // ============================================================
+
+  const purchaseAmount = useMemo(() => {
+    return purchases.reduce((sum, purchase) => sum + Number(purchase.amount || 0), 0);
+  }, [purchases]);
+
+  // ============================================================
+  // REMAINING FUND
+  // ============================================================
 
   const remainingFund = totalFund - purchaseAmount;
 
@@ -147,14 +197,17 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
       label: "Sự kiện",
       icon: PartyPopper,
     },
+
     design: {
       label: "Thiết kế",
       icon: Palette,
     },
+
     taxi: {
       label: "Taxi",
       icon: Car,
     },
+
     other: {
       label: "Khác",
       icon: CircleDollarSign,
@@ -163,24 +216,6 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
 
   // ============================================================
   // MONTHLY LIST
-  // ============================================================
-  //
-  // Hiển thị danh sách theo từng tháng.
-  //
-  // Mỗi tháng gồm:
-  // - Tiêu đề tháng
-  // - Tổng tiền của riêng tháng đó
-  // - Một cụm nền trắng
-  // - Các khoản nằm chung trong cụm
-  // - Các row ngăn nhau bằng đường line
-  //
-  // Layout:
-  // [Tháng MM/YYYY]                     [Tổng tháng]
-  //
-  // Trong cụm:
-  // [Icon + Nguồn] [Ngày] [Tiền]
-  //
-  // Pattern này được tái sử dụng cho PurchaseManager.
   // ============================================================
 
   const groupedByMonth = useMemo(() => {
@@ -198,9 +233,7 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
       groups[monthKey].push(income);
     });
 
-    return Object.entries(groups).sort(([monthA], [monthB]) =>
-      monthB.localeCompare(monthA)
-    );
+    return Object.entries(groups).sort(([monthA], [monthB]) => monthB.localeCompare(monthA));
   }, [filteredIncomes]);
 
   // ============================================================
@@ -216,6 +249,7 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
       <div className="summary">
         <div className="summary-grid">
           {/* LEFT */}
+
           <div>
             {[
               ["Sự kiện", fundBySource.event],
@@ -225,38 +259,35 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
             ].map(([label, value]) => (
               <div className="summary-row" key={label}>
                 <span>{label}</span>
+
                 <strong>{formatMoney(value)}</strong>
               </div>
             ))}
           </div>
 
           {/* DIVIDER */}
+
           <div className="summary-divider" />
 
           {/* RIGHT */}
+
           <div>
             <div className="summary-row">
               <span>Quỹ</span>
 
-              <strong className="summary-positive summary-highlight">
-                {formatMoney(totalFund)}
-              </strong>
+              <strong className="summary-positive summary-highlight">{formatMoney(totalFund)}</strong>
             </div>
 
             <div className="summary-row">
               <span>Nhập hàng</span>
 
-              <strong className="summary-negative">
-                {formatMoney(purchaseAmount)}
-              </strong>
+              <strong className="summary-negative">{formatMoney(purchaseAmount)}</strong>
             </div>
 
             <div className="summary-row summary-total">
               <strong>Còn lại</strong>
 
-              <strong className="summary-positive summary-highlight">
-                {formatMoney(remainingFund)}
-              </strong>
+              <strong className="summary-positive summary-highlight">{formatMoney(remainingFund)}</strong>
             </div>
           </div>
         </div>
@@ -270,52 +301,40 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
         {groupedByMonth.length === 0 ? (
           <div className="empty">
             <Wallet size={32} />
+
             <span>Chưa có khoản Quỹ phù hợp</span>
           </div>
         ) : (
           groupedByMonth.map(([monthKey, monthIncomes]) => {
-            const monthlyTotal = monthIncomes.reduce(
-              (sum, income) =>
-                sum + Number(income.received || 0) * 0.2,
-              0
-            );
+            const monthlyTotal = monthIncomes.reduce((sum, income) => sum + calculateFund(income.received), 0);
 
             return (
               <div className="monthly-list-month" key={monthKey}>
                 {/* MONTH HEADER */}
-                <div className="monthly-list-header">
-                  <span className="monthly-list-title">
-                    {formatMonth(`${monthKey}-01`)}
-                  </span>
 
-                  <strong className="monthly-list-total">
-                    {formatMoney(monthlyTotal)}
-                  </strong>
+                <div className="monthly-list-header">
+                  <span className="monthly-list-title">{formatMonth(`${monthKey}-01`)}</span>
+
+                  <strong className="monthly-list-total">{formatMoney(monthlyTotal)}</strong>
                 </div>
 
                 {/* MONTH GROUP */}
+
                 <div className="monthly-list-group">
                   {monthIncomes.map((income, index) => {
-                    const config =
-                      sourceConfig[income.source] || sourceConfig.other;
+                    const config = sourceConfig[income.source] || sourceConfig.other;
 
                     const Icon = config.icon;
-                    const fund =
-                      Number(income.received || 0) * 0.2;
+
+                    const fund = calculateFund(income.received);
 
                     return (
                       <div
-                        className={`monthly-list-row${
-                          index < monthIncomes.length - 1
-                            ? " monthly-list-row-border"
-                            : ""
-                        }`}
-                        key={
-                          income.id ||
-                          `fund-${monthKey}-${index}`
-                        }
+                        className={`monthly-list-row${index < monthIncomes.length - 1 ? " monthly-list-row-border" : ""}`}
+                        key={income.id || `fund-${monthKey}-${index}`}
                       >
                         {/* SOURCE */}
+
                         <div className="monthly-list-source">
                           <Icon size={20} strokeWidth={2} />
 
@@ -323,14 +342,12 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
                         </div>
 
                         {/* DATE */}
-                        <div className="monthly-list-date">
-                          {formatDate(income.date)}
-                        </div>
+
+                        <div className="monthly-list-date">{formatDate(income.date)}</div>
 
                         {/* FUND */}
-                        <div className="monthly-list-amount">
-                          {formatMoney(fund)}
-                        </div>
+
+                        <div className="monthly-list-amount">{formatMoney(fund)}</div>
                       </div>
                     );
                   })}

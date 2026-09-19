@@ -1,0 +1,106 @@
+/* src/css/BillPopup.css */
+
+.bill-popup-gifts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bill-popup-gift-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.bill-popup-gift-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-popup-gift-code {
+  width: 180px;
+  flex: 0 0 180px;
+}
+
+.bill-popup-gift-checkbox {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.bill-popup-customer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.bill-popup-customer-row .popup-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-popup-customer-row .popup-input:nth-child(2) {
+  flex: 0 0 150px;
+}
+
+.bill-popup-customer-row .popup-input:nth-child(3) {
+  flex: 1.5;
+}
+
+.popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.popup-cancel-btn,
+.popup-save-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.popup-cancel-btn {
+  background: #eee;
+  color: #333;
+}
+
+.popup-save-btn {
+  background: #111;
+  color: #fff;
+}
+
+.popup-cancel-btn:disabled,
+.popup-save-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 600px) {
+  .bill-popup-gift-row {
+    gap: 7px;
+  }
+
+  .bill-popup-gift-code {
+    width: 130px;
+    flex-basis: 130px;
+  }
+
+  .bill-popup-customer-row {
+    gap: 7px;
+  }
+
+  .bill-popup-customer-row .popup-input:nth-child(2) {
+    flex-basis: 110px;
+  }
+}

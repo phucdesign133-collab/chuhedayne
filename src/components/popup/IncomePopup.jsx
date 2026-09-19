@@ -2,10 +2,15 @@ import React, { useEffect, useState } from "react";
 
 export default function IncomePopup({ initialData = null, onSave, onClose }) {
   const [title, setTitle] = useState("");
+
   const [category, setCategory] = useState("event");
+
   const [date, setDate] = useState("");
+
   const [amount, setAmount] = useState("");
+
   const [staffNote, setStaffNote] = useState("");
+
   const [isSaving, setIsSaving] = useState(false);
 
   // ============================================================
@@ -13,13 +18,33 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
   // ============================================================
 
   const formatMoneyInput = (value) => {
-    return String(value ?? "")
-      .replace(/\D/g, "")
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const stringValue = String(value ?? "");
+
+    const isNegative = stringValue.trim().startsWith("-");
+
+    const digits = stringValue.replace(/\D/g, "");
+
+    if (!digits) {
+      return isNegative ? "-" : "";
+    }
+
+    const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    return isNegative ? `-${formatted}` : formatted;
   };
 
   const getRawMoney = (value) => {
-    return String(value ?? "").replace(/\D/g, "");
+    const stringValue = String(value ?? "").trim();
+
+    const isNegative = stringValue.startsWith("-");
+
+    const digits = stringValue.replace(/\D/g, "");
+
+    if (!digits) {
+      return "";
+    }
+
+    return isNegative ? `-${digits}` : digits;
   };
 
   // ============================================================
@@ -49,25 +74,15 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
   // ============================================================
 
   const parseDateToISO = (value) => {
-    const match = String(value || "").match(
-      /^(\d{2})\/(\d{2})\/(\d{4})$/,
-    );
+    const match = String(value || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
 
     if (!match) return null;
 
     const [, day, month, year] = match;
 
-    const dateObject = new Date(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-    );
+    const dateObject = new Date(Number(year), Number(month) - 1, Number(day));
 
-    if (
-      dateObject.getFullYear() !== Number(year) ||
-      dateObject.getMonth() !== Number(month) - 1 ||
-      dateObject.getDate() !== Number(day)
-    ) {
+    if (dateObject.getFullYear() !== Number(year) || dateObject.getMonth() !== Number(month) - 1 || dateObject.getDate() !== Number(day)) {
       return null;
     }
 
@@ -80,9 +95,7 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
   // ============================================================
 
   const formatDateFromISO = (value) => {
-    const match = String(value || "").match(
-      /^(\d{4})-(\d{2})-(\d{2})$/,
-    );
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
     if (!match) return "";
 
@@ -111,12 +124,7 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
 
     setDate(formatDateFromISO(initialData.date));
 
-    setAmount(
-      initialData.received !== null &&
-        initialData.received !== undefined
-        ? String(initialData.received)
-        : "",
-    );
+    setAmount(initialData.received !== null && initialData.received !== undefined ? String(initialData.received) : "");
 
     setStaffNote(initialData.note || "");
   }, [initialData]);
@@ -141,12 +149,21 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
 
     // ----------------------------------------------------------
     // SỐ TIỀN
+    // Có thể âm / 0 / dương.
+    // Chỉ từ chối khi không có số hợp lệ.
     // ----------------------------------------------------------
 
     const rawAmount = getRawMoney(amount);
 
-    if (!rawAmount || Number(rawAmount) <= 0) {
+    if (rawAmount === "") {
       alert("Vui lòng nhập số tiền thực nhận!");
+      return;
+    }
+
+    const numericAmount = Number(rawAmount);
+
+    if (!Number.isFinite(numericAmount)) {
+      alert("Số tiền không hợp lệ!");
       return;
     }
 
@@ -176,15 +193,10 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
 
     const formData = {
       id: initialData?.id || null,
-
       source: category,
-
       title: title.trim(),
-
       date: parsedDate,
-
-      received: Number(rawAmount),
-
+      received: numericAmount,
       note: staffNote.trim(),
     };
 
@@ -203,11 +215,7 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
     } catch (error) {
       console.error("❌ IncomePopup save error:", error);
 
-      alert(
-        `Không thể lưu thu nhập:\n${
-          error?.message || "Lỗi không xác định"
-        }`,
-      );
+      alert(`Không thể lưu thu nhập:\n${error?.message || "Lỗi không xác định"}`);
     } finally {
       setIsSaving(false);
     }
@@ -219,57 +227,34 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
 
   return (
     <form onSubmit={handleSubmit} className="popup-form">
-
       {/* NỘI DUNG */}
-      <div className="popup-row">
-        <label className="popup-label">
-          Nội dung
-        </label>
 
-        <input
-          className="popup-input"
-          placeholder="Ví dụ: Show chị A"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          disabled={isSaving}
-        />
+      <div className="popup-row">
+        <label className="popup-label">Nội dung</label>
+
+        <input className="popup-input" placeholder="Ví dụ: Show chị A" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSaving} />
       </div>
 
       {/* NGUỒN THU */}
+
       <div className="popup-row">
-        <label className="popup-label">
-          Nguồn thu
-        </label>
+        <label className="popup-label">Nguồn thu</label>
 
-        <select
-          className="popup-input"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          disabled={isSaving}
-        >
-          <option value="event">
-            Sự kiện
-          </option>
+        <select className="popup-input" value={category} onChange={(e) => setCategory(e.target.value)} disabled={isSaving}>
+          <option value="event">Sự kiện</option>
 
-          <option value="design">
-            Thiết kế
-          </option>
+          <option value="design">Thiết kế</option>
 
-          <option value="taxi">
-            Taxi
-          </option>
+          <option value="taxi">Taxi</option>
 
-          <option value="other">
-            Khác
-          </option>
+          <option value="other">Khác</option>
         </select>
       </div>
 
       {/* NGÀY */}
+
       <div className="popup-row">
-        <label className="popup-label">
-          Ngày
-        </label>
+        <label className="popup-label">Ngày</label>
 
         <div className="popup-inline">
           <input
@@ -277,61 +262,42 @@ export default function IncomePopup({ initialData = null, onSave, onClose }) {
             inputMode="numeric"
             placeholder="DD/MM/YYYY"
             value={date}
-            onChange={(e) =>
-              setDate(formatDateInput(e.target.value))
-            }
+            onChange={(e) => setDate(formatDateInput(e.target.value))}
             disabled={isSaving}
           />
         </div>
       </div>
 
       {/* THỰC NHẬN */}
+
       <div className="popup-row">
-        <label className="popup-label">
-          Thực nhận
-        </label>
+        <label className="popup-label">Thực nhận</label>
 
         <input
           className="popup-input"
-          inputMode="numeric"
+          inputMode="decimal"
           placeholder="Số tiền thực nhận"
           value={formatMoneyInput(amount)}
-          onChange={(e) =>
-            setAmount(getRawMoney(e.target.value))
-          }
+          onChange={(e) => setAmount(getRawMoney(e.target.value))}
           disabled={isSaving}
         />
       </div>
 
       {/* GHI CHÚ */}
-      <div className="popup-row">
-        <label className="popup-label">
-          Ghi chú
-        </label>
 
-        <textarea
-          className="popup-input popup-textarea"
-          value={staffNote}
-          onChange={(e) =>
-            setStaffNote(e.target.value)
-          }
-          disabled={isSaving}
-        />
+      <div className="popup-row">
+        <label className="popup-label">Ghi chú</label>
+
+        <textarea className="popup-input popup-textarea" value={staffNote} onChange={(e) => setStaffNote(e.target.value)} disabled={isSaving} />
       </div>
 
       {/* FOOTER */}
+
       <div className="popup-footer">
-        <button
-          type="submit"
-          className="popup-submit"
-          disabled={isSaving}
-        >
-          {isSaving
-            ? "Đang đẩy lên mây..."
-            : "Lưu lại"}
+        <button type="submit" className="popup-submit" disabled={isSaving}>
+          {isSaving ? "Đang đẩy lên mây..." : "Lưu lại"}
         </button>
       </div>
-
     </form>
   );
 }

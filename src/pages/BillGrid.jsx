@@ -20,7 +20,9 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.from("bills").select("*").eq("bill_type", billType).order("created_at", { ascending: isFinance });
+      const { data, error } = await supabase.from("bills").select("*").eq("bill_type", billType).order("created_at", {
+        ascending: isFinance,
+      });
 
       if (error) {
         throw error;
@@ -29,6 +31,7 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
       setBills(data || []);
     } catch (error) {
       console.error("❌ Lỗi tải bill:", error);
+
       setBills([]);
     } finally {
       setLoading(false);
@@ -136,17 +139,23 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
 
     bill.items.forEach((item) => {
       const name = item.text || item.name || "Quà không tên";
+
       const key = name.trim().toLowerCase();
 
       if (!grouped[key]) {
         grouped[key] = {
           name,
+          giftCode: item.gift_code || "",
           quantity: 0,
           codes: [],
         };
       }
 
       grouped[key].quantity += Number(item.quantity) || 0;
+
+      if (item.gift_code && !grouped[key].giftCode) {
+        grouped[key].giftCode = String(item.gift_code);
+      }
 
       if (item.code) {
         grouped[key].codes.push(String(item.code));
@@ -170,7 +179,9 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
 
   const getCustomerInfo = (bill) => {
     const name = getCustomerName(bill);
+
     const phone = bill.phone || "Chưa có SĐT";
+
     const address = bill.address || "Chưa có địa chỉ";
 
     return {
@@ -224,8 +235,12 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
       setBills((prev) => prev.filter((item) => item.id !== bill.id));
 
       setExpandedBills((current) => {
-        const next = { ...current };
+        const next = {
+          ...current,
+        };
+
         delete next[bill.id];
+
         return next;
       });
     } catch (error) {
@@ -236,12 +251,24 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
   };
 
   // =========================================================
+  // EXPORT
+  // =========================================================
+
+  const handleExportBill = (bill) => {
+    // Tạm giữ dữ liệu bill hiện tại.
+    // Phần render bill chuẩn sẽ nối vào đây.
+    console.log("🧾 Xuất bill:", bill);
+  };
+
+  // =========================================================
   // SWIPE
   // =========================================================
 
   const handleTouchStart = (event, billId) => {
     const card = event.currentTarget;
+
     const width = card.getBoundingClientRect().width;
+
     const touch = event.touches[0];
 
     setSwipeState((current) => ({
@@ -281,6 +308,7 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
     }
 
     const cardWidth = state.cardWidth || 0;
+
     const distance = state.currentX - state.startX;
 
     const threshold = cardWidth > 0 ? cardWidth * 0.85 : window.innerWidth * 0.85;
@@ -326,11 +354,13 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
             const billId = bill.id || `${source}-bill-${index}`;
 
             const state = swipeState[billId];
+
             const isExpanded = !!expandedBills[billId];
 
             const translateX = state?.dragging && state.currentX ? state.currentX - state.startX : 0;
 
             const groupedItems = getGroupedItems(bill);
+
             const customer = getCustomerInfo(bill);
 
             return (
@@ -364,8 +394,8 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
                   }}
                 >
                   {/* =================================================
-                      ROW 1
-                  ================================================= */}
+                        ROW 1
+                    ================================================= */}
 
                   <button
                     type="button"
@@ -384,8 +414,8 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
                   </button>
 
                   {/* =================================================
-                      ROW 2
-                  ================================================= */}
+                        ROW 2
+                    ================================================= */}
 
                   {isExpanded && (
                     <div className="bill-grid-details">
@@ -396,7 +426,10 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
                           groupedItems.map((item, itemIndex) => (
                             <div key={`${billId}-gift-${itemIndex}`} className="bill-grid-gift-row">
                               <div className="bill-grid-gift-info">
-                                <span className="bill-grid-gift-name">{item.name} - </span>
+                                <span className="bill-grid-gift-name">
+                                  {item.name}
+                                  {" - "}
+                                </span>
 
                                 {item.codes.length > 0 && <span className="bill-grid-gift-codes">{item.codes.join(", ")}</span>}
                               </div>
@@ -408,15 +441,25 @@ export default function BillGrid({ billType = "gift-orders", source = "warehouse
                       </div>
 
                       {/* =================================================
-                          ROW 3
-                      ================================================= */}
+                            ROW 3
+                        ================================================= */}
 
                       <div className="bill-grid-customer">
-                        <span className="bill-grid-customer-name">{customer.name} - </span>
+                        <span className="bill-grid-customer-name">
+                          {customer.name}
+                          {" - "}
+                        </span>
 
-                        <span className="bill-grid-customer-phone">{customer.phone} - </span>
+                        <span className="bill-grid-customer-phone">
+                          {customer.phone}
+                          {" - "}
+                        </span>
 
                         <span className="bill-grid-customer-address">{customer.address}</span>
+
+                        <button type="button" className="bill-grid-export-btn" onClick={() => handleExportBill(bill)}>
+                          Xuất bill
+                        </button>
                       </div>
                     </div>
                   )}

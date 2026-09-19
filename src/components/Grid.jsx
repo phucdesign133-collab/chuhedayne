@@ -7,6 +7,7 @@ import { hubData } from "../datas/icons";
 import { supabase } from "./utils/supabaseClient";
 
 import Popup from "./popup/Popup";
+import BillPopup from "./popup/BillPopup";
 import BillGrid from "../pages/BillGrid";
 
 import PrizeManager from "../pages/PrizeManager";
@@ -41,6 +42,8 @@ export default function Grid({ categoryIdOverride = null }) {
   const [editingData, setEditingData] = useState(null);
 
   const [savedData, setSavedData] = useState([]);
+
+  const [billRefreshKey, setBillRefreshKey] = useState(0);
 
   // =========================================================
   // CATEGORY
@@ -153,6 +156,89 @@ export default function Grid({ categoryIdOverride = null }) {
   const handleSavePopup = async (formData) => {
     try {
       // =====================================================
+      // BILLS
+      // =====================================================
+
+      if (isBillCategory) {
+        const source = isFinanceGiftOrders ? "finance" : "warehouse";
+
+        const rawItems = Array.isArray(formData.items) ? formData.items : [];
+
+        const items = rawItems
+          .map((item, index) => ({
+            id: item.id || `manual-gift-${Date.now()}-${index}`,
+
+            text: String(item.text || "").trim(),
+
+            icon: item.icon || "",
+
+            codes: Array.isArray(item.codes) ? item.codes.filter(Boolean) : [],
+
+            quantity: 1,
+
+            market_price:
+              item.market_price !== undefined && item.market_price !== null && item.market_price !== "" ? Number(item.market_price) || 0 : null,
+
+            gift_code: String(item.gift_code || "").trim(),
+          }))
+          .filter((item) => item.text || item.gift_code);
+
+        if (!items.length) {
+          throw new Error("Bill chưa có món quà.");
+        }
+
+        const totalQuantity = items.reduce((total, item) => total + (Number(item.quantity) || 0), 0);
+
+        const payload = {
+          bill_type: "gift-orders",
+
+          customer_name: String(formData.customer_name || "").trim(),
+
+          phone: String(formData.phone || "")
+            .replace(/\D/g, "")
+            .slice(0, 10),
+
+          address: String(formData.address || "").trim(),
+
+          items,
+
+          total_quantity: totalQuantity,
+
+          subtotal: 0,
+
+          discount: 0,
+
+          total_amount: 0,
+
+          source,
+        };
+
+        let result;
+
+        if (formData.id) {
+          result = await supabase.from("bills").update(payload).eq("id", formData.id).eq("bill_type", "gift-orders").select().single();
+        } else {
+          result = await supabase.from("bills").insert(payload).select().single();
+        }
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        setSavedData(result.data);
+
+        setIsPopupOpen(false);
+        setEditingData(null);
+
+        setBillRefreshKey((current) => current + 1);
+
+        return {
+          success: true,
+          data: result.data,
+        };
+      }
+
+      // =====================================================
       // PRICE
       // =====================================================
 
@@ -209,7 +295,16 @@ export default function Grid({ categoryIdOverride = null }) {
 
       if (categoryId === "prizes") {
         const payload = {
-          ...formData,
+          text: String(formData.text || "").trim(),
+          icon: formData.icon || "🎁",
+          quantity: Number(formData.quantity) || 0,
+          cost: Number(formData.cost) || 0,
+          unit: String(formData.unit || "").trim(),
+          packaging: Number(formData.packaging) || 0,
+          unit_cost: Number(formData.unit_cost) || 0,
+          priority: Boolean(formData.priority),
+          is_active: formData.is_active ?? true,
+          note: String(formData.note || "").trim(),
           images: prepareImages(formData.images),
         };
 
@@ -248,6 +343,7 @@ export default function Grid({ categoryIdOverride = null }) {
             .slice(0, 10),
 
           event_name: String(formData.event_name || "").trim(),
+
           event_date: String(formData.event_date || "").trim(),
 
           repeat_event: Boolean(formData.repeat_event),
@@ -313,9 +409,13 @@ export default function Grid({ categoryIdOverride = null }) {
       if (categoryId === "calendar") {
         const payload = {
           title: String(formData.title || "").trim(),
+
           category: String(formData.category || "").trim(),
+
           date: formData.date || null,
+
           time_slot: String(formData.time_slot || "").trim(),
+
           staff_note: formData.staff_note || null,
 
           amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
@@ -384,7 +484,13 @@ export default function Grid({ categoryIdOverride = null }) {
 
       if (categoryId === "purchase") {
         const payload = {
-          ...formData,
+          title: String(formData.title || "").trim(),
+          quantity: Number(formData.quantity) || 0,
+          unit: String(formData.unit || "").trim(),
+          packaging: Number(formData.packaging) || 0,
+          amount: Number(formData.amount) || 0,
+          note: String(formData.note || "").trim(),
+          images: prepareImages(formData.images),
         };
 
         let result;
@@ -392,6 +498,8 @@ export default function Grid({ categoryIdOverride = null }) {
         if (formData.id) {
           result = await supabase.from("purchases").update(payload).eq("id", formData.id).select().single();
         } else {
+          console.log("📦 PURCHASE PAYLOAD TRƯỚC KHI INSERT:", payload);
+
           result = await supabase.from("purchases").insert(payload).select().single();
         }
 
@@ -481,9 +589,13 @@ export default function Grid({ categoryIdOverride = null }) {
       if (isContentCategory) {
         const payload = {
           title: String(formData.title || "").trim(),
+
           category: categoryId,
+
           location: String(formData.location || "").trim(),
+
           date: formData.date || null,
+
           images: prepareImages(formData.images),
         };
 
@@ -536,6 +648,7 @@ export default function Grid({ categoryIdOverride = null }) {
     if (isBillCategory) {
       return (
         <BillGrid
+          key={billRefreshKey}
           billType="gift-orders"
           source={isFinanceGiftOrders ? "finance" : "warehouse"}
           searchTerm={searchTerm}
@@ -746,7 +859,15 @@ export default function Grid({ categoryIdOverride = null }) {
       </div>
 
       {/* =====================================================
-          POPUP
+          BILL POPUP
+      ====================================================== */}
+
+      {isPopupOpen && isBillCategory && (
+        <BillPopup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} initialData={editingData} />
+      )}
+
+      {/* =====================================================
+          OTHER POPUP
       ====================================================== */}
 
       {isPopupOpen && !isBillCategory && (

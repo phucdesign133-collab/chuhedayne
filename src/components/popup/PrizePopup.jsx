@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { X, Plus } from "lucide-react";
+import "../../css/Popup.css";
+import { uploadImagesToStorage } from "../utils/utils";
 
-export default function PrizePopup({
-  initialData = null,
-  onSave,
-  onClose,
-}) {
+export default function PrizePopup({ initialData = null, onSave, onClose }) {
   const [text, setText] = useState("");
   const [unit, setUnit] = useState("");
   const [packaging, setPackaging] = useState("");
@@ -14,6 +13,9 @@ export default function PrizePopup({
   const [cost, setCost] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
+
+  const fileInputRef = useRef(null);
 
   // ============================================================
   // NẠP DỮ LIỆU
@@ -28,11 +30,13 @@ export default function PrizePopup({
       setQuantity(initialData.quantity ?? "");
       setNote(initialData.note || "");
 
-      if (initialData.image) {
-        setImages([initialData.image]);
-      } else {
-        setImages([]);
-      }
+      // Hỗ trợ cả:
+      // - images: mảng URL
+      // - image: URL cũ
+      const loadedImages = Array.isArray(initialData.images) ? initialData.images : initialData.image ? [initialData.image] : [];
+
+      setImages(loadedImages);
+      setActiveImage(0);
     } else {
       setText("");
       setCost("");
@@ -41,6 +45,7 @@ export default function PrizePopup({
       setQuantity("");
       setNote("");
       setImages([]);
+      setActiveImage(0);
     }
   }, [initialData]);
 
@@ -54,11 +59,7 @@ export default function PrizePopup({
   };
 
   const formatNumber = (value) => {
-    if (
-      value === "" ||
-      value === null ||
-      value === undefined
-    ) {
+    if (value === "" || value === null || value === undefined) {
       return "";
     }
 
@@ -66,25 +67,41 @@ export default function PrizePopup({
   };
 
   // ============================================================
+  // IMAGE PREVIEW
+  // ============================================================
+
+  const getImagePreview = (image) => {
+    if (typeof image === "string") {
+      return image;
+    }
+
+    if (image instanceof File) {
+      return URL.createObjectURL(image);
+    }
+
+    return "";
+  };
+
+  // ============================================================
   // CHỌN ẢNH
   // ============================================================
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files || []);
+  const handleAddImages = (event) => {
+    const files = Array.from(event.target.files || []);
 
     if (!files.length) return;
 
-    const previews = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+    setImages((prev) => {
+      const next = [...prev, ...files];
 
-    setImages((prev) => [
-      ...prev,
-      ...previews,
-    ]);
+      if (prev.length === 0) {
+        setActiveImage(0);
+      }
 
-    e.target.value = "";
+      return next;
+    });
+
+    event.target.value = "";
   };
 
   // ============================================================
@@ -93,20 +110,34 @@ export default function PrizePopup({
 
   const handleRemoveImage = (index) => {
     setImages((prev) => {
-      const removed = prev[index];
+      const next = prev.filter((_, imageIndex) => imageIndex !== index);
 
-      if (
-        removed &&
-        typeof removed !== "string" &&
-        removed.preview?.startsWith("blob:")
-      ) {
-        URL.revokeObjectURL(removed.preview);
+      if (next.length === 0) {
+        setActiveImage(0);
+      } else if (index < activeImage) {
+        setActiveImage((current) => current - 1);
+      } else if (index === activeImage && activeImage >= next.length) {
+        setActiveImage(next.length - 1);
       }
 
-      return prev.filter(
-        (_, i) => i !== index
-      );
+      return next;
     });
+  };
+
+  // ============================================================
+  // ĐIỀU HƯỚNG ẢNH
+  // ============================================================
+
+  const handlePreviousImage = () => {
+    if (images.length <= 1) return;
+
+    setActiveImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    if (images.length <= 1) return;
+
+    setActiveImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   // ============================================================
@@ -127,10 +158,31 @@ export default function PrizePopup({
     const packagingValue = Number(packaging) || 0;
     const quantityValue = Number(quantity) || 0;
 
-    const unitCost =
-      packagingValue > 0
-        ? costValue / packagingValue
-        : costValue;
+    const unitCost = packagingValue > 0 ? costValue / packagingValue : costValue;
+
+    // ==========================================================
+    // ẢNH
+    //
+    // URL cũ:
+    // giữ nguyên
+    //
+    // File mới:
+    // upload lên Supabase Storage
+    // ↓
+    // nhận URL thật
+    // ==========================================================
+
+    const existingImages = images.filter((image) => typeof image === "string");
+
+    const newImageFiles = images.filter((image) => image instanceof File);
+
+    let uploadedImages = [];
+
+    if (newImageFiles.length > 0) {
+      uploadedImages = await uploadImagesToStorage(newImageFiles, "prize");
+    }
+
+    const finalImages = [...existingImages, ...uploadedImages];
 
     const formData = {
       id: initialData?.id || null,
@@ -143,13 +195,12 @@ export default function PrizePopup({
       priority: unitCost < 5000,
       is_active: initialData?.is_active ?? true,
       note: note.trim(),
-      images,
+      images: finalImages,
     };
 
     if (typeof onSave !== "function") {
-      console.error(
-        "❌ PrizePopup: onSave không tồn tại"
-      );
+      console.error("❌ PrizePopup: onSave không tồn tại");
+
       alert("Không thể lưu món quà.");
       return;
     }
@@ -157,41 +208,23 @@ export default function PrizePopup({
     setIsSaving(true);
 
     try {
-      console.log(
-        "📤 PrizePopup gửi:",
-        formData
-      );
+      console.log("📤 PrizePopup gửi:", formData);
 
       const result = await onSave(formData);
 
-      console.log(
-        "📥 PrizePopup nhận:",
-        result
-      );
+      console.log("📥 PrizePopup nhận:", result);
 
       if (!result || result.success !== true) {
-        const error =
-          result?.error ||
-          new Error(
-            "Không thể lưu món quà."
-          );
+        const error = result?.error || new Error("Không thể lưu món quà.");
 
         throw error;
       }
 
       onClose();
     } catch (error) {
-      console.error(
-        "❌ PrizePopup save error:",
-        error
-      );
+      console.error("❌ PrizePopup save error:", error);
 
-      alert(
-        `Không thể lưu món quà:\n${
-          error?.message ||
-          "Lỗi không xác định"
-        }`
-      );
+      alert(`Không thể lưu món quà:\n${error?.message || "Lỗi không xác định"}`);
     } finally {
       setIsSaving(false);
     }
@@ -201,23 +234,18 @@ export default function PrizePopup({
   // BODY
   // ============================================================
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="popup-form"
-    >
+  const activeImageValue = images[activeImage];
+  const activeImagePreview = getImagePreview(activeImageValue);
 
+  return (
+    <form onSubmit={handleSubmit} className="popup-form">
       <div className="popup-row">
-        <label className="popup-label">
-          Tên món quà
-        </label>
+        <label className="popup-label">Tên món quà</label>
 
         <input
           type="text"
           value={text}
-          onChange={(e) =>
-            setText(e.target.value)
-          }
+          onChange={(e) => setText(e.target.value)}
           placeholder="Nhập tên món quà..."
           className="popup-input"
           required
@@ -226,9 +254,7 @@ export default function PrizePopup({
       </div>
 
       <div className="popup-row">
-        <label className="popup-label">
-          Giá nhập
-        </label>
+        <label className="popup-label">Giá nhập</label>
 
         <input
           type="text"
@@ -242,16 +268,12 @@ export default function PrizePopup({
       </div>
 
       <div className="popup-row">
-        <label className="popup-label">
-          Đơn vị
-        </label>
+        <label className="popup-label">Đơn vị</label>
 
         <input
           type="text"
           value={unit}
-          onChange={(e) =>
-            setUnit(e.target.value)
-          }
+          onChange={(e) => setUnit(e.target.value)}
           placeholder="VD: cái, hộp, thẻ..."
           className="popup-input"
           disabled={isSaving}
@@ -259,18 +281,14 @@ export default function PrizePopup({
       </div>
 
       <div className="popup-row">
-        <label className="popup-label">
-          Đóng gói
-        </label>
+        <label className="popup-label">Đóng gói</label>
 
         <input
           type="number"
           min="0"
           step="1"
           value={packaging}
-          onChange={(e) =>
-            setPackaging(e.target.value)
-          }
+          onChange={(e) => setPackaging(e.target.value)}
           placeholder="Nhập số lượng đóng gói..."
           className="popup-input"
           disabled={isSaving}
@@ -278,18 +296,14 @@ export default function PrizePopup({
       </div>
 
       <div className="popup-row">
-        <label className="popup-label">
-          Số lượng trong kho
-        </label>
+        <label className="popup-label">Số lượng trong kho</label>
 
         <input
           type="number"
           min="0"
           step="1"
           value={quantity}
-          onChange={(e) =>
-            setQuantity(e.target.value)
-          }
+          onChange={(e) => setQuantity(e.target.value)}
           placeholder="Nhập số lượng..."
           className="popup-input"
           disabled={isSaving}
@@ -297,96 +311,89 @@ export default function PrizePopup({
       </div>
 
       <div className="popup-row">
-        <label className="popup-label">
-          Ghi chú
-        </label>
+        <label className="popup-label">Ghi chú</label>
 
         <input
           type="text"
           value={note}
-          onChange={(e) =>
-            setNote(e.target.value)
-          }
+          onChange={(e) => setNote(e.target.value)}
           placeholder="VD: tăng 500đ / giảm 300đ..."
           className="popup-input"
           disabled={isSaving}
         />
       </div>
 
-      {/* HÌNH ẢNH — NẰM TRONG BODY POPUP CHUNG */}
+      {/* ======================================================
+          HÌNH ẢNH
+          ====================================================== */}
 
       <div className="popup-row">
-        <label className="popup-label">
-          Hình ảnh
-        </label>
+        <label className="popup-label">Hình ảnh</label>
 
-        <div className="popup-upload">
-          <label className="popup-upload-btn">
-            Chọn ảnh
+        <div className="content-popup-image-box">
+          {activeImagePreview ? (
+            <img src={activeImagePreview} alt={`Ảnh ${activeImage + 1}`} className="content-popup-main-image" />
+          ) : (
+            <div className="content-popup-image-empty">Chưa có hình ảnh</div>
+          )}
 
-            <input
-              type="file"
-              multiple
-              accept="image/png, image/jpeg, image/jpg, image/webp"
-              onChange={handleImageChange}
-              className="popup-file-input"
+          {/* THANH ĐIỀU KHIỂN */}
+
+          <div className="content-popup-image-controls">
+            {/* TRÁI - THÊM ẢNH */}
+
+            <button
+              type="button"
+              className="content-popup-image-btn"
+              onClick={() => fileInputRef.current?.click()}
               disabled={isSaving}
-            />
-          </label>
+              aria-label="Thêm ảnh"
+            >
+              <Plus size={20} />
+            </button>
 
-          <span className="popup-image-count">
-            {images.length} ảnh đã chọn
-          </span>
-        </div>
+            {/* GIỮA - ĐIỀU HƯỚNG + SỐ ẢNH */}
 
-        {images.length > 0 && (
-          <div className="popup-preview">
-            {images.map((img, index) => {
-              const preview =
-                typeof img === "string"
-                  ? img
-                  : img.preview || img.url;
+            <div className="content-popup-image-nav">
+              {images.length > 1 && (
+                <button type="button" className="content-popup-image-btn" onClick={handlePreviousImage} disabled={isSaving} aria-label="Ảnh trước">
+                  ‹
+                </button>
+              )}
 
-              return (
-                <div
-                  key={index}
-                  className="popup-preview-item"
-                >
-                  <img
-                    src={preview}
-                    alt="preview"
-                    className="popup-preview-img"
-                  />
+              <span className="content-popup-image-count">{images.length > 0 ? `${activeImage + 1} / ${images.length}` : "0 / 0"}</span>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleRemoveImage(index)
-                    }
-                    className="popup-remove-img"
-                    disabled={isSaving}
-                  >
-                    ✕
-                  </button>
-                </div>
-              );
-            })}
+              {images.length > 1 && (
+                <button type="button" className="content-popup-image-btn" onClick={handleNextImage} disabled={isSaving} aria-label="Ảnh tiếp theo">
+                  ›
+                </button>
+              )}
+            </div>
+
+            {/* PHẢI - XÓA ẢNH */}
+
+            <button
+              type="button"
+              className="content-popup-image-btn"
+              onClick={() => handleRemoveImage(activeImage)}
+              disabled={isSaving || images.length === 0}
+              aria-label="Xóa ảnh"
+            >
+              <X size={18} />
+            </button>
           </div>
-        )}
+
+          {/* INPUT FILE ẨN */}
+
+          <input ref={fileInputRef} type="file" accept="image/*" multiple className="popup-file-input" onChange={handleAddImages} />
+        </div>
       </div>
 
       <div className="popup-footer">
-        <button
-          type="submit"
-          className="popup-submit"
-          disabled={isSaving}
-        >
-          {isSaving
-            ? "Đang đẩy lên mây..."
-            : "Lưu lại"}
+        <button type="submit" className="popup-submit" disabled={isSaving}>
+          {isSaving ? "Đang đẩy lên mây..." : "Lưu lại"}
         </button>
       </div>
-
     </form>
   );
 }
