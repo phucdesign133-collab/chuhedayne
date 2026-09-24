@@ -67,7 +67,7 @@ export default function LuckySpinParty() {
     const interval = setInterval(() => {
       const now = Date.now();
 
-      if (now - lastRoundTime >= 15000) {
+      if (now - lastRoundTime >= 20000) {
         refreshRounds(allPrizes);
       }
     }, 1000);
@@ -76,7 +76,7 @@ export default function LuckySpinParty() {
       if (document.visibilityState === "visible") {
         const now = Date.now();
 
-        if (now - lastRoundTime >= 15000) {
+        if (now - lastRoundTime >= 20000) {
           refreshRounds(allPrizes);
         }
       }
@@ -177,7 +177,7 @@ export default function LuckySpinParty() {
     }
   }, [canvasSize, isPremiumMode, currentPrizes]);
 
-  const calculateFinalPrize = () => {
+  const calculateFinalPrize = async () => {
     if (currentPrizes.length === 0) return;
 
     const degrees = angleRef.current * (180 / Math.PI) + 90;
@@ -188,15 +188,15 @@ export default function LuckySpinParty() {
     const selectedPrize = currentPrizes[index];
 
     // ==========================================
-    // TẠO KẾT QUẢ + SERIAL CỦA LẦN QUAY
+    // TẠO KẾT QUẢ + GIFT CODE CỦA LẦN QUAY
     // ==========================================
-    const spinResult = createSpinResult(selectedPrize, isPremiumMode);
+    const spinResult = await createSpinResult(selectedPrize);
 
     setPrizeResult(spinResult.prize);
     setGeneratedCode(spinResult.code);
 
     // ==========================================
-    // LƯU PHẦN THƯỞNG + TOÀN BỘ SERIAL
+    // LƯU PHẦN THƯỞNG + TOÀN BỘ GIFT CODE
     // VÀO GIỎ ĐANG CHỜ ĐỔI
     // ==========================================
     setPendingGifts((currentGifts) => addPendingGift(currentGifts, spinResult));
@@ -221,8 +221,15 @@ export default function LuckySpinParty() {
 
       if (spinTime >= spinTimeTotal) {
         setIsSpinning(false);
-        calculateFinalPrize();
-        setShowPopup(true);
+
+        calculateFinalPrize()
+          .then(() => {
+            setShowPopup(true);
+          })
+          .catch((error) => {
+            console.error("Lỗi tạo kết quả vòng quay:", error);
+          });
+
         return;
       }
 
@@ -238,8 +245,11 @@ export default function LuckySpinParty() {
     animate();
   };
 
-  const handleOpenGiftImage = (imageName) => {
-    setCurrentGiftImage(imageName);
+  const handleOpenGiftImage = (imageSource, fallbackIcon) => {
+    setCurrentGiftImage({
+      source: imageSource,
+      fallback: fallbackIcon,
+    });
     setIsGiftImageOpen(true);
   };
 
@@ -334,8 +344,12 @@ export default function LuckySpinParty() {
 
       {isGiftImageOpen && (
         <div className="lightbox-overlay" onClick={() => setIsGiftImageOpen(false)}>
-          <div className="lightbox-content">
-            <img src={`${import.meta.env.BASE_URL}img/${currentGiftImage}`} alt="Gift Preview" />
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            {currentGiftImage?.source ? (
+              <img src={currentGiftImage.source} alt="Gift Preview" />
+            ) : (
+              <div className="lightbox-fallback-icon">{currentGiftImage?.fallback || "🎁"}</div>
+            )}
 
             <p className="lightbox-text">Chạm bất kỳ vị trí nào để đóng...</p>
           </div>

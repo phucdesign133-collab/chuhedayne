@@ -1,30 +1,28 @@
 // src/components/popup/ResultPopup.jsx
 import React, { useState } from "react";
-import "../../css/ResultPopup.css";
 import "../../css/Popup.css";
+import "../../css/ResultPopup.css";
+
 import StepLayout from "../StepLayout";
 import CustomerInfoForm from "../form/CustomerInfoForm";
 import GiftOrderBill from "../bills/GiftOrderBill";
 import { supabase } from "../utils/supabaseClient";
 import { createBillItemsFromGifts } from "../../datas/spinResult";
 
-export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain, onOpenGuide, pendingGifts = [] }) {
+export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain, onOpenGuide, onOpenImage, pendingGifts = [] }) {
   const [showStepLayout, setShowStepLayout] = useState(false);
   const [showCustomerInfo, setShowCustomerInfo] = useState(false);
   const [showBill, setShowBill] = useState(false);
-
   const [selectedGifts, setSelectedGifts] = useState({});
-
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
     phone: "",
     address: "",
     note: "",
   });
-
   const [isCustomerInfoValid, setIsCustomerInfoValid] = useState(false);
-
   const [submittedAt, setSubmittedAt] = useState(null);
+  const [showGiftImage, setShowGiftImage] = useState(false);
 
   if (!isOpen) return null;
 
@@ -64,7 +62,7 @@ export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain
     const submitTime = new Date();
 
     // ==========================================
-    // SNAPSHOT QUÀ + SERIAL ĐỂ LƯU VÀO BILL
+    // SNAPSHOT QUÀ + GIFT CODE ĐỂ LƯU VÀO BILL
     // ==========================================
     const items = createBillItemsFromGifts(selectedGiftList);
 
@@ -221,7 +219,7 @@ export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain
     <div className="popup-container">
       <div className="popup-wrapper result-popup-wrapper">
         <div className="popup-header">
-          <h3 className="popup-title result-popup-title">🎁 Chúc mừng bé đã trúng:</h3>
+          <h3 className="popup-title result-popup-title">Chúc mừng bé đã trúng:</h3>
 
           <button type="button" className="popup-close" onClick={onClose} aria-label="Đóng">
             ×
@@ -237,6 +235,23 @@ export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain
             <strong>Mã: {code}</strong>
           </div>
 
+          <div className="result-popup-image-action">
+            <span
+              className="result-popup-image-btn"
+              onClick={() => {
+                const imageSource = Array.isArray(result?.images) && result.images[0] ? result.images[0] : null;
+
+                if (onOpenImage) {
+                  onOpenImage(imageSource, result?.icon);
+                } else {
+                  setShowGiftImage(true);
+                }
+              }}
+            >
+              Xem ảnh quà
+            </span>
+          </div>
+
           <div className="popup-footer result-popup-footer">
             <div className="popup-inline result-popup-actions">
               <button type="button" className="popup-submit result-popup-action-btn result-popup-primary" onClick={() => setShowStepLayout(true)}>
@@ -247,17 +262,23 @@ export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain
                 Quay tiếp
               </button>
             </div>
-
-            {/* <div className="result-popup-guide">
-              <div className="popup-label result-popup-guide-text">Bạn chưa biết cách đổi quà?</div>
-
-              <button type="button" className="result-popup-guide-btn" onClick={onOpenGuide}>
-                Xem hướng dẫn
-              </button>
-            </div> */}
           </div>
         </div>
       </div>
+
+      {showGiftImage && (
+        <div className="lg-image-overlay" onClick={() => setShowGiftImage(false)}>
+          <div className="lg-image-preview" onClick={(e) => e.stopPropagation()}>
+            {Array.isArray(result?.images) && result.images[0] ? (
+              <img src={result.images[0]} alt={result?.text || "Quà tặng"} />
+            ) : (
+              <div className="lg-image-empty">{result?.icon || "🎁"}</div>
+            )}
+
+            <div className="lg-image-close-text">Chạm bất kỳ vị trí nào để đóng</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

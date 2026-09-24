@@ -50,7 +50,6 @@
    ============================================================ */
 
 .result-popup-code {
-  margin-bottom: 22px;
   color: #555;
   font-size: 0.95rem;
   line-height: 1.4;
@@ -198,7 +197,8 @@
 
 .result-popup-gift-info {
   min-width: 0;
-  background: none;border: none;
+  background: none;
+  border: none;
 }
 
 .result-popup-gift-name {
@@ -280,4 +280,27 @@
     padding-left: 8px;
     padding-right: 8px;
   }
+}
+/* ==========================================
+   RESULT POPUP - XEM ẢNH QUÀ
+========================================== */
+
+.result-popup-image-action {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2px;
+  margin-bottom: px;
+}
+
+.result-popup-image-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 9px 14px;
+  color: #c0392b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }

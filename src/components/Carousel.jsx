@@ -36,25 +36,12 @@ export default function Carousel() {
     return sections
       .flatMap((section) => section.items || [])
       .map((item) => item.id)
-      .filter(
-        (id) =>
-          id &&
-          id !== "price-decoration" &&
-          id !== "price-party"
-      );
+      .filter((id) => id && id !== "price-decoration" && id !== "price-party");
   }, []);
 
-  const getIndex = (index) =>
-    items.length
-      ? ((index % items.length) + items.length) % items.length
-      : 0;
+  const getIndex = (index) => (items.length ? ((index % items.length) + items.length) % items.length : 0);
 
-  const getImage = (item) =>
-    Array.isArray(item?.images)
-      ? item.images.find(
-          (image) => typeof image === "string" && image
-        ) || ""
-      : "";
+  const getImage = (item) => (Array.isArray(item?.images) ? item.images.find((image) => typeof image === "string" && image) || "" : "");
 
   useEffect(() => {
     let mounted = true;
@@ -71,9 +58,7 @@ export default function Carousel() {
 
         const { data, error } = await supabase
           .from("services")
-          .select(
-            "id,title,location,date,created_at,images,category"
-          )
+          .select("id,title,location,date,created_at,images,category")
           .in("category", categoryIds);
 
         if (error) throw error;
@@ -86,15 +71,9 @@ export default function Carousel() {
             image: getImage(item),
             date: item.date || "",
             created_at: item.created_at || "",
-            link: item.title
-              ? `/posts/${slugify(item.title)}`
-              : null,
+            link: item.title ? `/posts/${slugify(item.title)}` : null,
           }))
-          .sort(
-            (a, b) =>
-              new Date(b.created_at || b.date || 0) -
-              new Date(a.created_at || a.date || 0)
-          )
+          .sort((a, b) => new Date(b.created_at || b.date || 0) - new Date(a.created_at || a.date || 0))
           .slice(0, MAX_ITEMS);
 
         if (mounted) {
@@ -166,10 +145,7 @@ export default function Carousel() {
     startX.current = null;
     startY.current = null;
 
-    if (
-      Math.abs(dx) > SWIPE_THRESHOLD &&
-      Math.abs(dx) > Math.abs(dy)
-    ) {
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
       move(dx < 0 ? 1 : -1);
     }
 
@@ -178,9 +154,11 @@ export default function Carousel() {
 
   const visible = items.length
     ? {
+        farPrevious: items[getIndex(current - 2)],
         previous: items[getIndex(current - 1)],
         current: items[getIndex(current)],
         next: items[getIndex(current + 1)],
+        farNext: items[getIndex(current + 2)],
       }
     : {};
 
@@ -193,9 +171,7 @@ export default function Carousel() {
   if (loading) {
     return (
       <section className="carousel">
-        <div className="carousel-loading">
-          Đang tải...
-        </div>
+        <div className="carousel-loading">Đang tải...</div>
       </section>
     );
   }
@@ -203,9 +179,7 @@ export default function Carousel() {
   if (error) {
     return (
       <section className="carousel">
-        <div className="carousel-error">
-          Không thể tải nội dung.
-        </div>
+        <div className="carousel-error">Không thể tải nội dung.</div>
       </section>
     );
   }
@@ -213,15 +187,7 @@ export default function Carousel() {
   if (!items.length) return null;
 
   const renderImage = (item) =>
-    item?.image ? (
-      <img
-        src={item.image}
-        alt={item.title || ""}
-        draggable="false"
-      />
-    ) : (
-      <div className="carousel-image-empty" />
-    );
+    item?.image ? <img src={item.image} alt={item.title || ""} draggable="false" /> : <div className="carousel-image-empty" />;
 
   return (
     <section className="carousel">
@@ -239,16 +205,19 @@ export default function Carousel() {
           }
         }}
       >
-        {/* LEFT */}
+        {/* FAR LEFT */}
         <button
           type="button"
-          className="carousel-slot carousel-slot-side carousel-slot-left"
-          onClick={() => move(-1)}
-          aria-label="Nội dung trước"
+          className="carousel-slot carousel-slot-side carousel-slot-far-left"
+          onClick={() => move(-2)}
+          aria-label="Nội dung trước nữa"
         >
-          <div className="carousel-image">
-            {renderImage(visible.previous)}
-          </div>
+          <div className="carousel-image">{renderImage(visible.farPrevious)}</div>
+        </button>
+
+        {/* LEFT */}
+        <button type="button" className="carousel-slot carousel-slot-side carousel-slot-left" onClick={() => move(-1)} aria-label="Nội dung trước">
+          <div className="carousel-image">{renderImage(visible.previous)}</div>
         </button>
 
         {/* CENTER */}
@@ -258,13 +227,9 @@ export default function Carousel() {
               type="button"
               className="carousel-slot carousel-slot-main"
               onClick={openPost}
-              aria-label={
-                visible.current.title || "Xem nội dung"
-              }
+              aria-label={visible.current.title || "Xem nội dung"}
             >
-              <div className="carousel-image">
-                {renderImage(visible.current)}
-              </div>
+              <div className="carousel-image">{renderImage(visible.current)}</div>
             </button>
           </div>
         </div>
@@ -276,9 +241,17 @@ export default function Carousel() {
           onClick={() => move(1)}
           aria-label="Nội dung tiếp theo"
         >
-          <div className="carousel-image">
-            {renderImage(visible.next)}
-          </div>
+          <div className="carousel-image">{renderImage(visible.next)}</div>
+        </button>
+
+        {/* FAR RIGHT */}
+        <button
+          type="button"
+          className="carousel-slot carousel-slot-side carousel-slot-far-right"
+          onClick={() => move(2)}
+          aria-label="Nội dung tiếp theo nữa"
+        >
+          <div className="carousel-image">{renderImage(visible.farNext)}</div>
         </button>
       </div>
     </section>

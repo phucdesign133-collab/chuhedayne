@@ -195,6 +195,7 @@ export const hubData = {
           { id: "prizes", name: "Kho quà", icon: <Puzzle size={22} />, path: "/admin/warehouse/prizes" },
           { id: "shipped-prizes", name: "Quà đã gửi", icon: <PackageCheck size={22} />, path: "/admin/warehouse/shipped-prizes" },
           { id: "gift-orders", name: "Đơn đổi quà", icon: <ClipboardList size={22} />, path: "/admin/warehouse/gift-orders" },
+          { id: "gift-codes", name: "Gift Code", icon: <Ticket size={22} />, path: "/admin/warehouse/gift-codes" },
         ],
       },
     ],
@@ -213,11 +214,8 @@ export const hubData = {
       },
       {
         sectionName: "Hóa đơn",
-        items: [
-         
-          { id: "bills", name: "Đổi quà", icon: <ReceiptText size={22} />, path: "/admin/finance/bills/gift-orders" },
-        ],
-      }
+        items: [{ id: "bills", name: "Đổi quà", icon: <ReceiptText size={22} />, path: "/admin/finance/bills/gift-orders" }],
+      },
     ],
   },
   tools: {

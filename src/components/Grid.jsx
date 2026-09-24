@@ -1,15 +1,13 @@
 // src/components/Grid.jsx
-import React, { useEffect, useMemo, useState } from "react";
+
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { hubData } from "../datas/icons";
 import { supabase } from "./utils/supabaseClient";
-
 import Popup from "./popup/Popup";
 import BillPopup from "./popup/BillPopup";
 import BillGrid from "../pages/BillGrid";
-
 import PrizeManager from "../pages/PrizeManager";
 import CustomerManager from "../pages/CustomerManager";
 import BookingManager from "../pages/BookingManager";
@@ -20,46 +18,37 @@ import PurchaseManager from "../pages/PurchaseManager";
 import ShippedPrizesManager from "../pages/ShippedPrizesManager";
 import WarehouseManager from "../pages/WarehouseManager";
 import PriceManager from "../pages/PriceManager";
-
+import GiftCodeManager from "../pages/GiftCodeManager";
 import "../css/Grid.css";
 
 export default function Grid({ categoryIdOverride = null }) {
   const navigate = useNavigate();
   const { categoryId: routeCategoryId } = useParams();
-
   const categoryId = categoryIdOverride || routeCategoryId;
 
   // =========================================================
   // STATE
   // =========================================================
-
   const [searchTerm, setSearchTerm] = useState("");
-
   const [itemCount, setItemCount] = useState(0);
-
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-
   const [editingData, setEditingData] = useState(null);
-
   const [savedData, setSavedData] = useState([]);
-
   const [billRefreshKey, setBillRefreshKey] = useState(0);
+  const giftCodeSavingRef = useRef(false);
 
   // =========================================================
   // CATEGORY
   // =========================================================
-
   const allCategories = useMemo(() => {
     return Object.values(hubData || {}).flatMap((hub) => {
       const sections = hub?.sections || [];
-
       return sections.flatMap((section) => section.items || []);
     });
   }, []);
 
   const contentCategories = useMemo(() => {
     const sections = hubData?.content?.sections || [];
-
     return sections.flatMap((section) => section.items || []);
   }, []);
 
@@ -79,27 +68,20 @@ export default function Grid({ categoryIdOverride = null }) {
   // =========================================================
   // SPECIAL CATEGORIES
   // =========================================================
-
   const isPriceCategory = categoryId === "price-decoration" || categoryId === "price-party";
-
   const isWarehouseCategory = ["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId);
-
   const isContentCategory = contentCategories.some((item) => item.id === categoryId);
 
   // =========================================================
   // BILL CATEGORIES
   // =========================================================
-
   const isWarehouseGiftOrders = categoryId === "gift-orders";
-
   const isFinanceGiftOrders = categoryId === "bills/gift-orders";
-
   const isBillCategory = isWarehouseGiftOrders || isFinanceGiftOrders;
 
   // =========================================================
   // ADD
   // =========================================================
-
   const handleAddNewClick = () => {
     setEditingData(null);
     setIsPopupOpen(true);
@@ -108,7 +90,6 @@ export default function Grid({ categoryIdOverride = null }) {
   // =========================================================
   // CLOSE
   // =========================================================
-
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     setEditingData(null);
@@ -117,7 +98,6 @@ export default function Grid({ categoryIdOverride = null }) {
   // =========================================================
   // EDIT
   // =========================================================
-
   const handleEdit = (item) => {
     setEditingData(item);
     setIsPopupOpen(true);
@@ -126,7 +106,6 @@ export default function Grid({ categoryIdOverride = null }) {
   // =========================================================
   // IMAGE PREPARE
   // =========================================================
-
   const prepareImages = (images) => {
     if (!images) {
       return [];
@@ -139,7 +118,6 @@ export default function Grid({ categoryIdOverride = null }) {
     if (typeof images === "string") {
       try {
         const parsed = JSON.parse(images);
-
         return Array.isArray(parsed) ? parsed : [];
       } catch {
         return [];
@@ -152,33 +130,24 @@ export default function Grid({ categoryIdOverride = null }) {
   // =========================================================
   // SAVE POPUP
   // =========================================================
-
   const handleSavePopup = async (formData) => {
     try {
       // =====================================================
       // BILLS
       // =====================================================
-
       if (isBillCategory) {
         const source = isFinanceGiftOrders ? "finance" : "warehouse";
-
         const rawItems = Array.isArray(formData.items) ? formData.items : [];
 
         const items = rawItems
           .map((item, index) => ({
             id: item.id || `manual-gift-${Date.now()}-${index}`,
-
             text: String(item.text || "").trim(),
-
             icon: item.icon || "",
-
             codes: Array.isArray(item.codes) ? item.codes.filter(Boolean) : [],
-
             quantity: 1,
-
             market_price:
               item.market_price !== undefined && item.market_price !== null && item.market_price !== "" ? Number(item.market_price) || 0 : null,
-
             gift_code: String(item.gift_code || "").trim(),
           }))
           .filter((item) => item.text || item.gift_code);
@@ -191,25 +160,16 @@ export default function Grid({ categoryIdOverride = null }) {
 
         const payload = {
           bill_type: "gift-orders",
-
           customer_name: String(formData.customer_name || "").trim(),
-
           phone: String(formData.phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
-
           address: String(formData.address || "").trim(),
-
           items,
-
           total_quantity: totalQuantity,
-
           subtotal: 0,
-
           discount: 0,
-
           total_amount: 0,
-
           source,
         };
 
@@ -226,10 +186,8 @@ export default function Grid({ categoryIdOverride = null }) {
         }
 
         setSavedData(result.data);
-
         setIsPopupOpen(false);
         setEditingData(null);
-
         setBillRefreshKey((current) => current + 1);
 
         return {
@@ -241,7 +199,6 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // PRICE
       // =====================================================
-
       if (isPriceCategory) {
         const data = {
           ...formData,
@@ -251,9 +208,7 @@ export default function Grid({ categoryIdOverride = null }) {
 
         setSavedData((prev) => {
           const current = Array.isArray(prev) ? prev : [];
-
           const sameCategory = current.filter((item) => item.category === categoryId);
-
           const otherCategory = current.filter((item) => item.category !== categoryId);
 
           const existingIndex = sameCategory.findIndex((item) => {
@@ -290,9 +245,80 @@ export default function Grid({ categoryIdOverride = null }) {
       }
 
       // =====================================================
+      // GIFT CODE
+      // =====================================================
+      if (categoryId === "gift-codes") {
+        if (giftCodeSavingRef.current) {
+          return {
+            success: false,
+          };
+        }
+
+        giftCodeSavingRef.current = true;
+
+        try {
+          const rawDate = String(formData.date || "").trim();
+          let databaseDate = null;
+
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)) {
+            const [day, month, year] = rawDate.split("/");
+            databaseDate = `${year}-${month}-${day}`;
+          } else if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+            databaseDate = rawDate;
+          }
+
+          const payload = {
+            type: formData.type || "normal",
+            code: String(formData.code || "").trim(),
+            gift_name: String(formData.giftName || "").trim(),
+            date: databaseDate,
+            customer_name: String(formData.customerName || "").trim(),
+            customer_phone: String(formData.customerPhone || "").trim(),
+            remaining_days:
+              formData.remainingDays !== undefined && formData.remainingDays !== null && formData.remainingDays !== ""
+                ? Number(formData.remainingDays)
+                : formData.type === "voucher"
+                  ? 180
+                  : null,
+            status: formData.status || "active",
+          };
+
+          if (!payload.code) {
+            throw new Error("Vui lòng nhập mã code.");
+          }
+
+          if (!payload.gift_name) {
+            throw new Error("Vui lòng nhập tên món.");
+          }
+
+          let result;
+
+          if (formData.id) {
+            result = await supabase.from("gift_codes").update(payload).eq("id", formData.id).select().single();
+          } else {
+            result = await supabase.from("gift_codes").insert(payload).select().single();
+          }
+
+          if (result.error) {
+            throw result.error;
+          }
+
+          setSavedData(result.data);
+          setIsPopupOpen(false);
+          setEditingData(null);
+
+          return {
+            success: true,
+            data: result.data,
+          };
+        } finally {
+          giftCodeSavingRef.current = false;
+        }
+      }
+
+      // =====================================================
       // PRIZES
       // =====================================================
-
       if (categoryId === "prizes") {
         const payload = {
           text: String(formData.text || "").trim(),
@@ -333,50 +359,36 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // CUSTOMER
       // =====================================================
-
       if (categoryId === "customer-info") {
         const payload = {
           customer_name: String(formData.customer_name || "").trim(),
-
           phone: String(formData.phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
-
           event_name: String(formData.event_name || "").trim(),
-
           event_date: String(formData.event_date || "").trim(),
-
           repeat_event: Boolean(formData.repeat_event),
-
           order_value:
             formData.order_value !== "" && formData.order_value !== null && formData.order_value !== undefined
               ? Number(formData.order_value) || 0
               : 0,
-
           cashback_phone: String(formData.cashback_phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
-
           cashback: formData.cashback !== "" && formData.cashback !== null && formData.cashback !== undefined ? Number(formData.cashback) || 0 : 0,
-
           member_tier:
             formData.member_tier !== "" && formData.member_tier !== null && formData.member_tier !== undefined
               ? Number(formData.member_tier) || 0
               : 0,
-
           member_percent:
             formData.member_percent !== "" && formData.member_percent !== null && formData.member_percent !== undefined
               ? Number(formData.member_percent) || 0
               : 0,
-
           referral_phone: String(formData.referral_phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
-
           note: String(formData.note || "").trim(),
-
           history: Array.isArray(formData.history) ? formData.history : [],
-
           is_active: formData.is_active !== undefined ? Boolean(formData.is_active) : true,
         };
 
@@ -405,19 +417,13 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // BOOKING
       // =====================================================
-
       if (categoryId === "calendar") {
         const payload = {
           title: String(formData.title || "").trim(),
-
           category: String(formData.category || "").trim(),
-
           date: formData.date || null,
-
           time_slot: String(formData.time_slot || "").trim(),
-
           staff_note: formData.staff_note || null,
-
           amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
         };
 
@@ -446,7 +452,6 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // INCOME
       // =====================================================
-
       if (categoryId === "income") {
         const payload = {
           source: formData.source,
@@ -481,7 +486,6 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // PURCHASE
       // =====================================================
-
       if (categoryId === "purchase") {
         const payload = {
           title: String(formData.title || "").trim(),
@@ -499,7 +503,6 @@ export default function Grid({ categoryIdOverride = null }) {
           result = await supabase.from("purchases").update(payload).eq("id", formData.id).select().single();
         } else {
           console.log("📦 PURCHASE PAYLOAD TRƯỚC KHI INSERT:", payload);
-
           result = await supabase.from("purchases").insert(payload).select().single();
         }
 
@@ -520,7 +523,6 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // SHIPPED PRIZES
       // =====================================================
-
       if (categoryId === "shipped-prizes") {
         const payload = {
           ...formData,
@@ -552,7 +554,6 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // WAREHOUSE
       // =====================================================
-
       if (isWarehouseCategory) {
         const payload = {
           ...formData,
@@ -585,17 +586,12 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // CONTENT / SERVICES
       // =====================================================
-
       if (isContentCategory) {
         const payload = {
           title: String(formData.title || "").trim(),
-
           category: categoryId,
-
           location: String(formData.location || "").trim(),
-
           date: formData.date || null,
-
           images: prepareImages(formData.images),
         };
 
@@ -626,7 +622,6 @@ export default function Grid({ categoryIdOverride = null }) {
       };
     } catch (error) {
       console.error("Lỗi lưu dữ liệu:", error);
-
       alert(error?.message || "Không thể lưu dữ liệu.");
 
       return {
@@ -639,12 +634,10 @@ export default function Grid({ categoryIdOverride = null }) {
   // =========================================================
   // RENDER MANAGER
   // =========================================================
-
   const renderManager = () => {
     // -------------------------------------------------------
     // BILL
     // -------------------------------------------------------
-
     if (isBillCategory) {
       return (
         <BillGrid
@@ -661,7 +654,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // PRICE
     // -------------------------------------------------------
-
     if (isPriceCategory) {
       const categorySavedData = Array.isArray(savedData) ? savedData.filter((item) => item.category === categoryId) : [];
 
@@ -679,7 +671,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // PRIZES
     // -------------------------------------------------------
-
     if (categoryId === "prizes") {
       return <PrizeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     }
@@ -687,7 +678,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // CUSTOMER
     // -------------------------------------------------------
-
     if (categoryId === "customer-info") {
       return <CustomerManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     }
@@ -695,7 +685,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // BOOKING
     // -------------------------------------------------------
-
     if (categoryId === "calendar") {
       return <BookingManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     }
@@ -703,7 +692,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // INCOME
     // -------------------------------------------------------
-
     if (categoryId === "income") {
       return <IncomeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     }
@@ -711,7 +699,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // FUND
     // -------------------------------------------------------
-
     if (categoryId === "marketing-fund") {
       return <FundManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     }
@@ -719,7 +706,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // PURCHASE
     // -------------------------------------------------------
-
     if (categoryId === "purchase") {
       return <PurchaseManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     }
@@ -727,15 +713,20 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // SHIPPED PRIZES
     // -------------------------------------------------------
-
     if (categoryId === "shipped-prizes") {
       return <ShippedPrizesManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     }
 
     // -------------------------------------------------------
+    // GIFT CODE
+    // -------------------------------------------------------
+    if (categoryId === "gift-codes") {
+      return <GiftCodeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    }
+
+    // -------------------------------------------------------
     // WAREHOUSE
     // -------------------------------------------------------
-
     if (isWarehouseCategory) {
       return (
         <WarehouseManager categoryId={categoryId} searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
@@ -745,7 +736,6 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // CONTENT
     // -------------------------------------------------------
-
     if (isContentCategory) {
       return (
         <ContentManager categoryId={categoryId} searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
@@ -755,14 +745,12 @@ export default function Grid({ categoryIdOverride = null }) {
     // -------------------------------------------------------
     // NO MANAGER
     // -------------------------------------------------------
-
     return null;
   };
 
   // =========================================================
   // POPUP TITLE
   // =========================================================
-
   const getPopupTitle = () => {
     const action = editingData ? "Cập nhật" : "Thêm mới";
 
@@ -790,6 +778,10 @@ export default function Grid({ categoryIdOverride = null }) {
       return `${action} quà đã gửi`;
     }
 
+    if (categoryId === "gift-codes") {
+      return `${action} Gift Code`;
+    }
+
     if (isWarehouseCategory) {
       return `${action} vật tư`;
     }
@@ -808,13 +800,11 @@ export default function Grid({ categoryIdOverride = null }) {
   // =========================================================
   // RENDER
   // =========================================================
-
   return (
     <div className="post-admin-container">
       {/* =====================================================
           HEADER
       ====================================================== */}
-
       <div className="admin-grid-fixed-header">
         <div className="admin-grid-top-bar">
           <button type="button" className="admin-grid-back-btn" onClick={() => navigate(-1)} aria-label="Quay lại">
@@ -823,7 +813,6 @@ export default function Grid({ categoryIdOverride = null }) {
 
           <h2 className="admin-grid-heading">
             <span>{currentCategoryLabel}</span>
-
             <small>: {itemCount} mục</small>
           </h2>
         </div>
@@ -831,7 +820,6 @@ export default function Grid({ categoryIdOverride = null }) {
         {/* ===================================================
             TOOLBAR
         ==================================================== */}
-
         <div className="admin-grid-toolbar">
           <div className="admin-grid-search-wrapper">
             <input
@@ -853,7 +841,6 @@ export default function Grid({ categoryIdOverride = null }) {
       {/* =====================================================
           BODY
       ====================================================== */}
-
       <div className="admin-grid-body">
         <div className="admin-grid-outlet-wrapper">{renderManager()}</div>
       </div>
@@ -861,7 +848,6 @@ export default function Grid({ categoryIdOverride = null }) {
       {/* =====================================================
           BILL POPUP
       ====================================================== */}
-
       {isPopupOpen && isBillCategory && (
         <BillPopup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} initialData={editingData} />
       )}
@@ -869,7 +855,6 @@ export default function Grid({ categoryIdOverride = null }) {
       {/* =====================================================
           OTHER POPUP
       ====================================================== */}
-
       {isPopupOpen && !isBillCategory && (
         <Popup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} categoryId={categoryId} initialData={editingData} />
       )}

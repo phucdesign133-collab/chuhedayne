@@ -1,26 +1,47 @@
 // src/datas/spinResult.js
+import { supabase } from "../components/utils/supabaseClient";
 
 // ==========================================
-// SINH SERIAL CHO MỖI LẦN TRÚNG
+// SINH GIFT CODE CHDN
 // ==========================================
-// Mỗi lần gọi hàm này = một serial mới.
-// Không dùng lại serial cũ.
-// Không phụ thuộc vào bill.
-// Không phụ thuộc vào database.
+// Một loại code duy nhất cho tất cả vòng quay.
+// Form: CHDN-x
+// Số lượng chữ số được chọn ngẫu nhiên.
+// Code phải chưa tồn tại trong gift_codes.
 
-export function generateSpinCode(isPremiumMode = false) {
-  const prefix = isPremiumMode ? "VIP" : "NORMAL";
+export async function generateSpinCode() {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const length = Math.floor(Math.random() * 8) + 1;
+    let number = "";
 
-  return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+    for (let i = 0; i < length; i++) {
+      number += Math.floor(Math.random() * 10);
+    }
+
+    const code = `CHDN-${number}`;
+
+    const { data, error } = await supabase.from("gift_codes").select("id").eq("code", code).limit(1);
+
+    if (error) {
+      console.error("Lỗi kiểm tra Gift Code:", error);
+      continue;
+    }
+
+    if (!data || data.length === 0) {
+      return code;
+    }
+  }
+
+  throw new Error("Không thể tạo Gift Code mới. Vui lòng thử lại.");
 }
 
 // ==========================================
 // TẠO KẾT QUẢ CỦA MỘT LẦN QUAY
 // ==========================================
-// Trả về đúng phần thưởng + serial được sinh
-// cho chính lần quay đó.
+// Trả về đúng phần thưởng + GiftCode được sinh.
+// GiftCode đã được kiểm tra không trùng database.
 
-export function createSpinResult(selectedPrize, isPremiumMode = false) {
+export async function createSpinResult(selectedPrize) {
   if (!selectedPrize) {
     return {
       prize: null,
@@ -28,7 +49,7 @@ export function createSpinResult(selectedPrize, isPremiumMode = false) {
     };
   }
 
-  const code = generateSpinCode(isPremiumMode);
+  const code = await generateSpinCode();
 
   return {
     prize: selectedPrize,
@@ -41,14 +62,14 @@ export function createSpinResult(selectedPrize, isPremiumMode = false) {
 // ==========================================
 // Nếu cùng một món đã có trong giỏ:
 // - tăng wonQuantity
-// - giữ lại toàn bộ serial trong wonCodes
+// - giữ lại toàn bộ GiftCode trong wonCodes
 //
 // Nếu chưa có:
 // - tạo món mới
-// - serial đầu tiên nằm trong wonCodes.
+// - GiftCode đầu tiên nằm trong wonCodes.
 //
-// Mỗi serial đại diện cho đúng một lần trúng.
-// Tuyệt đối không ghi đè serial cũ.
+// Mỗi GiftCode đại diện cho đúng một lần trúng.
+// Tuyệt đối không ghi đè GiftCode cũ.
 
 export function addPendingGift(pendingGifts = [], spinResult) {
   if (!spinResult?.prize || !spinResult?.code) {
@@ -58,9 +79,7 @@ export function addPendingGift(pendingGifts = [], spinResult) {
   const selectedPrize = spinResult.prize;
   const code = spinResult.code;
 
-  const existingIndex = pendingGifts.findIndex(
-    (gift) => gift.id === selectedPrize.id
-  );
+  const existingIndex = pendingGifts.findIndex((gift) => gift.id === selectedPrize.id);
 
   if (existingIndex === -1) {
     return [
@@ -81,16 +100,13 @@ export function addPendingGift(pendingGifts = [], spinResult) {
     return {
       ...gift,
       wonQuantity: (Number(gift.wonQuantity) || 0) + 1,
-      wonCodes: [
-        ...(Array.isArray(gift.wonCodes) ? gift.wonCodes : []),
-        code,
-      ],
+      wonCodes: [...(Array.isArray(gift.wonCodes) ? gift.wonCodes : []), code],
     };
   });
 }
 
 // ==========================================
-// CHUẨN HÓA SERIAL
+// CHUẨN HÓA GIFT CODE
 // ==========================================
 // Dùng trước khi đưa dữ liệu vào bill.
 // Đảm bảo:
@@ -98,8 +114,6 @@ export function addPendingGift(pendingGifts = [], spinResult) {
 // - bỏ giá trị rỗng
 // - chuyển về string
 // - không tự sinh thêm mã.
-//
-// Hàm này chỉ làm sạch dữ liệu đã có.
 
 export function normalizeGiftCodes(gift) {
   if (!gift) {
@@ -107,16 +121,12 @@ export function normalizeGiftCodes(gift) {
   }
 
   if (Array.isArray(gift.wonCodes)) {
-    return gift.wonCodes
-      .filter(Boolean)
-      .map((code) => String(code));
+    return gift.wonCodes.filter(Boolean).map((code) => String(code));
   }
 
   // Tương thích với dữ liệu cũ nếu có.
   if (gift.code || gift.gift_code) {
-    return [
-      String(gift.code || gift.gift_code),
-    ];
+    return [String(gift.code || gift.gift_code)];
   }
 
   return [];
@@ -128,10 +138,10 @@ export function normalizeGiftCodes(gift) {
 // Đây là dữ liệu nghiệp vụ được chụp tại thời điểm
 // khách thực sự tạo bill.
 //
-// Serial được lấy nguyên bản từ wonCodes.
+// GiftCode được lấy nguyên bản từ wonCodes.
 // Không sinh lại code tại đây.
 //
-// quantity và số serial phải tương ứng với nhau
+// quantity và số GiftCode phải tương ứng với nhau
 // khi dữ liệu hợp lệ.
 
 export function createBillItemFromGift(gift) {
@@ -157,8 +167,8 @@ export function createBillItemFromGift(gift) {
 // ==========================================
 // Chỉ nhận những món khách đã chọn.
 //
-// Không tạo serial mới.
-// Không thay đổi serial.
+// Không tạo GiftCode mới.
+// Không thay đổi GiftCode.
 // Không lấy generatedCode của lượt quay cuối.
 
 export function createBillItemsFromGifts(selectedGifts = []) {
@@ -166,7 +176,5 @@ export function createBillItemsFromGifts(selectedGifts = []) {
     return [];
   }
 
-  return selectedGifts
-    .map(createBillItemFromGift)
-    .filter(Boolean);
+  return selectedGifts.map(createBillItemFromGift).filter(Boolean);
 }
