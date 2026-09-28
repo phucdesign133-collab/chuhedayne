@@ -14,11 +14,12 @@ import ContentManager from "../pages/ContentManager";
 import IncomeManager from "../pages/IncomeManager";
 import FundManager from "../pages/FundManager";
 import PurchaseManager from "../pages/PurchaseManager";
-import ShippedPrizesManager from "../pages/ShippedPrizesManager";
+import ShippedPrizes from "../pages/ShippedPrizes";
 import WarehouseManager from "../pages/WarehouseManager";
 import PriceManager from "../pages/PriceManager";
 import GiftCodeManager from "../pages/GiftCodeManager";
 import "../css/Grid.css";
+
 export default function Grid({ categoryIdOverride = null }) {
   const navigate = useNavigate();
   const { categoryId: routeCategoryId } = useParams();
@@ -422,17 +423,6 @@ export default function Grid({ categoryIdOverride = null }) {
         setEditingData(null);
         return { success: true, data: result.data };
       }
-      if (categoryId === "shipped-prizes") {
-        const payload = { ...formData, images: prepareImages(formData.images) };
-        let result;
-        if (formData.id) result = await supabase.from("shipped_prizes").update(payload).eq("id", formData.id).select().single();
-        else result = await supabase.from("shipped_prizes").insert(payload).select().single();
-        if (result.error) throw result.error;
-        setSavedData(result.data);
-        setIsPopupOpen(false);
-        setEditingData(null);
-        return { success: true, data: result.data };
-      }
       if (isWarehouseCategory) {
         const payload = { ...formData, category: categoryId, images: prepareImages(formData.images) };
         let result;
@@ -513,8 +503,7 @@ export default function Grid({ categoryIdOverride = null }) {
       return <FundManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     if (categoryId === "purchase")
       return <PurchaseManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    if (categoryId === "shipped-prizes")
-      return <ShippedPrizesManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
+    if (categoryId === "shipped-prizes") return <ShippedPrizes searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} />;
     if (categoryId === "gift-codes")
       return <GiftCodeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
     if (isWarehouseCategory)

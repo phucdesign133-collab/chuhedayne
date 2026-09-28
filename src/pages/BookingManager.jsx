@@ -6,7 +6,7 @@ import "../css/Manager.css";
 import "../css/Tab.css";
 import "../css/BookingManager.css";
 
-export default function BookingManager({ savedData = null }) {
+export default function BookingManager({ savedData = null, onCountChange }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -151,7 +151,11 @@ export default function BookingManager({ savedData = null }) {
 
       return Number(b.id || 0) - Number(a.id || 0);
     });
-
+  useEffect(() => {
+    if (typeof onCountChange === "function") {
+      onCountChange(activeTab === "first" ? currentBookings.length : historyBookings.length);
+    }
+  }, [activeTab, currentBookings.length, historyBookings.length, onCountChange]);
   const handleAdd = () => {
     setEditingBooking(null);
     setIsPopupOpen(true);
