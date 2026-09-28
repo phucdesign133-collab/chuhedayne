@@ -194,7 +194,7 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                     </div>
                     <div className="customer-grid-item customer-contact">
                       <span>
-                        {isPhone ? "Số điện thoại: " : "Zalo: "}
+                        {isPhone ? "SĐT: " : "Zalo: "}
                         <strong>{isPhone ? formatPhone(contactValue) : String(contactValue || "")}</strong>
                       </span>
                     </div>

@@ -5,9 +5,11 @@ import { fetchAllPrizesFromCloud } from "../datas/spinEngine";
 import { supabase } from "../components/utils/supabaseClient";
 
 import "../css/Manager.css";
+import "../css/Tab.css";
 
 export default function PrizeManager({ searchTerm = "", savedData = null, onCountChange, onEdit }) {
   const [prizes, setPrizes] = useState([]);
+  const [activeTab, setActiveTab] = useState("first");
 
   const [swipeState, setSwipeState] = useState({
     id: null,
@@ -93,10 +95,41 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
   // ============================================================
 
   const sortedPrizes = useMemo(() => {
-    return [...filteredPrizes].sort((a, b) => {
+    const tabPrizes = filteredPrizes.filter((prize) => {
+      const isVoucher = String(prize.text || "")
+        .toLowerCase()
+        .includes("voucher");
+      const quantity = Number(prize.quantity || 0);
+
+      if (isVoucher) {
+        return activeTab === "third";
+      }
+
+      if (activeTab === "first") {
+        return quantity > 9;
+      }
+
+      if (activeTab === "second") {
+        return quantity <= 9;
+      }
+
+      return false;
+    });
+
+    return [...tabPrizes].sort((a, b) => {
+      if (activeTab === "second") {
+        const priorityCompare = Number(Boolean(b.priority)) - Number(Boolean(a.priority));
+
+        if (priorityCompare !== 0) {
+          return priorityCompare;
+        }
+
+        return Number(a.unit_cost || 0) - Number(b.unit_cost || 0);
+      }
+
       return Number(a.quantity || 0) - Number(b.quantity || 0);
     });
-  }, [filteredPrizes]);
+  }, [filteredPrizes, activeTab]);
 
   // ============================================================
   // COUNT
@@ -290,6 +323,19 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
 
   return (
     <div className="manager">
+      <div className="tabs">
+        <button type="button" className={`tab ${activeTab === "first" ? "active" : ""}`} onClick={() => setActiveTab("first")}>
+          HIỆN CÓ
+        </button>
+
+        <button type="button" className={`tab ${activeTab === "second" ? "active" : ""}`} onClick={() => setActiveTab("second")}>
+          CẦN NHẬP
+        </button>
+
+        <button type="button" className={`tab ${activeTab === "third" ? "active" : ""}`} onClick={() => setActiveTab("third")}>
+          VOUCHER
+        </button>
+      </div>
       <div className="list">
         {sortedPrizes.length === 0 ? (
           <div className="empty">
@@ -302,7 +348,6 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
             const swipeX = isSwiping ? swipeState.x : 0;
 
             const quantity = Number(prize.quantity || 0);
-            const isLowStock = quantity >= 0 && quantity <= 9;
 
             const firstImage = Array.isArray(prize.images) ? prize.images[0] || "" : typeof prize.images === "string" ? prize.images : "";
 
@@ -352,8 +397,6 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
                   <div className="card-main">
                     <div className="info">
                       <div className="row name">{prize.text || ""}</div>
-
-                      {isLowStock && <div className="row prize-stock-warning">⚠️ Chuẩn bị nhập</div>}
 
                       <div className="row">
                         <span>Đơn giá: </span>
