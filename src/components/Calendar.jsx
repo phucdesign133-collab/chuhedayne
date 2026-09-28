@@ -209,7 +209,7 @@ export default function Calendar() {
       <div className="calendar-tasks-section">
         <button className="calendar-tasks-header" onClick={() => setShowTasks((prev) => !prev)}>
           <div className="calendar-tasks-title-group">
-            <h3>Lịch nhân sự ({formatDisplayDate(selectedDateStr)})</h3>
+            <h3>Khung giờ tập trung ({formatDisplayDate(selectedDateStr)})</h3>
           </div>
 
           <ChevronDown size={18} className={`calendar-collapse-icon ${showTasks ? "open" : ""}`} />

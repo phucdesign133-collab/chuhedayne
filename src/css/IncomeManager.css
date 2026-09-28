@@ -1,0 +1,49 @@
+.income-manager {
+  width: 100%;
+}
+
+.income-manager .income-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.income-manager .income-card {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff;
+  box-sizing: border-box;
+  text-transform: capitalize;
+}
+
+.income-manager .income-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.income-manager .income-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.income-manager .income-meta {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.income-manager .income-received {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.income-received.income-positive {
+  color: #16a34a;
+}
+
+.income-received.income-negative {
+  color: #dc2626;
+}

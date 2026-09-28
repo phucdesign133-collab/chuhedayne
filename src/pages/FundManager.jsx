@@ -1,31 +1,31 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Wallet, PartyPopper, Palette, Car, CircleDollarSign } from "lucide-react";
+import { Wallet, PartyPopper, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
 import "../css/MonthlyList.css";
 
 export default function FundManager({ searchTerm = "", onCountChange }) {
-  const [incomes, setIncomes] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [purchases, setPurchases] = useState([]);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
   // ============================================================
-  // LOAD INCOME
+  // LOAD BOOKINGS
   // ============================================================
 
-  const loadIncomes = async () => {
+  const loadBookings = async () => {
     try {
       const { data, error } = await supabase
-        .from("incomes")
-        .select("*")
-        .order("date", { ascending: false })
-        .order("created_at", { ascending: false });
+        .from("bookings")
+        .select("id, date, amount, runner, outs_price,category")
+        .order("date", { ascending: false });
 
       if (error) throw error;
 
-      setIncomes(data || []);
+      setBookings(data || []);
     } catch (error) {
-      console.error("❌ Lỗi tải dữ liệu Quỹ:", error);
-      setIncomes([]);
+      console.error("❌ Lỗi tải dữ liệu Booking cho Quỹ:", error);
+      setBookings([]);
     }
   };
 
@@ -52,17 +52,34 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
   };
 
   useEffect(() => {
-    loadIncomes();
+    loadBookings();
     loadPurchases();
   }, []);
+
+  // ============================================================
+  // RECEIVED
+  // ============================================================
+
+  const getReceivedAmount = (booking) => {
+    const amount = Number(booking?.amount || 0);
+    const runner = String(booking?.runner || "")
+      .trim()
+      .toLowerCase();
+    const outsPrice = Number(booking?.outs_price || 0);
+
+    if (!runner || runner === "phúc") {
+      return amount;
+    }
+
+    return amount - outsPrice;
+  };
 
   // ============================================================
   // FUND
   //
   // Tái đầu tư = 20% thực nhận.
   //
-  // Nếu kết quả <= 0 -> 0.
-  // Nếu kết quả > 0 -> lấy số nguyên.
+  // Cho phép lấy số âm
   // ============================================================
 
   const calculateFund = (received) => {
@@ -72,48 +89,52 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
       return 0;
     }
 
-    const fund = value * 0.2;
-
-    if (fund <= 0) {
-      return 0;
-    }
-
-    return Math.floor(fund);
+    return Math.floor(value * 0.2);
   };
 
   // ============================================================
-  // FUND BY SOURCE
+  // COMPLETED BOOKINGS
   // ============================================================
 
-  const fundBySource = useMemo(() => {
-    const result = {
-      event: 0,
-      design: 0,
-      taxi: 0,
-      other: 0,
-    };
+  const filteredBookings = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    incomes.forEach((income) => {
-      const source = income.source || "other";
-      const fund = calculateFund(income.received);
+    const activeSearchTerm = searchTerm.trim().toLowerCase();
 
-      if (result[source] !== undefined) {
-        result[source] += fund;
-      } else {
-        result.other += fund;
-      }
-    });
+    return bookings
+      .filter((booking) => {
+        if (!booking.date) return false;
 
-    return result;
-  }, [incomes]);
+        const bookingDate = new Date(`${booking.date}T00:00:00`);
+
+        return bookingDate < today;
+      })
+      .filter((booking) => {
+        if (!activeSearchTerm) return true;
+
+        const received = getReceivedAmount(booking);
+
+        return (
+          String(booking.date || "")
+            .toLowerCase()
+            .includes(activeSearchTerm) ||
+          String(received || "")
+            .toLowerCase()
+            .includes(activeSearchTerm)
+        );
+      });
+  }, [bookings, searchTerm]);
 
   // ============================================================
   // TOTAL FUND
   // ============================================================
 
   const totalFund = useMemo(() => {
-    return Object.values(fundBySource).reduce((sum, value) => sum + value, 0);
-  }, [fundBySource]);
+    return filteredBookings.reduce((sum, booking) => {
+      return sum + calculateFund(getReceivedAmount(booking));
+    }, 0);
+  }, [filteredBookings]);
 
   // ============================================================
   // PURCHASE
@@ -130,35 +151,14 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
   const remainingFund = totalFund - purchaseAmount;
 
   // ============================================================
-  // SEARCH
-  // ============================================================
-
-  const activeSearchTerm = searchTerm.trim().toLowerCase();
-
-  const filteredIncomes = useMemo(() => {
-    if (!activeSearchTerm) return incomes;
-
-    return incomes.filter((income) => {
-      return (
-        String(income.source || "")
-          .toLowerCase()
-          .includes(activeSearchTerm) ||
-        String(income.date || "")
-          .toLowerCase()
-          .includes(activeSearchTerm)
-      );
-    });
-  }, [incomes, activeSearchTerm]);
-
-  // ============================================================
   // COUNT
   // ============================================================
 
   useEffect(() => {
     if (typeof onCountChange === "function") {
-      onCountChange(filteredIncomes.length);
+      onCountChange(filteredBookings.length);
     }
-  }, [filteredIncomes.length, onCountChange]);
+  }, [filteredBookings.length, onCountChange]);
 
   // ============================================================
   // FORMAT
@@ -192,28 +192,6 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
     return `Tháng ${month}/${year}`;
   };
 
-  const sourceConfig = {
-    event: {
-      label: "Sự kiện",
-      icon: PartyPopper,
-    },
-
-    design: {
-      label: "Thiết kế",
-      icon: Palette,
-    },
-
-    taxi: {
-      label: "Taxi",
-      icon: Car,
-    },
-
-    other: {
-      label: "Khác",
-      icon: CircleDollarSign,
-    },
-  };
-
   // ============================================================
   // MONTHLY LIST
   // ============================================================
@@ -221,20 +199,20 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
   const groupedByMonth = useMemo(() => {
     const groups = {};
 
-    filteredIncomes.forEach((income) => {
-      if (!income.date) return;
+    filteredBookings.forEach((booking) => {
+      if (!booking.date) return;
 
-      const monthKey = String(income.date).slice(0, 7);
+      const monthKey = String(booking.date).slice(0, 7);
 
       if (!groups[monthKey]) {
         groups[monthKey] = [];
       }
 
-      groups[monthKey].push(income);
+      groups[monthKey].push(booking);
     });
 
     return Object.entries(groups).sort(([monthA], [monthB]) => monthB.localeCompare(monthA));
-  }, [filteredIncomes]);
+  }, [filteredBookings]);
 
   // ============================================================
   // UI
@@ -243,59 +221,88 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
   return (
     <div className="manager">
       {/* ======================================================
-        SUMMARY
-      ====================================================== */}
+      SUMMARY
+    ====================================================== */}
 
-      <div className="summary">
-        <div className="summary-grid">
-          {/* LEFT */}
+      <div className={`summary${isSummaryOpen ? " summary-open" : ""}`}>
+        {!isSummaryOpen ? (
+          <button type="button" className="summary-row purchase-summary-closed" onClick={() => setIsSummaryOpen(true)}>
+            <strong>Còn lại</strong>
 
-          <div>
-            {[
-              ["Sự kiện", fundBySource.event],
-              ["Thiết kế", fundBySource.design],
-              ["Taxi", fundBySource.taxi],
-              ["Khác", fundBySource.other],
-            ].map(([label, value]) => (
-              <div className="summary-row" key={label}>
-                <span>{label}</span>
+            <strong
+              className={
+                remainingFund > 0
+                  ? "summary-positive summary-highlight"
+                  : remainingFund < 0
+                    ? "summary-negative summary-highlight"
+                    : "summary-neutral summary-highlight"
+              }
+            >
+              {formatMoney(remainingFund)}
+            </strong>
 
-                <strong>{formatMoney(value)}</strong>
-              </div>
-            ))}
-          </div>
+            <ChevronDown size={20} strokeWidth={2} />
+          </button>
+        ) : (
+          <div
+            className="summary-grid purchase-summary-open"
+            style={{
+              overflow: "hidden",
+            }}
+          >
+            <div
+              className="purchase-summary-list"
+              style={{
+                maxHeight: "calc(3 * 44px)",
+                overflowY: "auto",
+                overflowX: "hidden",
+              }}
+            >
+              {totalFund !== 0 && (
+                <div className="summary-row">
+                  <span>Thu nhập</span>
 
-          {/* DIVIDER */}
+                  <strong className={totalFund > 0 ? "summary-positive" : "summary-negative"}>{formatMoney(totalFund)}</strong>
+                </div>
+              )}
 
-          <div className="summary-divider" />
+              {purchaseAmount > 0 && (
+                <div className="summary-row">
+                  <span>Nhập hàng</span>
 
-          {/* RIGHT */}
-
-          <div>
-            <div className="summary-row">
-              <span>Quỹ</span>
-
-              <strong className="summary-positive summary-highlight">{formatMoney(totalFund)}</strong>
+                  <strong className="summary-negative">{formatMoney(purchaseAmount)}</strong>
+                </div>
+              )}
             </div>
 
-            <div className="summary-row">
-              <span>Nhập hàng</span>
-
-              <strong className="summary-negative">{formatMoney(purchaseAmount)}</strong>
-            </div>
-
-            <div className="summary-row summary-total">
+            <div className="summary-row summary-total purchase-summary-total">
               <strong>Còn lại</strong>
 
-              <strong className="summary-positive summary-highlight">{formatMoney(remainingFund)}</strong>
+              <div className="purchase-summary-total-right">
+                <strong
+                  className={
+                    remainingFund > 0
+                      ? "summary-positive summary-highlight"
+                      : remainingFund < 0
+                        ? "summary-negative summary-highlight"
+                        : "summary-neutral summary-highlight"
+                  }
+                >
+                  {formatMoney(remainingFund)}
+                </strong>
+
+                <button type="button" className="purchase-summary-toggle" onClick={() => setIsSummaryOpen(false)} aria-label="Thu gọn Quỹ">
+                  <ChevronUp size={20} strokeWidth={2} />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ======================================================
-        MONTHLY LIST
-      ====================================================== */}
+      MONTHLY LIST
+    ====================================================== */}
 
       <div className="list monthly-list">
         {groupedByMonth.length === 0 ? (
@@ -305,8 +312,10 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
             <span>Chưa có khoản Quỹ phù hợp</span>
           </div>
         ) : (
-          groupedByMonth.map(([monthKey, monthIncomes]) => {
-            const monthlyTotal = monthIncomes.reduce((sum, income) => sum + calculateFund(income.received), 0);
+          groupedByMonth.map(([monthKey, monthBookings]) => {
+            const monthlyTotal = monthBookings.reduce((sum, booking) => {
+              return sum + calculateFund(getReceivedAmount(booking));
+            }, 0);
 
             return (
               <div className="monthly-list-month" key={monthKey}>
@@ -315,39 +324,55 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
                 <div className="monthly-list-header">
                   <span className="monthly-list-title">{formatMonth(`${monthKey}-01`)}</span>
 
-                  <strong className="monthly-list-total">{formatMoney(monthlyTotal)}</strong>
+                  <strong
+                    className={
+                      monthlyTotal > 0
+                        ? "monthly-list-total summary-positive"
+                        : monthlyTotal < 0
+                          ? "monthly-list-total summary-negative"
+                          : "monthly-list-total summary-neutral"
+                    }
+                  >
+                    {formatMoney(monthlyTotal)}
+                  </strong>
                 </div>
 
                 {/* MONTH GROUP */}
 
                 <div className="monthly-list-group">
-                  {monthIncomes.map((income, index) => {
-                    const config = sourceConfig[income.source] || sourceConfig.other;
-
-                    const Icon = config.icon;
-
-                    const fund = calculateFund(income.received);
+                  {monthBookings.map((booking, index) => {
+                    const fund = calculateFund(getReceivedAmount(booking));
 
                     return (
                       <div
-                        className={`monthly-list-row${index < monthIncomes.length - 1 ? " monthly-list-row-border" : ""}`}
-                        key={income.id || `fund-${monthKey}-${index}`}
+                        className={`monthly-list-row${index < monthBookings.length - 1 ? " monthly-list-row-border" : ""}`}
+                        key={booking.id || `fund-${monthKey}-${index}`}
                       >
                         {/* SOURCE */}
 
                         <div className="monthly-list-source">
-                          <Icon size={20} strokeWidth={2} />
+                          {/* <PartyPopper size={20} strokeWidth={2} /> */}
 
-                          <strong>{config.label}</strong>
+                          <strong>{booking.category || ""}</strong>
                         </div>
 
                         {/* DATE */}
 
-                        <div className="monthly-list-date">{formatDate(income.date)}</div>
+                        <div className="monthly-list-date">{formatDate(booking.date)}</div>
 
                         {/* FUND */}
 
-                        <div className="monthly-list-amount">{formatMoney(fund)}</div>
+                        <div
+                          className={
+                            fund > 0
+                              ? "monthly-list-amount summary-positive"
+                              : fund < 0
+                                ? "monthly-list-amount summary-negative"
+                                : "monthly-list-amount summary-neutral"
+                          }
+                        >
+                          {formatMoney(fund)}
+                        </div>
                       </div>
                     );
                   })}

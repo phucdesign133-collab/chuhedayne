@@ -9,7 +9,10 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
   const [amount, setAmount] = useState("");
   const [staffNote, setStaffNote] = useState("");
   const [runner, setRunner] = useState("");
+  const [outSPrice, setOutSPrice] = useState("");
   const [note, setNote] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -59,7 +62,10 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       setAmount("");
       setStaffNote("");
       setRunner("");
+      setOutSPrice("");
       setNote("");
+      setCustomerName("");
+      setCustomerPhone("");
       return;
     }
 
@@ -75,10 +81,12 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
     );
 
     setAmount(initialData.amount !== null && initialData.amount !== undefined ? String(initialData.amount) : "");
-
     setStaffNote(initialData.staff_note || "");
     setRunner(initialData.runner || "");
+    setOutSPrice(initialData.outs_price !== null && initialData.outs_price !== undefined ? String(initialData.outs_price) : "");
     setNote(initialData.note || "");
+    setCustomerName(initialData.customer_name || "");
+    setCustomerPhone(initialData.customer_phone || "");
   }, [initialData]);
 
   const dateToDatabase = (value) => {
@@ -121,6 +129,12 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
     return String(value ?? "").replace(/\D/g, "");
   };
 
+  const isPhuc = runner.trim().toLowerCase() === "phúc";
+  const showOutS = runner.trim() !== "" && !isPhuc;
+  const billValue = Number(getRawMoney(amount)) || 0;
+  const outSValue = Number(getRawMoney(outSPrice)) || 0;
+  const receivedValue = isPhuc || !runner.trim() ? billValue : billValue - outSValue;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -148,7 +162,10 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       amount: amount !== "" ? Number(getRawMoney(amount)) || 0 : 0,
       staff_note: staffNote.trim() || null,
       runner: runner.trim() || null,
+      outs_price: showOutS ? Number(getRawMoney(outSPrice)) || 0 : 0,
       note: note.trim() || null,
+      customer_name: customerName.trim() || null,
+      customer_phone: customerPhone.trim() || null,
     };
 
     setIsSaving(true);
@@ -218,11 +235,11 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       </div>
 
       <div className="popup-row">
-        <label className="popup-label">Thực nhận</label>
+        <label className="popup-label">Bill</label>
         <input
           className="popup-input"
           inputMode="numeric"
-          placeholder="Thực nhận"
+          placeholder="Bill"
           value={formatMoneyInput(amount)}
           onChange={(e) => setAmount(getRawMoney(e.target.value))}
           disabled={isSaving}
@@ -230,8 +247,62 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       </div>
 
       <div className="popup-row">
-        <label className="popup-label">Người chạy</label>
-        <input className="popup-input" placeholder="Người chạy" value={runner} onChange={(e) => setRunner(e.target.value)} disabled={isSaving} />
+        <label className="popup-label">Người chạy / OutS</label>
+        <div className="popup-inline">
+          <input
+            className="popup-input"
+            placeholder="Người chạy"
+            value={runner}
+            onChange={(e) => setRunner(e.target.value)}
+            disabled={isSaving}
+            style={showOutS ? { flex: "1 1 0", minWidth: 0 } : { width: "100%" }}
+          />
+
+          {showOutS && (
+            <input
+              className="popup-input"
+              inputMode="numeric"
+              placeholder="OutS"
+              value={formatMoneyInput(outSPrice)}
+              onChange={(e) => setOutSPrice(getRawMoney(e.target.value))}
+              disabled={isSaving}
+              style={{ flex: "1 1 0", minWidth: 0 }}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="popup-row">
+        <label className="popup-label">Thực nhận</label>
+        <input className="popup-input" value={formatMoneyInput(receivedValue)} readOnly disabled={isSaving} />
+      </div>
+
+      <div className="popup-row">
+        <label className="popup-label">Note</label>
+        <textarea className="popup-input" placeholder="Note" value={note} onChange={(e) => setNote(e.target.value)} disabled={isSaving} />
+      </div>
+
+      <div className="popup-row">
+        <label className="popup-label">Tên khách</label>
+        <input
+          className="popup-input"
+          placeholder="Tên khách"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          disabled={isSaving}
+        />
+      </div>
+
+      <div className="popup-row">
+        <label className="popup-label">SĐT khách</label>
+        <input
+          className="popup-input"
+          inputMode="tel"
+          placeholder="SĐT khách"
+          value={customerPhone}
+          onChange={(e) => setCustomerPhone(e.target.value)}
+          disabled={isSaving}
+        />
       </div>
 
       <div className="popup-row">
@@ -251,11 +322,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
             </label>
           ))}
         </div>
-      </div>
-
-      <div className="popup-row">
-        <label className="popup-label">Note</label>
-        <textarea className="popup-input" placeholder="Note" value={note} onChange={(e) => setNote(e.target.value)} disabled={isSaving} />
       </div>
 
       <div className="popup-footer">

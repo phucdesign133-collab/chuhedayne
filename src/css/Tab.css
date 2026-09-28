@@ -5,7 +5,7 @@
   height: 54px;
   display: flex;
   align-items: stretch;
-  background: #fff;
+  background: #fff;margin-bottom: 10px;
 }
 
 .tab {

@@ -134,7 +134,7 @@
    ============================================================ */
 
 .monthly-list {
-  padding-top: 145px;
+  padding-top: 45px;
   text-transform: capitalize;
 }
 
@@ -177,7 +177,7 @@
 
 .monthly-list-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
+ grid-template-columns: minmax(0, 1.5fr) 100px minmax(0, 0.7fr);
   align-items: center;
   column-gap: 12px;
   width: 100%;
@@ -204,6 +204,7 @@
   text-align: center;
   white-space: nowrap;
   font-size: 14px;
+  transform: translateX(10px);
 }
 
 .monthly-list-amount {
@@ -212,4 +213,18 @@
   font-weight: 700;
   color: #15803d;
   font-size: 14px;
+}
+.summary-positive,
+.amount-positive {
+  color: #16a34a;
+}
+
+.summary-negative,
+.amount-negative {
+  color: #dc2626;
+}
+
+.summary-neutral,
+.amount-neutral {
+  color: #000;
 }

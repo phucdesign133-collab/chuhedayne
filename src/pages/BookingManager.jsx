@@ -69,6 +69,18 @@ export default function BookingManager({ savedData = null, onCountChange }) {
     return `${number.toLocaleString("vi-VN")} đ`;
   };
 
+  const getReceivedAmount = (booking) => {
+    const bill = Number(booking?.amount || 0);
+    const runner = String(booking?.runner || "").trim();
+    const outS = Number(booking?.outs_price || 0);
+
+    if (!runner || runner.toLowerCase() === "phúc") {
+      return bill;
+    }
+
+    return bill - outS;
+  };
+
   const fetchBookings = async () => {
     try {
       setLoading(true);
@@ -151,11 +163,13 @@ export default function BookingManager({ savedData = null, onCountChange }) {
 
       return Number(b.id || 0) - Number(a.id || 0);
     });
+
   useEffect(() => {
     if (typeof onCountChange === "function") {
       onCountChange(activeTab === "first" ? currentBookings.length : historyBookings.length);
     }
   }, [activeTab, currentBookings.length, historyBookings.length, onCountChange]);
+
   const handleAdd = () => {
     setEditingBooking(null);
     setIsPopupOpen(true);
@@ -195,10 +209,20 @@ export default function BookingManager({ savedData = null, onCountChange }) {
         time_slot: String(formData.time_slot || "").trim(),
         staff_note: formData.staff_note || null,
         amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
+        runner: String(formData.runner || "").trim() || null,
+        note: String(formData.note || "").trim() || null,
+        outs_price:
+          formData.outs_price !== "" && formData.outs_price !== null && formData.outs_price !== undefined ? Number(formData.outs_price) || 0 : 0,
+        customer_name: String(formData.customer_name || "").trim() || null,
+        customer_phone: String(formData.customer_phone || "").trim() || null,
       };
 
       if (!payload.date) {
         throw new Error("Vui lòng nhập ngày Booking.");
+      }
+
+      if (!payload.runner || payload.runner.toLowerCase() === "phúc") {
+        payload.outs_price = 0;
       }
 
       let data;
@@ -272,8 +296,9 @@ export default function BookingManager({ savedData = null, onCountChange }) {
   };
 
   const renderBookingCard = (booking, index) => {
-    const staffStatus = booking.staff_note || "";
-    // đoạn này return grid lịch
+    const runner = String(booking.runner || "").trim();
+    const received = getReceivedAmount(booking);
+
     return (
       <div
         className="card booking-card"
@@ -287,14 +312,14 @@ export default function BookingManager({ savedData = null, onCountChange }) {
             <strong>{formatDate(booking.date)}</strong>
           </div>
 
-          <div className="row booking-program">
+          <div className="row">
             <span>Chương trình: </span>
             <strong>{booking.program || ""}</strong>
           </div>
 
           <div className="row">
             <span>Công việc: </span>
-            <strong>{booking.category || "Sự kiện"}</strong>
+            <strong>{booking.category || ""}</strong>
           </div>
 
           <div className="row">
@@ -304,39 +329,50 @@ export default function BookingManager({ savedData = null, onCountChange }) {
 
           <div className="row">
             <span>Thời gian: </span>
-            <strong>{formatTimeSlot(booking.time_slot) || "Cả ngày"}</strong>
+            <strong>{formatTimeSlot(booking.time_slot) || ""}</strong>
           </div>
 
           <div className="row">
-            <span>Thực nhận: </span>
+            <span>Bill: </span>
             <strong>{formatMoney(booking.amount)}</strong>
           </div>
 
           <div className="row">
             <span>Người chạy: </span>
-            <strong>{booking.runner || ""}</strong>
+            <strong>{runner}</strong>
           </div>
 
-          {staffStatus && (
-            <div className="row">
-              <span>Staff note: </span>
-              <strong>{staffStatus}</strong>
-            </div>
-          )}
+          <div className="row">
+            <span>OutS: </span>
+            <strong>{formatMoney(booking.outs_price)}</strong>
+          </div>
 
-          {booking.note && (
-            <div className="row booking-note">
-              <span>Note: </span>
-              <strong>{booking.note}</strong>
-            </div>
-          )}
+          <div className="row">
+            <span>Khách: </span>
+            <strong>{booking.customer_name || ""}</strong>
+          </div>
+
+          <div className="row">
+            <span>SĐT: </span>
+            <strong>{booking.customer_phone || ""}</strong>
+          </div>
+
+          <div className="row">
+            <span>Thực nhận: </span>
+            <strong>{formatMoney(received)}</strong>
+          </div>
+
+          <div className="row">
+            <span>Note: </span>
+            <strong>{booking.note || ""}</strong>
+          </div>
         </div>
       </div>
     );
   };
 
   const visibleBookings = activeTab === "first" ? currentBookings : historyBookings;
-  // đoạn này return tab
+
   return (
     <div className="manager booking-manager">
       <div className="tabs">

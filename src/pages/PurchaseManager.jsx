@@ -369,20 +369,35 @@ export default function PurchaseManager({ searchTerm = "", savedData = null, onC
              SUMMARY OPEN
           ==================================================== */
 
-          <div className="summary-grid purchase-summary-open">
-            {purchaseSummary.length === 0 ? (
-              <div className="purchase-summary-empty">Chưa có dữ liệu mua hàng</div>
-            ) : (
-              purchaseSummary.map((item) => (
-                <div key={item.title} className="summary-row purchase-summary-item">
-                  <strong>{item.title}</strong>
+          <div
+            className="summary-grid purchase-summary-open"
+            style={{
+              maxHeight: "calc(15 * 44px + 52px)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              className="purchase-summary-list"
+              style={{
+                maxHeight: "calc(15 * 44px)",
+                overflowY: "auto",
+                overflowX: "hidden",
+              }}
+            >
+              {purchaseSummary.length === 0 ? (
+                <div className="purchase-summary-empty">Chưa có dữ liệu mua hàng</div>
+              ) : (
+                purchaseSummary.map((item) => (
+                  <div key={item.title} className="summary-row purchase-summary-item" style={{ minHeight: "44px", boxSizing: "border-box" }}>
+                    <strong>{item.title}</strong>
 
-                  <strong className="summary-negative">{formatMoney(item.amount)}</strong>
-                </div>
-              ))
-            )}
+                    <strong className="summary-negative">{formatMoney(item.amount)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
 
-            <div className="summary-row summary-total purchase-summary-total">
+            <div className="summary-row summary-total purchase-summary-total" style={{ minHeight: "52px", boxSizing: "border-box" }}>
               <strong>Tổng mua hàng</strong>
 
               <div className="purchase-summary-total-right">
