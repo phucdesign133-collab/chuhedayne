@@ -1,76 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { Pencil, Trash2, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import Popup from "../components/popup/Popup";
 import "../css/Manager.css";
+import "../css/Tab.css";
 
-export default function BookingManager() {
+export default function BookingManager({ savedData = null }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
 
-  const [showHistory, setShowHistory] = useState(false);
-
-  // ============================================================
-  // FORMAT NGÀY UI
-  //
-  // DB: YYYY-MM-DD
-  // UI: DD/MM/YYYY
-  //
-  // Không dùng new Date("YYYY-MM-DD") để tránh lệch timezone.
-  // ============================================================
+  const [activeTab, setActiveTab] = useState("first");
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
-
     const value = String(dateString).slice(0, 10);
     const parts = value.split("-");
-
     if (parts.length !== 3) return value;
-
     const [year, month, day] = parts;
-
     return `${day}/${month}/${year}`;
   };
 
-  // ============================================================
-  // DATE KEY
-  //
-  // Dùng chuỗi YYYY-MM-DD để so sánh ngày.
-  // Không phụ thuộc timezone.
-  // ============================================================
-
   const getTodayKey = () => {
     const now = new Date();
-
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
-
     return `${year}-${month}-${day}`;
   };
 
-  // ============================================================
-  // FORMAT KHUNG GIỜ
-  //
-  // 1800
-  // → 18:00
-  //
-  // 13001500
-  // → 13:00 - 15:00
-  //
-  // Nếu DB đã lưu dạng đẹp thì giữ nguyên.
-  // ============================================================
+  const getTimeSortValue = (value) => {
+    if (!value) return 0;
+
+    const digits = String(value).replace(/\D/g, "");
+
+    if (digits.length >= 4) {
+      return Number(digits.slice(0, 4));
+    }
+
+    return 0;
+  };
 
   const formatTimeSlot = (value) => {
     if (!value) return "";
-
     const raw = String(value).trim();
-
     if (!raw) return "";
-
     const digits = raw.replace(/\D/g, "");
 
     if (digits.length === 4) {
@@ -84,23 +60,13 @@ export default function BookingManager() {
     return raw;
   };
 
-  // ============================================================
-  // FORMAT TIỀN
-  // ============================================================
-
   const formatMoney = (value) => {
     const number = Number(value);
-
     if (!Number.isFinite(number)) {
       return "0 đ";
     }
-
     return `${number.toLocaleString("vi-VN")} đ`;
   };
-
-  // ============================================================
-  // LOAD BOOKINGS
-  // ============================================================
 
   const fetchBookings = async () => {
     try {
@@ -123,15 +89,19 @@ export default function BookingManager() {
     fetchBookings();
   }, []);
 
-  // ============================================================
-  // PHÂN LOẠI
-  //
-  // Hôm nay + tương lai
-  // → currentBookings
-  //
-  // Quá khứ
-  // → historyBookings
-  // ============================================================
+  useEffect(() => {
+    if (!savedData) return;
+
+    setBookings((prev) => {
+      const exists = prev.some((item) => item.id === savedData.id);
+
+      if (exists) {
+        return prev.map((item) => (item.id === savedData.id ? savedData : item));
+      }
+
+      return [...prev, savedData];
+    });
+  }, [savedData]);
 
   const todayKey = getTodayKey();
 
@@ -141,10 +111,18 @@ export default function BookingManager() {
       return String(item.date).slice(0, 10) >= todayKey;
     })
     .sort((a, b) => {
-      const dateCompare = String(a.date).slice(0, 10).localeCompare(String(b.date).slice(0, 10));
+      const dateA = String(a.date || "").slice(0, 10);
+      const dateB = String(b.date || "").slice(0, 10);
+      const dateCompare = dateA.localeCompare(dateB);
 
       if (dateCompare !== 0) {
         return dateCompare;
+      }
+
+      const timeCompare = getTimeSortValue(a.time_slot) - getTimeSortValue(b.time_slot);
+
+      if (timeCompare !== 0) {
+        return timeCompare;
       }
 
       return Number(a.id || 0) - Number(b.id || 0);
@@ -156,36 +134,32 @@ export default function BookingManager() {
       return String(item.date).slice(0, 10) < todayKey;
     })
     .sort((a, b) => {
-      const dateCompare = String(b.date).slice(0, 10).localeCompare(String(a.date).slice(0, 10));
+      const dateA = String(a.date || "").slice(0, 10);
+      const dateB = String(b.date || "").slice(0, 10);
+      const dateCompare = dateB.localeCompare(dateA);
 
       if (dateCompare !== 0) {
         return dateCompare;
       }
 
+      const timeCompare = getTimeSortValue(b.time_slot) - getTimeSortValue(a.time_slot);
+
+      if (timeCompare !== 0) {
+        return timeCompare;
+      }
+
       return Number(b.id || 0) - Number(a.id || 0);
     });
-
-  // ============================================================
-  // ADD
-  // ============================================================
 
   const handleAdd = () => {
     setEditingBooking(null);
     setIsPopupOpen(true);
   };
 
-  // ============================================================
-  // EDIT
-  // ============================================================
-
   const handleEdit = (booking) => {
     setEditingBooking(booking);
     setIsPopupOpen(true);
   };
-
-  // ============================================================
-  // DELETE
-  // ============================================================
 
   const handleDelete = async (booking) => {
     if (!booking?.id) return;
@@ -199,21 +173,17 @@ export default function BookingManager() {
 
       if (error) throw error;
 
-      await fetchBookings();
+      setBookings((prev) => prev.filter((item) => item.id !== booking.id));
     } catch (error) {
       console.error("❌ Lỗi xóa Booking:", error);
-
       alert(`Không thể xóa Booking:\n${error?.message || "Lỗi không xác định"}`);
     }
   };
 
-  // ============================================================
-  // SAVE
-  // ============================================================
-
   const handleSavePopup = async (formData) => {
     try {
       const payload = {
+        program: String(formData.program ?? "").trim(),
         title: String(formData.title || "").trim(),
         category: String(formData.category || "").trim(),
         date: formData.date || null,
@@ -228,86 +198,115 @@ export default function BookingManager() {
 
       let data;
 
-      // UPDATE
       if (formData.id) {
         const { data: updatedData, error } = await supabase.from("bookings").update(payload).eq("id", formData.id).select("*").single();
 
         if (error) throw error;
 
         data = updatedData;
+      } else {
+        const { data: insertedData, error: insertError } = await supabase.from("bookings").insert([payload]).select("*").single();
+
+        if (insertError) throw insertError;
+
+        if (payload.program) {
+          const { data: fixedData, error: updateError } = await supabase
+            .from("bookings")
+            .update({ program: payload.program })
+            .eq("id", insertedData.id)
+            .select("*")
+            .single();
+
+          if (updateError) throw updateError;
+
+          data = fixedData;
+        } else {
+          data = insertedData;
+        }
       }
 
-      // INSERT
-      else {
-        const { data: insertedData, error } = await supabase.from("bookings").insert(payload).select("*").single();
+      setBookings((prev) => {
+        const exists = prev.some((item) => item.id === data.id);
 
-        if (error) throw error;
+        if (exists) {
+          return prev.map((item) => (item.id === data.id ? data : item));
+        }
 
-        data = insertedData;
-      }
-
-      console.log("☁️ Booking lưu thành công:", data);
-
-      await fetchBookings();
+        return [...prev, data];
+      });
 
       setIsPopupOpen(false);
       setEditingBooking(null);
 
-      return {
-        success: true,
-        data,
-      };
+      return { success: true, data };
     } catch (error) {
       console.error("❌ Lỗi lưu Booking:", error);
-
-      return {
-        success: false,
-        error,
-      };
+      return { success: false, error };
     }
   };
 
-  // ============================================================
-  // RENDER CARD
-  // ============================================================
+  const handleTouchStart = (e) => {
+    e.currentTarget.dataset.startX = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e, booking) => {
+    const startX = Number(e.currentTarget.dataset.startX || 0);
+    const endX = e.changedTouches[0].clientX;
+    const distance = endX - startX;
+
+    delete e.currentTarget.dataset.startX;
+
+    if (distance > 85) {
+      handleEdit(booking);
+      return;
+    }
+
+    if (distance < -85) {
+      handleDelete(booking);
+    }
+  };
 
   const renderBookingCard = (booking, index) => {
     const staffStatus = booking.staff_note || "";
 
     return (
-      <div className="card" key={booking.id || `booking-${index}`}>
+      <div
+        className="card booking-card"
+        key={booking.id || `booking-${index}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={(e) => handleTouchEnd(e, booking)}
+      >
         <div className="info">
-          {/* NGÀY */}
           <div className="row name">
             <CalendarDays size={15} />
             <strong>{formatDate(booking.date)}</strong>
           </div>
 
-          {/* SỰ KIỆN */}
+          <div className="row booking-program">
+            <span>Chương trình: </span>
+            <strong>{booking.program || ""}</strong>
+          </div>
+
           <div className="row">
             <span>Công việc: </span>
             <strong>{booking.category || "Sự kiện"}</strong>
           </div>
 
-          {/* ĐỊA ĐIỂM */}
           <div className="row">
             <span>Địa điểm: </span>
             <strong>{booking.title || ""}</strong>
           </div>
 
-          {/* THỜI GIAN */}
           <div className="row">
             <span>Thời gian: </span>
-            {formatTimeSlot(booking.time_slot) || "Cả ngày"}
+            <strong>{formatTimeSlot(booking.time_slot) || "Cả ngày"}</strong>
           </div>
 
-          {/* THỰC NHẬN */}
           <div className="row">
             <span>Thực nhận: </span>
             <strong>{formatMoney(booking.amount)}</strong>
           </div>
 
-          {/* NHÂN SỰ */}
           {staffStatus && (
             <div className="row">
               <span>Nhân sự: </span>
@@ -315,85 +314,38 @@ export default function BookingManager() {
             </div>
           )}
         </div>
-
-        {/* FOOTER */}
-        <div className="card-footer">
-          <button type="button" className="action-btn edit-btn" onClick={() => handleEdit(booking)}>
-            <Pencil size={16} />
-            Sửa
-          </button>
-
-          <button type="button" className="action-btn delete-btn" onClick={() => handleDelete(booking)}>
-            <Trash2 size={16} />
-            Xóa
-          </button>
-        </div>
       </div>
     );
   };
 
-  // ============================================================
-  // BODY
-  // ============================================================
+  const visibleBookings = activeTab === "first" ? currentBookings : historyBookings;
 
   return (
-    <div className="manager">
-      {/* ========================================================
-            DANH SÁCH
-        ======================================================== */}
+    <div className="manager booking-manager">
+      <div className="tabs">
+        <button type="button" className={`tab ${activeTab === "first" ? "active" : ""}`} onClick={() => setActiveTab("first")}>
+          SẮP DIỄN RA
+        </button>
+
+        <button type="button" className={`tab ${activeTab === "second" ? "active" : ""}`} onClick={() => setActiveTab("second")}>
+          ĐÃ DIỄN RA
+        </button>
+      </div>
 
       <div className="list">
         {loading ? (
           <div className="empty">
             <span>Đang tải lịch Booking...</span>
           </div>
+        ) : visibleBookings.length === 0 ? (
+          <div className="empty">
+            <CalendarDays size={32} />
+            <span>{activeTab === "first" ? "Không có sự kiện sắp diễn ra" : "Chưa có sự kiện đã diễn ra"}</span>
+          </div>
         ) : (
-          <>
-            {/* ==================================================
-                    SỰ KIỆN SẮP DIỄN RA
-                ================================================== */}
-
-            <div className="booking-section-title">Sự kiện sắp diễn ra</div>
-
-            {currentBookings.length === 0 ? (
-              <div className="empty">
-                <CalendarDays size={32} />
-                <span>Không có sự kiện sắp diễn ra</span>
-              </div>
-            ) : (
-              currentBookings.map((booking, index) => renderBookingCard(booking, index))
-            )}
-
-            {/* ==================================================
-                    LỊCH SỬ
-                ================================================== */}
-
-            {historyBookings.length > 0 && (
-              <>
-                <button type="button" className="booking-history-toggle" onClick={() => setShowHistory((prev) => !prev)}>
-                  {showHistory ? (
-                    <>
-                      <ChevronUp size={16} />
-                      Sự kiện đã diễn ra
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={16} />
-                      Sự kiện đã diễn ra
-                    </>
-                  )}
-                </button>
-
-                {showHistory && <>{historyBookings.map((booking, index) => renderBookingCard(booking, index))}</>}
-              </>
-            )}
-          </>
+          visibleBookings.map((booking, index) => renderBookingCard(booking, index))
         )}
       </div>
-
-      {/* ========================================================
-            POPUP
-        ======================================================== */}
 
       <Popup
         isOpen={isPopupOpen}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 export default function BookingPopup({ onClose, onSave, initialData = null }) {
+  const [program, setProgram] = useState("");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
@@ -9,28 +10,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
   const [staffNote, setStaffNote] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
-
-  // ============================================================
-  // RESET FORM
-  // ============================================================
-
-  const resetForm = () => {
-    setTitle("");
-    setCategory("");
-    setDate("");
-    setTimeSlot("");
-    setAmount("");
-    setStaffNote("");
-  };
-
-  // ============================================================
-  // FORMAT DATE INPUT
-  //
-  // 05092026
-  // → 05/09/2026
-  //
-  // Không dùng Date object.
-  // ============================================================
 
   const formatDateInput = (value) => {
     const digits = String(value ?? "")
@@ -47,18 +26,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
 
     return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
   };
-
-  // ============================================================
-  // DB DATE → UI DATE
-  //
-  // DB:
-  // 2026-09-05
-  //
-  // UI:
-  // 05/09/2026
-  //
-  // Không dùng new Date()
-  // ============================================================
 
   const dateToDisplay = (value) => {
     if (!value) return "";
@@ -80,27 +47,21 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
     return `${day}/${month}/${year}`;
   };
 
-  // ============================================================
-  // LOAD DATA
-  //
-  // THÊM MỚI:
-  // → tất cả trống
-  //
-  // SỬA:
-  // → lấy đúng dữ liệu hiện tại
-  // ============================================================
-
   useEffect(() => {
     if (!initialData) {
-      resetForm();
+      setProgram("");
+      setTitle("");
+      setCategory("");
+      setDate("");
+      setTimeSlot("");
+      setAmount("");
+      setStaffNote("");
       return;
     }
 
+    setProgram(initialData.program || "");
     setTitle(initialData.title || "");
     setCategory(initialData.category || "");
-
-    // DB YYYY-MM-DD
-    // → UI DD/MM/YYYY
     setDate(dateToDisplay(initialData.date));
 
     setTimeSlot(
@@ -113,13 +74,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
 
     setStaffNote(initialData.staff_note || "");
   }, [initialData]);
-
-  // ============================================================
-  // UI DATE → DB DATE
-  //
-  // 05/09/2026
-  // → 2026-09-05
-  // ============================================================
 
   const dateToDatabase = (value) => {
     const digits = String(value ?? "").replace(/\D/g, "");
@@ -134,16 +88,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
 
     return `${year}-${month}-${day}`;
   };
-
-  // ============================================================
-  // FORMAT TIME
-  //
-  // 1800
-  // → 18:00
-  //
-  // 13001500
-  // → 13:00 - 15:00
-  // ============================================================
 
   const formatTimeInput = (value) => {
     const digits = String(value ?? "")
@@ -161,10 +105,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
     return `${digits.slice(0, 2)}:${digits.slice(2, 4)} - ${digits.slice(4, 6)}:${digits.slice(6, 8)}`;
   };
 
-  // ============================================================
-  // FORMAT MONEY
-  // ============================================================
-
   const formatMoneyInput = (value) => {
     return String(value ?? "")
       .replace(/\D/g, "")
@@ -175,10 +115,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
     return String(value ?? "").replace(/\D/g, "");
   };
 
-  // ============================================================
-  // SAVE
-  // ============================================================
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -186,7 +122,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
 
     const databaseDate = dateToDatabase(date);
 
-    // Ngày vẫn bắt buộc vì DB bookings.date đang NOT NULL.
     if (!databaseDate) {
       alert("Vui lòng nhập ngày theo dạng DD/MM/YYYY.");
       return;
@@ -199,17 +134,12 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
 
     const formData = {
       id: initialData?.id || null,
-
+      program: String(program ?? "").trim(),
       title: title.trim(),
-
       category: category.trim(),
-
       date: databaseDate,
-
       time_slot: timeSlot.trim(),
-
       amount: amount !== "" ? Number(getRawMoney(amount)) || 0 : 0,
-
       staff_note: staffNote.trim() || null,
     };
 
@@ -225,48 +155,38 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       onClose();
     } catch (error) {
       console.error("❌ BookingPopup save error:", error);
-
       alert(`Không thể lưu Booking:\n${error?.message || "Lỗi không xác định"}`);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // ============================================================
-  // BODY
-  //
-  // Popup.jsx bên ngoài quản lý khung Popup.
-  // ============================================================
-
   return (
     <form onSubmit={handleSubmit} className="popup-form">
-      {/* ========================================================
-          ĐỊA ĐIỂM
-      ======================================================== */}
+      <div className="popup-row">
+        <label className="popup-label">Chương trình</label>
+        <input
+          className="popup-input"
+          name="program"
+          placeholder="Chương trình"
+          value={program}
+          onChange={(e) => setProgram(e.target.value)}
+          disabled={isSaving}
+        />
+      </div>
 
       <div className="popup-row">
         <label className="popup-label">Địa điểm</label>
-
         <input className="popup-input" placeholder="Địa điểm" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSaving} />
       </div>
 
-      {/* ========================================================
-          CÔNG VIỆC
-      ======================================================== */}
-
       <div className="popup-row">
         <label className="popup-label">Công việc</label>
-
         <input className="popup-input" placeholder="Công việc" value={category} onChange={(e) => setCategory(e.target.value)} disabled={isSaving} />
       </div>
 
-      {/* ========================================================
-          NGÀY
-      ======================================================== */}
-
       <div className="popup-row">
         <label className="popup-label">Ngày</label>
-
         <input
           className="popup-input"
           inputMode="numeric"
@@ -277,13 +197,8 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
         />
       </div>
 
-      {/* ========================================================
-          KHUNG GIỜ
-      ======================================================== */}
-
       <div className="popup-row">
         <label className="popup-label">Khung giờ</label>
-
         <input
           className="popup-input"
           inputMode="numeric"
@@ -294,13 +209,8 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
         />
       </div>
 
-      {/* ========================================================
-          THỰC NHẬN
-      ======================================================== */}
-
       <div className="popup-row">
         <label className="popup-label">Thực nhận</label>
-
         <input
           className="popup-input"
           inputMode="numeric"
@@ -311,13 +221,8 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
         />
       </div>
 
-      {/* ========================================================
-          NHÂN SỰ CÒN LẠI
-      ======================================================== */}
-
       <div className="popup-row">
         <label className="popup-label">Nhân sự còn lại</label>
-
         <div className="popup-inline">
           {["Hết", "Ít", "Nhiều"].map((option) => (
             <label className="popup-checkbox" key={option}>
@@ -329,16 +234,11 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
                 onChange={(e) => setStaffNote(e.target.value)}
                 disabled={isSaving}
               />
-
               {option}
             </label>
           ))}
         </div>
       </div>
-
-      {/* ========================================================
-          FOOTER
-      ======================================================== */}
 
       <div className="popup-footer">
         <button type="submit" className="popup-submit" disabled={isSaving}>

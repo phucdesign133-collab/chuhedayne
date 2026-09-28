@@ -1,114 +1,132 @@
-/* Tối ưu hóa: Chỉ giữ lại các class dùng chung và tiền tố tab */
+/* === MAIN TABS === */
 
-/* 1. KHUNG WRAPPER DÙNG CHUNG */
-.home-wrapper, .gallery-wrapper, .balloon-wrapper, .spin-wrapper, .tools-wrapper {
-  height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto;
-  padding-bottom: 60px;
-  box-sizing: border-box;
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
-/* Đồng bộ tiêu đề h2 */
-.home-wrapper h2, .gallery-wrapper h2, .balloon-wrapper h2, .spin-wrapper h2, .tools-wrapper h2 {
-  text-align: center;
-  color: var(--primary-dark-red);
-  margin-bottom: 20px;
-}
-
-/* 2. SUMMARY CARD */
-.home-summary, .gallery-summary, .balloon-summary, .spin-summary, .tools-summary {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.summary-card {
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-  background-color: var(--card-bg);
-}
-
-.summary-card span { font-size: 12px; opacity: 0.9; color: var(--text-main); }
-.summary-card h3 { font-size: 16px; margin-top: 5px; color: var(--text-main); }
-
-/* 3. FORM NHẬP LIỆU */
-.home-form, .gallery-form, .balloon-form, .spin-form, .tools-form {
+.tabs {
+  width: 100%;
+  height: 54px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 25px;
+  align-items: stretch;
+  background: #fff;
 }
 
-.home-form input, .home-form select, .gallery-form input, .gallery-form select,
-.balloon-form input, .balloon-form select, .spin-form input, .spin-form select,
-.tools-form input, .tools-form select {
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 16px !important;
-  background-color: var(--card-bg);
-  color: var(--text-main);
-}
-
-.home-form button, .gallery-form button, .balloon-form button, .spin-form button, .tools-form button {
-  padding: 10px;
+.tab {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
+  background: transparent;
+  color: rgba(192, 57, 43, 0.42);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  background: var(--primary-dark-red);
-  color: white;
+  transition: color 0.2s ease;
 }
 
-.home-form button:hover, .gallery-form button:hover, .balloon-form button:hover, .spin-form button:hover, .tools-form button:hover {
-  opacity: 0.9;
+.tab::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--primary-dark-red, #c0392b);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
 }
 
-/* 4. LIST DANH SÁCH */
-.home-list ul, .gallery-list ul, .balloon-list ul, .spin-list ul, .tools-list ul {
-  list-style: none;
-  padding: 0;
-  max-height: 300px;
-  overflow-y: auto;
+.tab.active {
+  color: var(--primary-dark-red, #c0392b);
+  font-size: medium;
 }
 
-.home-list li, .gallery-list li, .balloon-list li, .spin-list li, .tools-list li {
+.tab.active::after {
+  transform: scaleX(1);
+}
+
+.tab:hover {
+  color: rgba(192, 57, 43, 0.72);
+}
+
+/* === SUB TABS === */
+
+.sub-tabs {
+  width: 100%;
+  height: 42px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border-radius: 6px;
-  background: var(--card-bg);
-  border-left: 5px solid var(--border-color);
+  align-items: stretch;
 }
 
-.item-info { display: flex; flex-direction: column; }
-.item-title { font-weight: 500; color: var(--text-main); }
-.item-date { font-size: 11px; color: var(--text-muted); }
-
-.item-right { display: flex; align-items: center; gap: 10px; }
-.item-amount { font-weight: bold; }
-
-.delete-btn {
-  background: none;
+.sub-tab {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 0 10px;
   border: none;
-  color: var(--text-muted);
-  font-size: 18px;
+  background: transparent;
+  color: rgba(192, 57, 43, 0.34);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   cursor: pointer;
-}
-.delete-btn:hover { color: var(--primary-dark-red); }
-
-.empty-text {
-  text-align: center;
-  color: var(--text-muted);
-  font-style: italic;
+  transition: color 0.2s ease;
 }
 
+.sub-tab::after {
+  content: "";
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  bottom: -1px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--primary-dark-red, #c0392b);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.sub-tab.active {
+  color: var(--primary-dark-red, #c0392b);
+}
+
+.sub-tab.active::after {
+  transform: scaleX(1);
+}
+
+.sub-tab:hover {
+  color: rgba(192, 57, 43, 0.72);
+}
+
+/* === MOBILE === */
+
+@media (max-width: 600px) {
+  .tabs {
+    height: 50px;
+  }
+
+  .tab {
+    padding: 0 6px;
+    font-size: 12px;
+  }
+
+  .sub-tabs {
+    height: 40px;
+  }
+
+  .sub-tab {
+    padding: 0 6px;
+    font-size: 10px;
+  }
+}
+
+/* === REDUCED MOTION === */
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .tab::after,
+  .sub-tab,
+  .sub-tab::after {
+    transition: none;
+  }
+}

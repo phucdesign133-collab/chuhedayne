@@ -417,8 +417,10 @@ export default function Grid({ categoryIdOverride = null }) {
       // =====================================================
       // BOOKING
       // =====================================================
+
       if (categoryId === "calendar") {
         const payload = {
+          program: String(formData.program || "").trim(),
           title: String(formData.title || "").trim(),
           category: String(formData.category || "").trim(),
           date: formData.date || null,
