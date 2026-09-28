@@ -1,5 +1,4 @@
 // src/components/Grid.jsx
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -20,101 +19,80 @@ import WarehouseManager from "../pages/WarehouseManager";
 import PriceManager from "../pages/PriceManager";
 import GiftCodeManager from "../pages/GiftCodeManager";
 import "../css/Grid.css";
-
 export default function Grid({ categoryIdOverride = null }) {
   const navigate = useNavigate();
   const { categoryId: routeCategoryId } = useParams();
   const categoryId = categoryIdOverride || routeCategoryId;
-
-  // =========================================================
-  // STATE
-  // =========================================================
   const [searchTerm, setSearchTerm] = useState("");
   const [itemCount, setItemCount] = useState(0);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingData, setEditingData] = useState(null);
+  const [popupMode, setPopupMode] = useState("customer");
+  const [eventIndex, setEventIndex] = useState(null);
+  const [returnToCustomerPopup, setReturnToCustomerPopup] = useState(false);
   const [savedData, setSavedData] = useState([]);
   const [billRefreshKey, setBillRefreshKey] = useState(0);
   const giftCodeSavingRef = useRef(false);
-
-  // =========================================================
-  // CATEGORY
-  // =========================================================
-  const allCategories = useMemo(() => {
-    return Object.values(hubData || {}).flatMap((hub) => {
-      const sections = hub?.sections || [];
-      return sections.flatMap((section) => section.items || []);
-    });
-  }, []);
-
-  const contentCategories = useMemo(() => {
-    const sections = hubData?.content?.sections || [];
-    return sections.flatMap((section) => section.items || []);
-  }, []);
-
+  const allCategories = useMemo(
+    () => Object.values(hubData || {}).flatMap((hub) => (hub?.sections || []).flatMap((section) => section.items || [])),
+    [],
+  );
+  const contentCategories = useMemo(() => (hubData?.content?.sections || []).flatMap((section) => section.items || []), []);
   const currentCategory = useMemo(() => {
-    if (categoryId === "bills/gift-orders") {
-      return {
-        id: "bills/gift-orders",
-        name: "Đổi quà",
-      };
-    }
-
+    if (categoryId === "bills/gift-orders") return { id: "bills/gift-orders", name: "Đổi quà" };
     return allCategories.find((item) => item.id === categoryId);
   }, [allCategories, categoryId]);
-
   const currentCategoryLabel = currentCategory?.name || currentCategory?.title || "";
-
-  // =========================================================
-  // SPECIAL CATEGORIES
-  // =========================================================
   const isPriceCategory = categoryId === "price-decoration" || categoryId === "price-party";
   const isWarehouseCategory = ["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId);
   const isContentCategory = contentCategories.some((item) => item.id === categoryId);
-
-  // =========================================================
-  // BILL CATEGORIES
-  // =========================================================
   const isWarehouseGiftOrders = categoryId === "gift-orders";
   const isFinanceGiftOrders = categoryId === "bills/gift-orders";
   const isBillCategory = isWarehouseGiftOrders || isFinanceGiftOrders;
-
-  // =========================================================
-  // ADD
-  // =========================================================
   const handleAddNewClick = () => {
     setEditingData(null);
+    setPopupMode(categoryId === "customer-info" ? "customer" : "customer");
+    setEventIndex(null);
+    setReturnToCustomerPopup(false);
     setIsPopupOpen(true);
   };
-
-  // =========================================================
-  // CLOSE
-  // =========================================================
+  const handleAddEvent = (customer) => {
+    setEditingData(customer);
+    setPopupMode("event");
+    setEventIndex(null);
+    setReturnToCustomerPopup(false);
+    setIsPopupOpen(true);
+  };
+  const handleEditEvent = (customer, historyId) => {
+    setEditingData(customer);
+    setPopupMode("event");
+    setEventIndex(historyId);
+    setReturnToCustomerPopup(true);
+    setIsPopupOpen(true);
+  };
   const handleClosePopup = () => {
+    if (popupMode === "event" && returnToCustomerPopup) {
+      setPopupMode("customer");
+      setEventIndex(null);
+      setReturnToCustomerPopup(false);
+      return;
+    }
     setIsPopupOpen(false);
     setEditingData(null);
+    setPopupMode("customer");
+    setEventIndex(null);
+    setReturnToCustomerPopup(false);
   };
-
-  // =========================================================
-  // EDIT
-  // =========================================================
   const handleEdit = (item) => {
     setEditingData(item);
+    setPopupMode("customer");
+    setEventIndex(null);
+    setReturnToCustomerPopup(false);
     setIsPopupOpen(true);
   };
-
-  // =========================================================
-  // IMAGE PREPARE
-  // =========================================================
   const prepareImages = (images) => {
-    if (!images) {
-      return [];
-    }
-
-    if (Array.isArray(images)) {
-      return images;
-    }
-
+    if (!images) return [];
+    if (Array.isArray(images)) return images;
     if (typeof images === "string") {
       try {
         const parsed = JSON.parse(images);
@@ -123,22 +101,13 @@ export default function Grid({ categoryIdOverride = null }) {
         return [];
       }
     }
-
     return [];
   };
-
-  // =========================================================
-  // SAVE POPUP
-  // =========================================================
   const handleSavePopup = async (formData) => {
     try {
-      // =====================================================
-      // BILLS
-      // =====================================================
       if (isBillCategory) {
         const source = isFinanceGiftOrders ? "finance" : "warehouse";
         const rawItems = Array.isArray(formData.items) ? formData.items : [];
-
         const items = rawItems
           .map((item, index) => ({
             id: item.id || `manual-gift-${Date.now()}-${index}`,
@@ -151,13 +120,8 @@ export default function Grid({ categoryIdOverride = null }) {
             gift_code: String(item.gift_code || "").trim(),
           }))
           .filter((item) => item.text || item.gift_code);
-
-        if (!items.length) {
-          throw new Error("Bill chưa có món quà.");
-        }
-
+        if (!items.length) throw new Error("Bill chưa có món quà.");
         const totalQuantity = items.reduce((total, item) => total + (Number(item.quantity) || 0), 0);
-
         const payload = {
           bill_type: "gift-orders",
           customer_name: String(formData.customer_name || "").trim(),
@@ -172,101 +136,52 @@ export default function Grid({ categoryIdOverride = null }) {
           total_amount: 0,
           source,
         };
-
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("bills").update(payload).eq("id", formData.id).eq("bill_type", "gift-orders").select().single();
-        } else {
-          result = await supabase.from("bills").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("bills").update(payload).eq("id", formData.id).eq("bill_type", "gift-orders").select().single();
+        else result = await supabase.from("bills").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
         setBillRefreshKey((current) => current + 1);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // PRICE
-      // =====================================================
       if (isPriceCategory) {
-        const data = {
-          ...formData,
-          category: categoryId,
-          id: formData.id || `price-${Date.now()}`,
-        };
-
+        const data = { ...formData, category: categoryId, id: formData.id || `price-${Date.now()}` };
         setSavedData((prev) => {
           const current = Array.isArray(prev) ? prev : [];
           const sameCategory = current.filter((item) => item.category === categoryId);
           const otherCategory = current.filter((item) => item.category !== categoryId);
-
-          const existingIndex = sameCategory.findIndex((item) => {
-            if (data.id && item.id === data.id) {
-              return true;
-            }
-
-            return (
+          const existingIndex = sameCategory.findIndex(
+            (item) =>
+              item.id === data.id ||
               String(item.title || "")
                 .trim()
                 .toLowerCase() ===
-              String(data.title || "")
-                .trim()
-                .toLowerCase()
-            );
-          });
-
-          if (existingIndex >= 0) {
-            sameCategory[existingIndex] = data;
-          } else {
-            sameCategory.push(data);
-          }
-
+                String(data.title || "")
+                  .trim()
+                  .toLowerCase(),
+          );
+          if (existingIndex >= 0) sameCategory[existingIndex] = data;
+          else sameCategory.push(data);
           return [...otherCategory, ...sameCategory];
         });
-
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data,
-        };
+        return { success: true, data };
       }
-
-      // =====================================================
-      // GIFT CODE
-      // =====================================================
       if (categoryId === "gift-codes") {
-        if (giftCodeSavingRef.current) {
-          return {
-            success: false,
-          };
-        }
-
+        if (giftCodeSavingRef.current) return { success: false };
         giftCodeSavingRef.current = true;
-
         try {
           const rawDate = String(formData.date || "").trim();
           let databaseDate = null;
-
           if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)) {
             const [day, month, year] = rawDate.split("/");
             databaseDate = `${year}-${month}-${day}`;
           } else if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
             databaseDate = rawDate;
           }
-
           const payload = {
             type: formData.type || "normal",
             code: String(formData.code || "").trim(),
@@ -282,43 +197,20 @@ export default function Grid({ categoryIdOverride = null }) {
                   : null,
             status: formData.status || "active",
           };
-
-          if (!payload.code) {
-            throw new Error("Vui lòng nhập mã code.");
-          }
-
-          if (!payload.gift_name) {
-            throw new Error("Vui lòng nhập tên món.");
-          }
-
+          if (!payload.code) throw new Error("Vui lòng nhập mã code.");
+          if (!payload.gift_name) throw new Error("Vui lòng nhập tên món.");
           let result;
-
-          if (formData.id) {
-            result = await supabase.from("gift_codes").update(payload).eq("id", formData.id).select().single();
-          } else {
-            result = await supabase.from("gift_codes").insert(payload).select().single();
-          }
-
-          if (result.error) {
-            throw result.error;
-          }
-
+          if (formData.id) result = await supabase.from("gift_codes").update(payload).eq("id", formData.id).select().single();
+          else result = await supabase.from("gift_codes").insert(payload).select().single();
+          if (result.error) throw result.error;
           setSavedData(result.data);
           setIsPopupOpen(false);
           setEditingData(null);
-
-          return {
-            success: true,
-            data: result.data,
-          };
+          return { success: true, data: result.data };
         } finally {
           giftCodeSavingRef.current = false;
         }
       }
-
-      // =====================================================
-      // PRIZES
-      // =====================================================
       if (categoryId === "prizes") {
         const payload = {
           text: String(formData.text || "").trim(),
@@ -333,48 +225,120 @@ export default function Grid({ categoryIdOverride = null }) {
           note: String(formData.note || "").trim(),
           images: prepareImages(formData.images),
         };
-
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("prizes").update(payload).eq("id", formData.id).select().single();
-        } else {
-          result = await supabase.from("prizes").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("prizes").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("prizes").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // CUSTOMER
-      // =====================================================
       if (categoryId === "customer-info") {
+        if (popupMode === "event") {
+          if (!formData.id) throw new Error("Không xác định được khách hàng.");
+          const { data: currentCustomer, error: currentCustomerError } = await supabase.from("customer").select("*").eq("id", formData.id).single();
+          if (currentCustomerError) throw currentCustomerError;
+          const currentEvents = Array.isArray(currentCustomer.events) ? [...currentCustomer.events] : [];
+          const currentHistory = Array.isArray(currentCustomer.history) ? [...currentCustomer.history] : [];
+          const event = formData.event;
+          if (!event) throw new Error("Không có dữ liệu sự kiện.");
+          if (eventIndex === null || eventIndex === undefined) {
+            currentEvents.push(event);
+            const currentTier = Number(currentCustomer.member_tier) || 0;
+            const newTier = Math.min(currentTier + 1, 5);
+            const newPercent = [0, 3, 6, 9, 12, 15][Math.min(newTier, 5)] || 0;
+            currentHistory.push({
+              id: `event-${Date.now()}-${currentHistory.length}`,
+              event_name: String(event.eventName || "").trim(),
+              event_date: String(event.eventDate || "").trim(),
+              order_value: Number(event.orderValue) || 0,
+              cashback: Number(event.cashback) || 0,
+              remaining: Number(event.remaining) || 0,
+              tips: Number(event.tips) || 0,
+            });
+            const firstEvent = currentEvents[0] || {
+              eventName: "",
+              eventDate: "",
+              orderValue: 0,
+              cashback: 0,
+              remaining: 0,
+              tips: 0,
+              repeat: false,
+            };
+            const totalOrderValue = currentEvents.reduce((total, item) => total + (Number(item.orderValue) || 0), 0);
+            const payload = {
+              events: currentEvents,
+              history: currentHistory,
+              member_tier: newTier,
+              member_percent: newPercent,
+              event_name: firstEvent.eventName || "",
+              event_date: firstEvent.eventDate || "",
+              repeat_event: currentEvents.length > 1,
+              order_value: totalOrderValue,
+              cashback: Number(firstEvent.cashback) || 0,
+            };
+            const result = await supabase.from("customer").update(payload).eq("id", formData.id).select().single();
+            if (result.error) throw result.error;
+            setSavedData(result.data);
+            setEditingData(result.data);
+            if (returnToCustomerPopup) {
+              setPopupMode("customer");
+              setEventIndex(null);
+              setReturnToCustomerPopup(false);
+              setIsPopupOpen(true);
+            } else {
+              setIsPopupOpen(false);
+              setEditingData(null);
+              setPopupMode("customer");
+              setEventIndex(null);
+            }
+            return { success: true, data: result.data };
+          }
+          const historyIndex = currentHistory.findIndex((item, index) => String(item.id || `history-${index}`) === String(eventIndex));
+          if (historyIndex < 0) throw new Error("Không tìm thấy booking cần sửa.");
+          currentHistory[historyIndex] = {
+            ...currentHistory[historyIndex],
+            event_name: String(event.eventName || "").trim(),
+            event_date: String(event.eventDate || "").trim(),
+            order_value: Number(event.orderValue) || 0,
+            cashback: Number(event.cashback) || 0,
+            remaining: Number(event.remaining) || 0,
+            tips: Number(event.tips) || 0,
+          };
+          const payload = { history: currentHistory };
+          const result = await supabase.from("customer").update(payload).eq("id", formData.id).select().single();
+          if (result.error) throw result.error;
+          setSavedData(result.data);
+          setEditingData(result.data);
+          if (returnToCustomerPopup) {
+            setPopupMode("customer");
+            setEventIndex(null);
+            setReturnToCustomerPopup(false);
+            setIsPopupOpen(true);
+          } else {
+            setIsPopupOpen(false);
+            setEditingData(null);
+            setPopupMode("customer");
+            setEventIndex(null);
+          }
+          return { success: true, data: result.data };
+        }
         const payload = {
           customer_name: String(formData.customer_name || "").trim(),
+          contact_type: String(formData.contact_type || "").trim(),
+          contact_value: String(formData.contact_value || "").trim(),
           phone: String(formData.phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
           event_name: String(formData.event_name || "").trim(),
           event_date: String(formData.event_date || "").trim(),
           repeat_event: Boolean(formData.repeat_event),
+          events: Array.isArray(formData.events) ? formData.events : [],
           order_value:
             formData.order_value !== "" && formData.order_value !== null && formData.order_value !== undefined
               ? Number(formData.order_value) || 0
               : 0,
-          cashback_phone: String(formData.cashback_phone || "")
-            .replace(/\D/g, "")
-            .slice(0, 10),
           cashback: formData.cashback !== "" && formData.cashback !== null && formData.cashback !== undefined ? Number(formData.cashback) || 0 : 0,
           member_tier:
             formData.member_tier !== "" && formData.member_tier !== null && formData.member_tier !== undefined
@@ -387,37 +351,20 @@ export default function Grid({ categoryIdOverride = null }) {
           referral_phone: String(formData.referral_phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
+          referral_name: String(formData.referral_name || "").trim(),
           note: String(formData.note || "").trim(),
           history: Array.isArray(formData.history) ? formData.history : [],
           is_active: formData.is_active !== undefined ? Boolean(formData.is_active) : true,
         };
-
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("customer").update(payload).eq("id", formData.id).select().single();
-        } else {
-          result = await supabase.from("customer").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("customer").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("customer").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // BOOKING
-      // =====================================================
-
       if (categoryId === "calendar") {
         const payload = {
           program: String(formData.program || "").trim(),
@@ -427,33 +374,18 @@ export default function Grid({ categoryIdOverride = null }) {
           time_slot: String(formData.time_slot || "").trim(),
           staff_note: formData.staff_note || null,
           amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
+          runner: String(formData.runner || "").trim(),
+          note: String(formData.note || "").trim() || null,
         };
-
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("bookings").update(payload).eq("id", formData.id).select().single();
-        } else {
-          result = await supabase.from("bookings").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("bookings").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("bookings").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // INCOME
-      // =====================================================
       if (categoryId === "income") {
         const payload = {
           source: formData.source,
@@ -462,32 +394,15 @@ export default function Grid({ categoryIdOverride = null }) {
           received: formData.received,
           note: formData.note,
         };
-
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("incomes").update(payload).eq("id", formData.id).select().single();
-        } else {
-          result = await supabase.from("incomes").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("incomes").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("incomes").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // PURCHASE
-      // =====================================================
       if (categoryId === "purchase") {
         const payload = {
           title: String(formData.title || "").trim(),
@@ -498,96 +413,37 @@ export default function Grid({ categoryIdOverride = null }) {
           note: String(formData.note || "").trim(),
           images: prepareImages(formData.images),
         };
-
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("purchases").update(payload).eq("id", formData.id).select().single();
-        } else {
-          console.log("📦 PURCHASE PAYLOAD TRƯỚC KHI INSERT:", payload);
-          result = await supabase.from("purchases").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("purchases").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("purchases").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // SHIPPED PRIZES
-      // =====================================================
       if (categoryId === "shipped-prizes") {
-        const payload = {
-          ...formData,
-          images: prepareImages(formData.images),
-        };
-
+        const payload = { ...formData, images: prepareImages(formData.images) };
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("shipped_prizes").update(payload).eq("id", formData.id).select().single();
-        } else {
-          result = await supabase.from("shipped_prizes").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("shipped_prizes").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("shipped_prizes").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // WAREHOUSE
-      // =====================================================
       if (isWarehouseCategory) {
-        const payload = {
-          ...formData,
-          category: categoryId,
-          images: prepareImages(formData.images),
-        };
-
+        const payload = { ...formData, category: categoryId, images: prepareImages(formData.images) };
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("warehouse_items").update(payload).eq("id", formData.id).select().single();
-        } else {
-          result = await supabase.from("warehouse_items").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("warehouse_items").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("warehouse_items").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      // =====================================================
-      // CONTENT / SERVICES
-      // =====================================================
       if (isContentCategory) {
         const payload = {
           title: String(formData.title || "").trim(),
@@ -596,51 +452,24 @@ export default function Grid({ categoryIdOverride = null }) {
           date: formData.date || null,
           images: prepareImages(formData.images),
         };
-
         let result;
-
-        if (formData.id) {
-          result = await supabase.from("services").update(payload).eq("id", formData.id).select().single();
-        } else {
-          result = await supabase.from("services").insert(payload).select().single();
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
+        if (formData.id) result = await supabase.from("services").update(payload).eq("id", formData.id).select().single();
+        else result = await supabase.from("services").insert(payload).select().single();
+        if (result.error) throw result.error;
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
-
-        return {
-          success: true,
-          data: result.data,
-        };
+        return { success: true, data: result.data };
       }
-
-      return {
-        success: false,
-      };
+      return { success: false };
     } catch (error) {
       console.error("Lỗi lưu dữ liệu:", error);
       alert(error?.message || "Không thể lưu dữ liệu.");
-
-      return {
-        success: false,
-        error,
-      };
+      return { success: false, error };
     }
   };
-
-  // =========================================================
-  // RENDER MANAGER
-  // =========================================================
   const renderManager = () => {
-    // -------------------------------------------------------
-    // BILL
-    // -------------------------------------------------------
-    if (isBillCategory) {
+    if (isBillCategory)
       return (
         <BillGrid
           key={billRefreshKey}
@@ -651,14 +480,8 @@ export default function Grid({ categoryIdOverride = null }) {
           onEdit={handleEdit}
         />
       );
-    }
-
-    // -------------------------------------------------------
-    // PRICE
-    // -------------------------------------------------------
     if (isPriceCategory) {
       const categorySavedData = Array.isArray(savedData) ? savedData.filter((item) => item.category === categoryId) : [];
-
       return (
         <PriceManager
           categoryId={categoryId}
@@ -669,159 +492,53 @@ export default function Grid({ categoryIdOverride = null }) {
         />
       );
     }
-
-    // -------------------------------------------------------
-    // PRIZES
-    // -------------------------------------------------------
-    if (categoryId === "prizes") {
+    if (categoryId === "prizes")
       return <PrizeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // CUSTOMER
-    // -------------------------------------------------------
-    if (categoryId === "customer-info") {
-      return <CustomerManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // BOOKING
-    // -------------------------------------------------------
-    if (categoryId === "calendar") {
+    if (categoryId === "customer-info")
+      return (
+        <CustomerManager
+          searchTerm={searchTerm}
+          savedData={savedData}
+          onCountChange={setItemCount}
+          onEdit={handleEdit}
+          onAddEvent={handleAddEvent}
+          onEditEvent={handleEditEvent}
+        />
+      );
+    if (categoryId === "calendar")
       return <BookingManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // INCOME
-    // -------------------------------------------------------
-    if (categoryId === "income") {
+    if (categoryId === "income")
       return <IncomeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // FUND
-    // -------------------------------------------------------
-    if (categoryId === "marketing-fund") {
+    if (categoryId === "marketing-fund")
       return <FundManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // PURCHASE
-    // -------------------------------------------------------
-    if (categoryId === "purchase") {
+    if (categoryId === "purchase")
       return <PurchaseManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // SHIPPED PRIZES
-    // -------------------------------------------------------
-    if (categoryId === "shipped-prizes") {
+    if (categoryId === "shipped-prizes")
       return <ShippedPrizesManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // GIFT CODE
-    // -------------------------------------------------------
-    if (categoryId === "gift-codes") {
+    if (categoryId === "gift-codes")
       return <GiftCodeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
-    }
-
-    // -------------------------------------------------------
-    // WAREHOUSE
-    // -------------------------------------------------------
-    if (isWarehouseCategory) {
+    if (isWarehouseCategory)
       return (
         <WarehouseManager categoryId={categoryId} searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
       );
-    }
-
-    // -------------------------------------------------------
-    // CONTENT
-    // -------------------------------------------------------
-    if (isContentCategory) {
+    if (isContentCategory)
       return (
         <ContentManager categoryId={categoryId} searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />
       );
-    }
-
-    // -------------------------------------------------------
-    // NO MANAGER
-    // -------------------------------------------------------
     return null;
   };
-
-  // =========================================================
-  // POPUP TITLE
-  // =========================================================
-  const getPopupTitle = () => {
-    const action = editingData ? "Cập nhật" : "Thêm mới";
-
-    if (categoryId === "prizes") {
-      return `${action} món quà`;
-    }
-
-    if (categoryId === "customer-info") {
-      return `${action} khách hàng`;
-    }
-
-    if (categoryId === "calendar") {
-      return `${action} Booking`;
-    }
-
-    if (categoryId === "income") {
-      return `${action} khoản thu`;
-    }
-
-    if (categoryId === "purchase") {
-      return `${action} khoản mua`;
-    }
-
-    if (categoryId === "shipped-prizes") {
-      return `${action} quà đã gửi`;
-    }
-
-    if (categoryId === "gift-codes") {
-      return `${action} Gift Code`;
-    }
-
-    if (isWarehouseCategory) {
-      return `${action} vật tư`;
-    }
-
-    if (categoryId === "price-decoration") {
-      return `${action} giá trang trí`;
-    }
-
-    if (categoryId === "price-party") {
-      return `${action} giá biểu diễn`;
-    }
-
-    return `${action} nội dung`;
-  };
-
-  // =========================================================
-  // RENDER
-  // =========================================================
   return (
     <div className="post-admin-container">
-      {/* =====================================================
-          HEADER
-      ====================================================== */}
       <div className="admin-grid-fixed-header">
         <div className="admin-grid-top-bar">
           <button type="button" className="admin-grid-back-btn" onClick={() => navigate(-1)} aria-label="Quay lại">
             <ArrowLeft size={20} />
           </button>
-
           <h2 className="admin-grid-heading">
             <span>{currentCategoryLabel}</span>
             <small>: {itemCount} mục</small>
           </h2>
         </div>
-
-        {/* ===================================================
-            TOOLBAR
-        ==================================================== */}
         <div className="admin-grid-toolbar">
           <div className="admin-grid-search-wrapper">
             <input
@@ -832,33 +549,29 @@ export default function Grid({ categoryIdOverride = null }) {
               placeholder="Tìm kiếm..."
             />
           </div>
-
           <button type="button" className="admin-grid-add-btn-main" onClick={handleAddNewClick} aria-label="Thêm mới">
             <Plus size={20} />
             Thêm mới
           </button>
         </div>
       </div>
-
-      {/* =====================================================
-          BODY
-      ====================================================== */}
       <div className="admin-grid-body">
         <div className="admin-grid-outlet-wrapper">{renderManager()}</div>
       </div>
-
-      {/* =====================================================
-          BILL POPUP
-      ====================================================== */}
       {isPopupOpen && isBillCategory && (
         <BillPopup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} initialData={editingData} />
       )}
-
-      {/* =====================================================
-          OTHER POPUP
-      ====================================================== */}
       {isPopupOpen && !isBillCategory && (
-        <Popup isOpen={isPopupOpen} onClose={handleClosePopup} onSave={handleSavePopup} categoryId={categoryId} initialData={editingData} />
+        <Popup
+          isOpen={isPopupOpen}
+          onClose={handleClosePopup}
+          onSave={handleSavePopup}
+          categoryId={categoryId}
+          initialData={editingData}
+          mode={popupMode}
+          eventIndex={eventIndex}
+          onEditEvent={handleEditEvent}
+        />
       )}
     </div>
   );

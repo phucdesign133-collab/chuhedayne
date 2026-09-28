@@ -1,6 +1,5 @@
 // src/components/popup/Popup.jsx
 import React from "react";
-
 import PrizePopup from "./PrizePopup";
 import CustomerPopup from "./CustomerPopup";
 import BookingPopup from "./BookingPopup";
@@ -12,14 +11,14 @@ import WarehousePopup from "./WarehousePopup";
 import PricePopup from "./PricePopup";
 import BillPopup from "./BillPopup";
 import GiftCodePopup from "./GiftCodePopup";
-
 import "../../css/Popup.css";
 
-export default function Popup({ isOpen, onClose, onSave, categoryId, initialData = null }) {
+export default function Popup({ isOpen, onClose, onSave, categoryId, initialData = null, mode = "customer", eventIndex = null, onEditEvent }) {
   if (!isOpen) return null;
 
   const getPopupTitle = () => {
-    const action = initialData ? "Cập nhật" : "Thêm mới";
+    const action = initialData && mode !== "event" ? "Cập nhật" : "Thêm mới";
+    if (mode === "event") return eventIndex !== null ? "Cập nhật sự kiện" : "Thêm mới sự kiện";
     if (categoryId === "prizes") return `${action} món quà`;
     if (categoryId === "customer-info") return `${action} khách hàng`;
     if (categoryId === "calendar") return `${action} Booking`;
@@ -36,7 +35,10 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
 
   const renderPopupContent = () => {
     if (categoryId === "prizes") return <PrizePopup onClose={onClose} onSave={onSave} initialData={initialData} />;
-    if (categoryId === "customer-info") return <CustomerPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
+    if (categoryId === "customer-info")
+      return (
+        <CustomerPopup onClose={onClose} onSave={onSave} initialData={initialData} mode={mode} eventIndex={eventIndex} onEditEvent={onEditEvent} />
+      );
     if (categoryId === "calendar") return <BookingPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     if (categoryId === "income") return <IncomePopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     if (categoryId === "purchase") return <PurchasePopup initialData={initialData} onSave={onSave} onClose={onClose} />;
@@ -46,9 +48,7 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
     if (categoryId === "price-decoration" || categoryId === "price-party")
       return <PricePopup onClose={onClose} onSave={onSave} initialData={initialData} categoryId={categoryId} />;
     if (categoryId === "bills/gift-orders") return <BillPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
-    if (categoryId === "gift-codes") {
-      return <GiftCodePopup onClose={onClose} onSave={onSave} initialData={initialData} />;
-    }
+    if (categoryId === "gift-codes") return <GiftCodePopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     return <ContentPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
   };
 

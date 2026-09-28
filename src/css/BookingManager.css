@@ -1,0 +1,20 @@
+.booking-manager .booking-card .info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4px 16px;
+}
+
+.booking-manager .booking-card .row {
+  min-width: 0;
+}
+
+.booking-manager .booking-card .booking-note {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 600px) {
+  .booking-manager .booking-card .info {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+  }
+}

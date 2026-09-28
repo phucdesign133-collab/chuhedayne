@@ -4,6 +4,7 @@ import { supabase } from "../components/utils/supabaseClient";
 import Popup from "../components/popup/Popup";
 import "../css/Manager.css";
 import "../css/Tab.css";
+import "../css/BookingManager.css";
 
 export default function BookingManager({ savedData = null }) {
   const [bookings, setBookings] = useState([]);
@@ -268,7 +269,7 @@ export default function BookingManager({ savedData = null }) {
 
   const renderBookingCard = (booking, index) => {
     const staffStatus = booking.staff_note || "";
-
+    // đoạn này return grid lịch
     return (
       <div
         className="card booking-card"
@@ -307,10 +308,22 @@ export default function BookingManager({ savedData = null }) {
             <strong>{formatMoney(booking.amount)}</strong>
           </div>
 
+          <div className="row">
+            <span>Người chạy: </span>
+            <strong>{booking.runner || ""}</strong>
+          </div>
+
           {staffStatus && (
             <div className="row">
-              <span>Nhân sự: </span>
+              <span>Staff note: </span>
               <strong>{staffStatus}</strong>
+            </div>
+          )}
+
+          {booking.note && (
+            <div className="row booking-note">
+              <span>Note: </span>
+              <strong>{booking.note}</strong>
             </div>
           )}
         </div>
@@ -319,7 +332,7 @@ export default function BookingManager({ savedData = null }) {
   };
 
   const visibleBookings = activeTab === "first" ? currentBookings : historyBookings;
-
+  // đoạn này return tab
   return (
     <div className="manager booking-manager">
       <div className="tabs">

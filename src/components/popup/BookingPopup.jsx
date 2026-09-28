@@ -8,6 +8,8 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
   const [timeSlot, setTimeSlot] = useState("");
   const [amount, setAmount] = useState("");
   const [staffNote, setStaffNote] = useState("");
+  const [runner, setRunner] = useState("");
+  const [note, setNote] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -56,6 +58,8 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       setTimeSlot("");
       setAmount("");
       setStaffNote("");
+      setRunner("");
+      setNote("");
       return;
     }
 
@@ -73,6 +77,8 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
     setAmount(initialData.amount !== null && initialData.amount !== undefined ? String(initialData.amount) : "");
 
     setStaffNote(initialData.staff_note || "");
+    setRunner(initialData.runner || "");
+    setNote(initialData.note || "");
   }, [initialData]);
 
   const dateToDatabase = (value) => {
@@ -141,6 +147,8 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       time_slot: timeSlot.trim(),
       amount: amount !== "" ? Number(getRawMoney(amount)) || 0 : 0,
       staff_note: staffNote.trim() || null,
+      runner: runner.trim() || null,
+      note: note.trim() || null,
     };
 
     setIsSaving(true);
@@ -222,6 +230,11 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       </div>
 
       <div className="popup-row">
+        <label className="popup-label">Người chạy</label>
+        <input className="popup-input" placeholder="Người chạy" value={runner} onChange={(e) => setRunner(e.target.value)} disabled={isSaving} />
+      </div>
+
+      <div className="popup-row">
         <label className="popup-label">Nhân sự còn lại</label>
         <div className="popup-inline">
           {["Hết", "Ít", "Nhiều"].map((option) => (
@@ -238,6 +251,11 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
             </label>
           ))}
         </div>
+      </div>
+
+      <div className="popup-row">
+        <label className="popup-label">Note</label>
+        <textarea className="popup-input" placeholder="Note" value={note} onChange={(e) => setNote(e.target.value)} disabled={isSaving} />
       </div>
 
       <div className="popup-footer">

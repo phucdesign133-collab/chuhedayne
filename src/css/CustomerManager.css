@@ -1,0 +1,267 @@
+.customer-manager {
+  width: 100%;
+  text-transform: capitalize;
+}
+
+.customer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.customer-card-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.customer-card {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+  touch-action: pan-y;
+}
+
+.customer-card-swiped {
+  transform: translateX(-170px);
+}
+
+.customer-info {
+  position: relative;
+  z-index: 1;
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.customer-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  min-width: 0;
+  line-height: 1.5;
+}
+
+.customer-grid-row + .customer-grid-row {
+  margin-top: 4px;
+}
+
+.customer-grid-item {
+  min-width: 0;
+  font-size: 14px;
+}
+
+.customer-grid-item strong {
+  font-weight: 600;
+}
+
+.customer-name,
+.customer-contact,
+.customer-latest {
+  overflow-wrap: anywhere;
+}
+
+.customer-tier {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.customer-event-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.customer-event-add-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.customer-event-add-btn:hover {
+  text-decoration: underline;
+}
+
+.customer-events {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-left: 2px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.025);
+  border-radius: 0 6px 6px 0;
+}
+
+.customer-event-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+
+.customer-event-row:hover {
+  text-decoration: underline;
+}
+
+.customer-event-row span {
+  overflow-wrap: anywhere;
+}
+
+.customer-event-row strong {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.customer-event-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.customer-event-block + .customer-event-block {
+  margin-top: 12px;
+}
+
+.customer-event-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.customer-collapse-section {
+  margin-top: 8px;
+}
+
+.customer-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.customer-collapse-btn span {
+  font-size: 11px;
+}
+
+.customer-history {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-left: 2px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.025);
+  border-radius: 0 6px 6px 0;
+}
+
+.customer-history-row {
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.customer-history-edit-btn{
+  background: none;border:none;cursor:pointer;
+}
+
+.customer-note-content {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.customer-note-content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.customer-note-content li {
+  margin-bottom: 3px;
+}
+
+.customer-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  width: 170px;
+}
+
+.customer-actions button {
+  width: 85px;
+  border: 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.customer-edit-btn {
+  background: #555;
+}
+
+.customer-delete-btn {
+  background: #c0392b;
+}
+
+.customer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 180px;
+  color: #888;
+  text-align: center;
+}
+
+.customer-event-popup {
+  padding-top: 2px;
+}
+
+.customer-event-popup .customer-event-block {
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .customer-grid-row {
+    gap: 12px;
+  }
+
+  .customer-grid-item,
+  .customer-collapse-btn,
+  .customer-history-row,
+  .customer-note-content,
+  .customer-event-row,
+  .customer-event-add-btn {
+    font-size: 14px;
+  }
+}
