@@ -35,6 +35,8 @@ export default function Calendar() {
 
   const getDateString = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
+  const getBookingDateString = (item) => String(item?.date || "").slice(0, 10);
+
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
     const [y, m, d] = dateString.split("-");
@@ -60,22 +62,17 @@ export default function Calendar() {
       const currentDay = new Date(targetYear, targetMonth, day);
       const dayOfWeek = currentDay.getDay();
 
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        continue;
-      }
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) continue;
 
       const dateString = getDateString(currentDay);
+      const hasRealBooking = realBookings.some((item) => getBookingDateString(item) === dateString);
 
-      const hasRealBooking = realBookings.some((item) => item.date === dateString);
-
-      if (hasRealBooking) {
-        continue;
-      }
+      if (hasRealBooking) continue;
 
       bookings.push({
         id: `virtual-${dateString}`,
         date: dateString,
-        time_slot: "1800-2030",
+        time_slot: "1700-2030",
         staff_note: "Ít",
         isVirtual: true,
       });
@@ -84,7 +81,7 @@ export default function Calendar() {
     return bookings;
   };
 
-  const generateVirtualBookings = (realBookings = monthBookings) => {
+  const generateVirtualBookings = (realBookings = []) => {
     const now = new Date();
     const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -99,21 +96,30 @@ export default function Calendar() {
     try {
       setLoading(true);
 
-      const firstDay = `${year}-${String(month + 1).padStart(2, "0")}-01`;
-      const lastDayNumber = new Date(year, month + 1, 0).getDate();
-      const lastDay = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDayNumber).padStart(2, "0")}`;
+      const visibleFirstDay = new Date(year, month, 1);
+      const visibleLastDay = new Date(year, month + 1, 0);
 
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("*")
-        .gte("date", firstDay)
-        .lte("date", lastDay);
+      const now = new Date();
+      const virtualFirstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const virtualLastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const firstDay = getDateString(visibleFirstDay < virtualFirstDay ? visibleFirstDay : virtualFirstDay);
+
+      const lastDay = getDateString(visibleLastDay > virtualLastDay ? visibleLastDay : virtualLastDay);
+
+      const { data, error } = await supabase.from("bookings").select("*").gte("date", firstDay).lte("date", lastDay);
 
       if (error) throw error;
 
-      const bookings = data || [];
-      setMonthBookings(bookings);
-      generateVirtualBookings(bookings);
+      const allBookings = data || [];
+
+      const visibleBookings = allBookings.filter((item) => {
+        const bookingDate = getBookingDateString(item);
+        return bookingDate >= getDateString(visibleFirstDay) && bookingDate <= getDateString(visibleLastDay);
+      });
+
+      setMonthBookings(visibleBookings);
+      generateVirtualBookings(allBookings);
     } catch (err) {
       console.error("Lỗi tải lịch booking:", err.message);
     } finally {
@@ -122,22 +128,14 @@ export default function Calendar() {
   };
 
   useEffect(() => {
-    generateVirtualBookings();
+    fetchMonthBookings();
 
     const interval = setInterval(() => {
-      generateVirtualBookings();
+      fetchMonthBookings();
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    fetchMonthBookings();
   }, [currentDate]);
-
-  useEffect(() => {
-    generateVirtualBookings(monthBookings);
-  }, [monthBookings]);
 
   const handlePrevMonth = () => {
     const date = new Date(year, month - 1, 1);
@@ -167,13 +165,13 @@ export default function Calendar() {
     const date = new Date(year, month, index - firstDayIndex + 1);
     const dateString = getDateString(date);
 
-    const realDayBookings = monthBookings.filter((item) => item.date === dateString);
+    const realDayBookings = monthBookings.filter((item) => getBookingDateString(item) === dateString);
     const virtualDayBookings = virtualBookings.filter((item) => item.date === dateString);
 
     const staffStatuses = ["Nhiều", "Ít", "Hết"].filter(
       (status) =>
         realDayBookings.some((item) => (item.staff_note || "").trim() === status) ||
-        virtualDayBookings.some((item) => (item.staff_note || "").trim() === status)
+        virtualDayBookings.some((item) => (item.staff_note || "").trim() === status),
     );
 
     return {
@@ -189,7 +187,7 @@ export default function Calendar() {
   const selectedDateStr = getDateString(selectedDate);
 
   const currentDayBookings = [
-    ...monthBookings.filter((item) => item.date === selectedDateStr),
+    ...monthBookings.filter((item) => getBookingDateString(item) === selectedDateStr),
     ...virtualBookings.filter((item) => item.date === selectedDateStr),
   ];
 
@@ -291,7 +289,7 @@ export default function Calendar() {
                     <span className="calendar-staff-summary-row">
                       <span className="calendar-summary-dot">{group.dot}</span>
                       <span>{group.label}</span>
-                      <span className="calendar-staff-summary-time">(chỉ tập trung {group.timeSlots.join(" | ")})</span>
+                      <span className="calendar-staff-summary-time">(tập trung {group.timeSlots.join(" | ")})</span>
                     </span>
                   </div>
                 ))}
