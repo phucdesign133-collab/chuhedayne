@@ -408,6 +408,7 @@ export default function Grid({ categoryIdOverride = null }) {
           phone: String(formData.phone || "")
             .replace(/\D/g, "")
             .slice(0, 10),
+            address: String(formData.address || "").trim(),
           event_name: String(formData.event_name || "").trim(),
           event_date: String(formData.event_date || "").trim(),
           repeat_event: Boolean(formData.repeat_event),

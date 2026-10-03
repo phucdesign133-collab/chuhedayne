@@ -6,6 +6,7 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
   const [customers, setCustomers] = useState([]);
   const [openHistory, setOpenHistory] = useState({});
   const [openNote, setOpenNote] = useState({});
+  const [openContact, setOpenContact] = useState({});
   const [touchStartX, setTouchStartX] = useState(null);
   const loadCustomers = async () => {
     try {
@@ -145,13 +146,31 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
     const eventName = item.event_name || "";
     const remaining = formatMoney(item.remaining);
     const tips = Number(item.tips || 0);
-    return `${date} · ${eventName} · ${remaining}${tips > 0 ? ` · Tips ${formatMoney(tips)}` : ""}`;
+    const shortTips = tips > 0 ? `${Math.round(tips / 1000)}k` : "";
+    return `${date} · ${eventName} · ${remaining}${shortTips ? ` · (${shortTips})` : ""}`;
   };
   const getNoteItems = (note) =>
     String(note || "")
       .split(/\s*-x\s*/i)
       .map((item) => item.trim())
       .filter(Boolean);
+  const getContactItems = (customer) => {
+    const items = [];
+    const address = String(customer.address || "").trim();
+    const phone = String(customer.phone || "").trim();
+    const zalo = String(customer.zalo || "").trim();
+    const legacyContact = !phone && !zalo ? String(getContactValue(customer) || "").trim() : "";
+    const displayPhone = phone || (customer.contact_type === "phone" ? legacyContact : "");
+    const displayZalo = zalo || (customer.contact_type === "zalo" ? legacyContact : "");
+    const referralAccount = String(customer.referral_account || "").trim();
+    const referralBank = String(customer.referral_bank || "").trim();
+    if (address) items.push(`Địa chỉ: ${address}`);
+    if (displayPhone) items.push(`SĐT: ${formatPhone(displayPhone)}`);
+    if (displayZalo) items.push(`Zalo: ${displayZalo}`);
+    if (referralAccount) items.push(`STK: ${referralAccount}`);
+    if (referralBank) items.push(`Ngân hàng: ${referralBank}`);
+    return items;
+  };
   return (
     <div className="customer-manager">
       <div className="customer-list">
@@ -165,14 +184,10 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
             const sortedHistory = getSortedHistory(customer);
             const latestBooking = getLatestBooking(customer);
             const noteItems = getNoteItems(customer.note);
+            const contactItems = getContactItems(customer);
             const historyOpen = Boolean(openHistory[customer.id]);
             const noteOpen = Boolean(openNote[customer.id]);
-            const phone = String(customer.phone || "").trim();
-            const zalo = String(customer.zalo || "").trim();
-            const legacyContact = !phone && !zalo ? getContactValue(customer) : "";
-            const displayPhone = phone || (customer.contact_type === "phone" ? legacyContact : "");
-            const displayZalo = zalo || (customer.contact_type === "zalo" ? legacyContact : "");
-            const hasContact = Boolean(displayPhone || displayZalo);
+            const contactOpen = Boolean(openContact[customer.id]);
             return (
               <div
                 className="customer-card"
@@ -185,22 +200,8 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                     <div className="customer-grid-item customer-name">
                       <strong>{customer.customer_name || ""}</strong>
                     </div>
-                    <div className="customer-grid-item customer-contact">
-                      {hasContact && (
-                        <>
-                          {displayPhone && (
-                            <span>
-                              SĐT: <strong>{formatPhone(displayPhone)}</strong>
-                            </span>
-                          )}
-                          {displayPhone && displayZalo && <span> | </span>}
-                          {displayZalo && (
-                            <span>
-                              Zalo: <strong>{displayZalo}</strong>
-                            </span>
-                          )}
-                        </>
-                      )}
+                    <div className="customer-grid-item customer-latest">
+                      Gần nhất: <strong>{latestBooking ? formatDate(latestBooking.event_date) : ""}</strong>
                     </div>
                   </div>
                   <div className="customer-grid-row">
@@ -209,7 +210,7 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                       <strong>{customer.member_tier || "0"}</strong>
                     </div>
                     <div className="customer-grid-item customer-latest">
-                      Gần nhất: <strong>{latestBooking ? formatDate(latestBooking.event_date) : ""}</strong>
+                      Số lần booking: <strong>{getHistory(customer).length}</strong>
                     </div>
                   </div>
                   <div className="customer-collapse-section">
@@ -264,6 +265,28 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                           </ul>
                         ) : (
                           <div>{noteItems[0] || ""}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="customer-collapse-section">
+                    <button
+                      type="button"
+                      className="customer-collapse-btn"
+                      onClick={() => setOpenContact((prev) => ({ ...prev, [customer.id]: !contactOpen }))}
+                    >
+                      <span>{contactOpen ? "▼" : "▶"}</span> Liên hệ
+                    </button>
+                    {contactOpen && (
+                      <div className="customer-note-content">
+                        {contactItems.length > 0 ? (
+                          <ul>
+                            {contactItems.map((item, contactIndex) => (
+                              <li key={contactIndex}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div></div>
                         )}
                       </div>
                     )}
