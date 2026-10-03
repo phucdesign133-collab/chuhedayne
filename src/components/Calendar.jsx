@@ -3,9 +3,9 @@ import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { supabase } from "./utils/supabaseClient";
 import "../css/Calendar.css";
 
-const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTH_NAMES = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
 
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_NAMES = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
 
 const STAFF_STATUS_CONFIG = {
   Nhiều: {
@@ -26,6 +26,7 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [monthBookings, setMonthBookings] = useState([]);
+  const [virtualBookings, setVirtualBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
 
@@ -42,22 +43,56 @@ export default function Calendar() {
 
   const formatTimeSlot = (value) => {
     if (!value) return "Cả ngày";
-
     const raw = String(value).replace(/\D/g, "");
-
-    if (raw.length === 4) {
-      return `${raw.slice(0, 2)}:${raw.slice(2, 4)}`;
-    }
-
-    if (raw.length === 8) {
-      return `${raw.slice(0, 2)}:${raw.slice(2, 4)} - ${raw.slice(4, 6)}:${raw.slice(6, 8)}`;
-    }
-
-    if (String(value).includes(":")) {
-      return value;
-    }
-
+    if (raw.length === 4) return `${raw.slice(0, 2)}:${raw.slice(2, 4)}`;
+    if (raw.length === 8) return `${raw.slice(0, 2)}:${raw.slice(2, 4)} - ${raw.slice(4, 6)}:${raw.slice(6, 8)}`;
+    if (String(value).includes(":")) return value;
     return value;
+  };
+
+  const getVirtualBookingsForMonth = (date, realBookings = []) => {
+    const bookings = [];
+    const targetYear = date.getFullYear();
+    const targetMonth = date.getMonth();
+    const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDay = new Date(targetYear, targetMonth, day);
+      const dayOfWeek = currentDay.getDay();
+
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        continue;
+      }
+
+      const dateString = getDateString(currentDay);
+
+      const hasRealBooking = realBookings.some((item) => item.date === dateString);
+
+      if (hasRealBooking) {
+        continue;
+      }
+
+      bookings.push({
+        id: `virtual-${dateString}`,
+        date: dateString,
+        time_slot: "1800-2030",
+        staff_note: "Ít",
+        isVirtual: true,
+      });
+    }
+
+    return bookings;
+  };
+
+  const generateVirtualBookings = (realBookings = monthBookings) => {
+    const now = new Date();
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const currentVirtualBookings = getVirtualBookingsForMonth(currentMonth, realBookings);
+    const previousVirtualBookings = getVirtualBookingsForMonth(previousMonth, realBookings);
+
+    setVirtualBookings([...previousVirtualBookings, ...currentVirtualBookings]);
   };
 
   const fetchMonthBookings = async () => {
@@ -68,11 +103,17 @@ export default function Calendar() {
       const lastDayNumber = new Date(year, month + 1, 0).getDate();
       const lastDay = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDayNumber).padStart(2, "0")}`;
 
-      const { data, error } = await supabase.from("bookings").select("*").gte("date", firstDay).lte("date", lastDay);
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*")
+        .gte("date", firstDay)
+        .lte("date", lastDay);
 
       if (error) throw error;
 
-      setMonthBookings(data || []);
+      const bookings = data || [];
+      setMonthBookings(bookings);
+      generateVirtualBookings(bookings);
     } catch (err) {
       console.error("Lỗi tải lịch booking:", err.message);
     } finally {
@@ -81,8 +122,22 @@ export default function Calendar() {
   };
 
   useEffect(() => {
+    generateVirtualBookings();
+
+    const interval = setInterval(() => {
+      generateVirtualBookings();
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     fetchMonthBookings();
   }, [currentDate]);
+
+  useEffect(() => {
+    generateVirtualBookings(monthBookings);
+  }, [monthBookings]);
 
   const handlePrevMonth = () => {
     const date = new Date(year, month - 1, 1);
@@ -112,9 +167,14 @@ export default function Calendar() {
     const date = new Date(year, month, index - firstDayIndex + 1);
     const dateString = getDateString(date);
 
-    const dayBookings = monthBookings.filter((item) => item.date === dateString);
+    const realDayBookings = monthBookings.filter((item) => item.date === dateString);
+    const virtualDayBookings = virtualBookings.filter((item) => item.date === dateString);
 
-    const staffStatuses = ["Nhiều", "Ít", "Hết"].filter((status) => dayBookings.some((item) => (item.staff_note || "").trim() === status));
+    const staffStatuses = ["Nhiều", "Ít", "Hết"].filter(
+      (status) =>
+        realDayBookings.some((item) => (item.staff_note || "").trim() === status) ||
+        virtualDayBookings.some((item) => (item.staff_note || "").trim() === status)
+    );
 
     return {
       id: dateString,
@@ -128,7 +188,10 @@ export default function Calendar() {
 
   const selectedDateStr = getDateString(selectedDate);
 
-  const currentDayBookings = monthBookings.filter((item) => item.date === selectedDateStr);
+  const currentDayBookings = [
+    ...monthBookings.filter((item) => item.date === selectedDateStr),
+    ...virtualBookings.filter((item) => item.date === selectedDateStr),
+  ];
 
   const currentDayStatusGroups = ["Nhiều", "Ít", "Hết"]
     .map((status) => {
@@ -157,7 +220,7 @@ export default function Calendar() {
     <div className="calendar-module-container">
       <div className="calendar-header-nav">
         <div className="calendar-month-label">
-          {MONTH_NAMES[month]} {year}
+          {MONTH_NAMES[month]}/{year}
         </div>
 
         <div className="calendar-nav-buttons">
