@@ -13,45 +13,25 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
   const [note, setNote] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-
+  const [customerZalo, setCustomerZalo] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
   const formatDateInput = (value) => {
     const digits = String(value ?? "")
       .replace(/\D/g, "")
       .slice(0, 8);
-
-    if (digits.length <= 2) {
-      return digits;
-    }
-
-    if (digits.length <= 4) {
-      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-    }
-
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
     return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
   };
-
   const dateToDisplay = (value) => {
     if (!value) return "";
-
     const raw = String(value).trim();
-
-    if (raw.includes("/")) {
-      return formatDateInput(raw);
-    }
-
+    if (raw.includes("/")) return formatDateInput(raw);
     const parts = raw.slice(0, 10).split("-");
-
-    if (parts.length !== 3) {
-      return raw;
-    }
-
+    if (parts.length !== 3) return raw;
     const [year, month, day] = parts;
-
     return `${day}/${month}/${year}`;
   };
-
   useEffect(() => {
     if (!initialData) {
       setProgram("");
@@ -66,20 +46,18 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       setNote("");
       setCustomerName("");
       setCustomerPhone("");
+      setCustomerZalo("");
       return;
     }
-
     setProgram(initialData.program || "");
     setTitle(initialData.title || "");
     setCategory(initialData.category || "");
     setDate(dateToDisplay(initialData.date));
-
     setTimeSlot(
       String(initialData.time_slot || "")
         .replace(/\D/g, "")
         .slice(0, 8),
     );
-
     setAmount(initialData.amount !== null && initialData.amount !== undefined ? String(initialData.amount) : "");
     setStaffNote(initialData.staff_note || "");
     setRunner(initialData.runner || "");
@@ -87,71 +65,67 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
     setNote(initialData.note || "");
     setCustomerName(initialData.customer_name || "");
     setCustomerPhone(initialData.customer_phone || "");
+    setCustomerZalo(initialData.customer_zalo || "");
   }, [initialData]);
-
   const dateToDatabase = (value) => {
     const digits = String(value ?? "").replace(/\D/g, "");
-
-    if (digits.length !== 8) {
-      return "";
-    }
-
+    if (digits.length !== 8) return "";
     const day = digits.slice(0, 2);
     const month = digits.slice(2, 4);
     const year = digits.slice(4, 8);
-
     return `${year}-${month}-${day}`;
   };
-
   const formatTimeInput = (value) => {
     const digits = String(value ?? "")
       .replace(/\D/g, "")
       .slice(0, 8);
-
-    if (digits.length <= 2) {
-      return digits;
-    }
-
-    if (digits.length <= 4) {
-      return `${digits.slice(0, 2)}:${digits.slice(2)}`;
-    }
-
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}:${digits.slice(2)}`;
     return `${digits.slice(0, 2)}:${digits.slice(2, 4)} - ${digits.slice(4, 6)}:${digits.slice(6, 8)}`;
   };
-
-  const formatMoneyInput = (value) => {
-    return String(value ?? "")
+  const formatMoneyInput = (value) =>
+    String(value ?? "")
       .replace(/\D/g, "")
       .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const getRawMoney = (value) => String(value ?? "").replace(/\D/g, "");
+  const getRawPhone = (value) =>
+    String(value ?? "")
+      .replace(/\D/g, "")
+      .slice(0, 10);
+  const formatPhone = (value) => {
+    const digits = getRawPhone(value);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
   };
-
-  const getRawMoney = (value) => {
-    return String(value ?? "").replace(/\D/g, "");
-  };
-
   const isPhuc = runner.trim().toLowerCase() === "phúc";
   const showOutS = runner.trim() !== "" && !isPhuc;
   const billValue = Number(getRawMoney(amount)) || 0;
   const outSValue = Number(getRawMoney(outSPrice)) || 0;
   const receivedValue = isPhuc || !runner.trim() ? billValue : billValue - outSValue;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (isSaving) return;
-
     const databaseDate = dateToDatabase(date);
-
     if (!databaseDate) {
       alert("Vui lòng nhập ngày theo dạng DD/MM/YYYY.");
       return;
     }
-
     if (typeof onSave !== "function") {
       alert("Không thể lưu Booking.");
       return;
     }
-
+    const normalizedCustomerName = customerName.trim();
+    const normalizedCustomerPhone = getRawPhone(customerPhone);
+    const normalizedCustomerZalo = customerZalo.trim();
+    if (
+      (normalizedCustomerName || normalizedCustomerPhone || normalizedCustomerZalo) &&
+      (!normalizedCustomerName || (!normalizedCustomerPhone && !normalizedCustomerZalo))
+    ) {
+      alert("Khách hàng cần có tên và ít nhất SĐT hoặc Zalo.");
+      return;
+    }
     const formData = {
       id: initialData?.id || null,
       program: String(program ?? "").trim(),
@@ -164,19 +138,14 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       runner: runner.trim() || null,
       outs_price: showOutS ? Number(getRawMoney(outSPrice)) || 0 : 0,
       note: note.trim() || null,
-      customer_name: customerName.trim() || null,
-      customer_phone: customerPhone.trim() || null,
+      customer_name: normalizedCustomerName || null,
+      customer_phone: normalizedCustomerPhone || null,
+      customer_zalo: normalizedCustomerZalo || null,
     };
-
     setIsSaving(true);
-
     try {
       const result = await onSave(formData);
-
-      if (!result || result.success !== true) {
-        throw result?.error || new Error("Không thể lưu Booking.");
-      }
-
+      if (!result || result.success !== true) throw result?.error || new Error("Không thể lưu Booking.");
       onClose();
     } catch (error) {
       console.error("❌ BookingPopup save error:", error);
@@ -185,7 +154,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
       setIsSaving(false);
     }
   };
-
   return (
     <form onSubmit={handleSubmit} className="popup-form">
       <div className="popup-row">
@@ -199,17 +167,14 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
           disabled={isSaving}
         />
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Địa điểm</label>
         <input className="popup-input" placeholder="Địa điểm" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSaving} />
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Công việc</label>
         <input className="popup-input" placeholder="Công việc" value={category} onChange={(e) => setCategory(e.target.value)} disabled={isSaving} />
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Ngày</label>
         <input
@@ -221,7 +186,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
           disabled={isSaving}
         />
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Khung giờ</label>
         <input
@@ -233,7 +197,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
           disabled={isSaving}
         />
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Bill</label>
         <input
@@ -245,7 +208,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
           disabled={isSaving}
         />
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Người chạy / OutS</label>
         <div className="popup-inline">
@@ -257,7 +219,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
             disabled={isSaving}
             style={showOutS ? { flex: "1 1 0", minWidth: 0 } : { width: "100%" }}
           />
-
           {showOutS && (
             <input
               className="popup-input"
@@ -271,40 +232,41 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
           )}
         </div>
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Thực nhận</label>
         <input className="popup-input" value={formatMoneyInput(receivedValue)} readOnly disabled={isSaving} />
       </div>
-
       <div className="popup-row">
         <label className="popup-label">Note</label>
         <textarea className="popup-input" placeholder="Note" value={note} onChange={(e) => setNote(e.target.value)} disabled={isSaving} />
       </div>
-
       <div className="popup-row">
-        <label className="popup-label">Tên khách</label>
-        <input
-          className="popup-input"
-          placeholder="Tên khách"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          disabled={isSaving}
-        />
+        <label className="popup-label">Khách / Liên hệ</label>
+        <div className="popup-inline">
+          <input
+            className="popup-input"
+            placeholder="Tên khách"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            disabled={isSaving}
+          />
+          <input
+            className="popup-input"
+            inputMode="numeric"
+            placeholder="SĐT khách"
+            value={formatPhone(customerPhone)}
+            onChange={(e) => setCustomerPhone(getRawPhone(e.target.value))}
+            disabled={isSaving}
+          />
+          <input
+            className="popup-input"
+            placeholder="Zalo khách"
+            value={customerZalo}
+            onChange={(e) => setCustomerZalo(e.target.value)}
+            disabled={isSaving}
+          />
+        </div>
       </div>
-
-      <div className="popup-row">
-        <label className="popup-label">SĐT khách</label>
-        <input
-          className="popup-input"
-          inputMode="tel"
-          placeholder="SĐT khách"
-          value={customerPhone}
-          onChange={(e) => setCustomerPhone(e.target.value)}
-          disabled={isSaving}
-        />
-      </div>
-
       <div className="popup-row">
         <label className="popup-label">Nhân sự còn lại</label>
         <div className="popup-inline">
@@ -323,7 +285,6 @@ export default function BookingPopup({ onClose, onSave, initialData = null }) {
           ))}
         </div>
       </div>
-
       <div className="popup-footer">
         <button type="submit" className="popup-submit" disabled={isSaving}>
           {isSaving ? "Đang đẩy lên mây..." : "Lưu lại"}

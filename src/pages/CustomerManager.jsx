@@ -39,6 +39,9 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
         String(customer.phone || "")
           .toLowerCase()
           .includes(activeSearchTerm) ||
+        String(customer.zalo || "")
+          .toLowerCase()
+          .includes(activeSearchTerm) ||
         String(customer.contact_value || "")
           .toLowerCase()
           .includes(activeSearchTerm) ||
@@ -69,14 +72,10 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
     }
   }, [filteredCustomers.length, onCountChange]);
   const handleEdit = (customer) => {
-    if (typeof onEdit === "function") {
-      onEdit(customer);
-    }
+    if (typeof onEdit === "function") onEdit(customer);
   };
   const handleAddEvent = (customer) => {
-    if (typeof onAddEvent === "function") {
-      onAddEvent(customer);
-    }
+    if (typeof onAddEvent === "function") onAddEvent(customer);
   };
   const handleDelete = async (customer) => {
     const confirmed = window.confirm(`Xóa khách hàng "${customer.customer_name || ""}" khỏi danh sách?`);
@@ -100,18 +99,13 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
     const cardWidth = e.currentTarget.offsetWidth;
     const swipeDistance = cardWidth * 0.85;
     if (Math.abs(deltaX) >= swipeDistance) {
-      if (deltaX > 0) {
-        handleEdit(customer);
-      } else {
-        handleDelete(customer);
-      }
+      if (deltaX > 0) handleEdit(customer);
+      else handleDelete(customer);
     }
     setTouchStartX(null);
   };
   const getContactValue = (customer) => {
-    if (customer.contact_value !== undefined && customer.contact_value !== null) {
-      return customer.contact_value;
-    }
+    if (customer.contact_value !== undefined && customer.contact_value !== null) return customer.contact_value;
     return customer.phone || "";
   };
   const formatPhone = (value) => {
@@ -129,12 +123,8 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
     if (digits.length !== 8) return value;
     return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
   };
-  const formatMoney = (value) => {
-    return `${Number(value || 0).toLocaleString("vi-VN")}đ`;
-  };
-  const getHistory = (customer) => {
-    return Array.isArray(customer.history) ? customer.history : [];
-  };
+  const formatMoney = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+  const getHistory = (customer) => (Array.isArray(customer.history) ? customer.history : []);
   const getSortedHistory = (customer) => {
     return [...getHistory(customer)].sort((a, b) => {
       const parseDate = (value) => {
@@ -157,12 +147,11 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
     const tips = Number(item.tips || 0);
     return `${date} · ${eventName} · ${remaining}${tips > 0 ? ` · Tips ${formatMoney(tips)}` : ""}`;
   };
-  const getNoteItems = (note) => {
-    return String(note || "")
+  const getNoteItems = (note) =>
+    String(note || "")
       .split(/\s*-x\s*/i)
       .map((item) => item.trim())
       .filter(Boolean);
-  };
   return (
     <div className="customer-manager">
       <div className="customer-list">
@@ -178,8 +167,12 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
             const noteItems = getNoteItems(customer.note);
             const historyOpen = Boolean(openHistory[customer.id]);
             const noteOpen = Boolean(openNote[customer.id]);
-            const contactValue = getContactValue(customer);
-            const isPhone = customer.contact_type !== "zalo";
+            const phone = String(customer.phone || "").trim();
+            const zalo = String(customer.zalo || "").trim();
+            const legacyContact = !phone && !zalo ? getContactValue(customer) : "";
+            const displayPhone = phone || (customer.contact_type === "phone" ? legacyContact : "");
+            const displayZalo = zalo || (customer.contact_type === "zalo" ? legacyContact : "");
+            const hasContact = Boolean(displayPhone || displayZalo);
             return (
               <div
                 className="customer-card"
@@ -193,10 +186,21 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                       <strong>{customer.customer_name || ""}</strong>
                     </div>
                     <div className="customer-grid-item customer-contact">
-                      <span>
-                        {isPhone ? "SĐT: " : "Zalo: "}
-                        <strong>{isPhone ? formatPhone(contactValue) : String(contactValue || "")}</strong>
-                      </span>
+                      {hasContact && (
+                        <>
+                          {displayPhone && (
+                            <span>
+                              SĐT: <strong>{formatPhone(displayPhone)}</strong>
+                            </span>
+                          )}
+                          {displayPhone && displayZalo && <span> | </span>}
+                          {displayZalo && (
+                            <span>
+                              Zalo: <strong>{displayZalo}</strong>
+                            </span>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="customer-grid-row">
@@ -213,15 +217,9 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                       <button
                         type="button"
                         className="customer-collapse-btn"
-                        onClick={() =>
-                          setOpenHistory((prev) => ({
-                            ...prev,
-                            [customer.id]: !historyOpen,
-                          }))
-                        }
+                        onClick={() => setOpenHistory((prev) => ({ ...prev, [customer.id]: !historyOpen }))}
                       >
-                        <span>{historyOpen ? "▼" : "▶"}</span>
-                        Lịch sử booking
+                        <span>{historyOpen ? "▼" : "▶"}</span> Lịch sử booking
                       </button>
                       <button
                         type="button"
@@ -252,15 +250,9 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                     <button
                       type="button"
                       className="customer-collapse-btn"
-                      onClick={() =>
-                        setOpenNote((prev) => ({
-                          ...prev,
-                          [customer.id]: !noteOpen,
-                        }))
-                      }
+                      onClick={() => setOpenNote((prev) => ({ ...prev, [customer.id]: !noteOpen }))}
                     >
-                      <span>{noteOpen ? "▼" : "▶"}</span>
-                      Ghi chú
+                      <span>{noteOpen ? "▼" : "▶"}</span> Ghi chú
                     </button>
                     {noteOpen && (
                       <div className="customer-note-content">

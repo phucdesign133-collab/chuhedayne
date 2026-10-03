@@ -104,6 +104,82 @@ export default function Grid({ categoryIdOverride = null }) {
     }
     return [];
   };
+  const normalizeCustomerName = (value) =>
+    String(value || "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLocaleLowerCase("vi-VN");
+  const normalizeCustomerPhone = (value) => String(value || "").replace(/\D/g, "");
+  const normalizeCustomerZalo = (value) =>
+    String(value || "")
+      .trim()
+      .toLocaleLowerCase("vi-VN");
+  const getBookingHistoryItem = (booking) => {
+    const bill = Number(booking?.amount || 0);
+    const runner = String(booking?.runner || "").trim();
+    const outS = Number(booking?.outs_price || 0);
+    const received = !runner || runner.toLowerCase() === "phúc" ? bill : bill - outS;
+    const rawDate = String(booking?.date || "").slice(0, 10);
+    const parts = rawDate.split("-");
+    const eventDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : rawDate;
+    return {
+      id: String(booking.id),
+      booking_id: booking.id,
+      event_name: String(booking.program || booking.category || booking.title || "").trim(),
+      event_date: eventDate,
+      order_value: bill,
+      cashback: 0,
+      remaining: received,
+      tips: 0,
+    };
+  };
+  const syncCustomerFromBooking = async (booking) => {
+    const customerName = String(booking?.customer_name || "")
+      .replace(/\s+/g, " ")
+      .trim();
+    const customerPhone = normalizeCustomerPhone(booking?.customer_phone || "");
+    const customerZalo = String(booking?.customer_zalo || "").trim();
+    if (!customerName || (!customerPhone && !customerZalo)) return null;
+    const { data: customers, error: customerSelectError } = await supabase
+      .from("customer")
+      .select("id, customer_name, phone, zalo, contact_type, contact_value, history");
+    if (customerSelectError) throw customerSelectError;
+    const normalizedName = normalizeCustomerName(customerName);
+    const normalizedZalo = normalizeCustomerZalo(customerZalo);
+    const existingCustomer = (Array.isArray(customers) ? customers : []).find((customer) => {
+      if (normalizeCustomerName(customer.customer_name) !== normalizedName) return false;
+      const existingPhone = normalizeCustomerPhone(customer.phone);
+      const existingZalo = normalizeCustomerZalo(customer.zalo);
+      const legacyContact = normalizeCustomerZalo(customer.contact_value);
+      const phoneMatch =
+        customerPhone &&
+        (existingPhone === customerPhone || (customer.contact_type === "phone" && normalizeCustomerPhone(legacyContact) === customerPhone));
+      const zaloMatch = normalizedZalo && (existingZalo === normalizedZalo || (customer.contact_type === "zalo" && legacyContact === normalizedZalo));
+      return Boolean(phoneMatch || zaloMatch);
+    });
+    const historyItem = getBookingHistoryItem(booking);
+    if (existingCustomer) {
+      const currentHistory = Array.isArray(existingCustomer.history) ? [...existingCustomer.history] : [];
+      const historyIndex = currentHistory.findIndex((item) => String(item?.booking_id || item?.id || "") === String(booking.id));
+      if (historyIndex >= 0) currentHistory[historyIndex] = { ...currentHistory[historyIndex], ...historyItem };
+      else currentHistory.push(historyItem);
+      const { data, error } = await supabase.from("customer").update({ history: currentHistory }).eq("id", existingCustomer.id).select("*").single();
+      if (error) throw error;
+      return data;
+    }
+    const payload = {
+      customer_name: customerName,
+      phone: customerPhone,
+      zalo: customerZalo,
+      contact_type: customerPhone ? "phone" : "zalo",
+      contact_value: customerPhone || customerZalo,
+      is_active: true,
+      history: [historyItem],
+    };
+    const { data, error } = await supabase.from("customer").insert(payload).select("*").single();
+    if (error) throw error;
+    return data;
+  };
   const handleSavePopup = async (formData) => {
     try {
       if (isBillCategory) {
@@ -375,13 +451,23 @@ export default function Grid({ categoryIdOverride = null }) {
           time_slot: String(formData.time_slot || "").trim(),
           staff_note: formData.staff_note || null,
           amount: formData.amount !== "" && formData.amount !== null && formData.amount !== undefined ? Number(formData.amount) || 0 : 0,
-          runner: String(formData.runner || "").trim(),
+          runner: String(formData.runner || "").trim() || null,
           note: String(formData.note || "").trim() || null,
+          outs_price:
+            formData.outs_price !== "" && formData.outs_price !== null && formData.outs_price !== undefined ? Number(formData.outs_price) || 0 : 0,
+          customer_name: String(formData.customer_name || "").trim() || null,
+          customer_phone:
+            String(formData.customer_phone || "")
+              .replace(/\D/g, "")
+              .slice(0, 10) || null,
+          customer_zalo: String(formData.customer_zalo || "").trim() || null,
         };
+        if (!payload.runner || payload.runner.toLowerCase() === "phúc") payload.outs_price = 0;
         let result;
         if (formData.id) result = await supabase.from("bookings").update(payload).eq("id", formData.id).select().single();
         else result = await supabase.from("bookings").insert(payload).select().single();
         if (result.error) throw result.error;
+        await syncCustomerFromBooking(result.data);
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);

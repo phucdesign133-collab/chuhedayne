@@ -8,6 +8,7 @@ export default function CustomerPopup({ initialData = null, onSave, onClose, mod
   const [contactType, setContactType] = useState("phone");
   const [referralContactType, setReferralContactType] = useState("phone");
   const [phone, setPhone] = useState("");
+  const [zalo, setZalo] = useState("");
   const [address, setAddress] = useState("");
   const [referralPhone, setReferralPhone] = useState("");
   const [referralName, setReferralName] = useState("");
@@ -122,7 +123,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose, mod
       setReferralTier(Number(data?.member_tier) || 0);
     } catch (error) {
       console.error("❌ Lỗi tìm người PR:", error);
-      // setReferralName("");
       setReferralTier(0);
     }
   };
@@ -151,6 +151,7 @@ export default function CustomerPopup({ initialData = null, onSave, onClose, mod
       setContactType("phone");
       setReferralContactType("phone");
       setPhone("");
+      setZalo("");
       setAddress("");
       setReferralPhone("");
       setReferralName("");
@@ -172,11 +173,12 @@ export default function CustomerPopup({ initialData = null, onSave, onClose, mod
       loadedReferralContactType === "zalo" ? initialData.referral_phone || "" : getRawPhone(initialData.referral_phone || "");
     setContactType(loadedContactType);
     setReferralContactType(loadedReferralContactType);
-    setPhone(
-      loadedContactType === "zalo"
-        ? initialData.contact_value || initialData.phone || ""
-        : getRawPhone(initialData.phone || initialData.contact_value || ""),
-    );
+    setPhone(getRawPhone(initialData.phone || ""));
+    setZalo(initialData.zalo || "");
+    if (!initialData.zalo && loadedContactType === "zalo") {
+      setZalo(initialData.contact_value || initialData.phone || "");
+      setPhone(getRawPhone(initialData.phone || ""));
+    }
     setAddress(initialData.address || "");
     setReferralPhone(loadedReferralPhone);
     setReferralName(initialData.referral_name || "");
@@ -281,12 +283,26 @@ export default function CustomerPopup({ initialData = null, onSave, onClose, mod
       }
       return;
     }
+    const normalizedName = formatName(customerName);
+    const rawPhone = getRawPhone(phone);
+    const rawZalo = String(zalo ?? "").trim();
+    if (!normalizedName) {
+      alert("Vui lòng nhập tên khách hàng.");
+      return;
+    }
+    if (!rawPhone && !rawZalo) {
+      alert("Vui lòng nhập ít nhất SĐT hoặc Zalo.");
+      return;
+    }
+    const primaryContactType = rawPhone ? "phone" : "zalo";
+    const primaryContactValue = rawPhone || rawZalo;
     const formData = {
       id: initialData?.id || null,
-      customer_name: formatName(customerName),
-      phone: contactType === "phone" ? getRawPhone(phone) : String(phone ?? "").trim(),
-      contact_type: contactType,
-      contact_value: contactType === "phone" ? getRawPhone(phone) : String(phone ?? "").trim(),
+      customer_name: normalizedName,
+      phone: rawPhone,
+      zalo: rawZalo,
+      contact_type: primaryContactType,
+      contact_value: primaryContactValue,
       address: address.trim(),
       referral_phone: referralContactType === "phone" ? getRawPhone(referralPhone) : String(referralPhone ?? "").trim(),
       referral_contact_type: referralContactType,
@@ -335,21 +351,6 @@ export default function CustomerPopup({ initialData = null, onSave, onClose, mod
               <label className="popup-label" style={{ width: "200px" }}>
                 Tên khách hàng
               </label>
-              <label className="popup-checkbox">
-                <input
-                  type="checkbox"
-                  checked={contactType === "phone"}
-                  onChange={() => {
-                    setContactType("phone");
-                    setPhone(getRawPhone(phone));
-                  }}
-                  disabled={isSaving}
-                />{" "}
-                Điện thoại
-              </label>
-              <label className="popup-checkbox">
-                <input type="checkbox" checked={contactType === "zalo"} onChange={() => setContactType("zalo")} disabled={isSaving} /> Zalo
-              </label>
             </div>
             <div className="popup-inline">
               <input
@@ -361,12 +362,13 @@ export default function CustomerPopup({ initialData = null, onSave, onClose, mod
               />
               <input
                 className="popup-input"
-                inputMode={contactType === "phone" ? "numeric" : "text"}
-                value={contactType === "phone" ? formatPhone(phone) : phone}
-                onChange={(e) => setPhone(contactType === "phone" ? getRawPhone(e.target.value) : e.target.value)}
+                inputMode="numeric"
+                value={formatPhone(phone)}
+                onChange={(e) => setPhone(getRawPhone(e.target.value))}
                 disabled={isSaving}
-                placeholder={contactType === "phone" ? "0901 234 567" : "Tên Zalo hoặc số Zalo"}
+                placeholder="0901 234 567"
               />
+              <input className="popup-input" value={zalo} onChange={(e) => setZalo(e.target.value)} disabled={isSaving} placeholder="Zalo" />
             </div>
           </div>
           <div className="popup-row">
