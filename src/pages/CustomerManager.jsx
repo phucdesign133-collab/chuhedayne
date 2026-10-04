@@ -188,6 +188,7 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
             const historyOpen = Boolean(openHistory[customer.id]);
             const noteOpen = Boolean(openNote[customer.id]);
             const contactOpen = Boolean(openContact[customer.id]);
+            const displayTier = Math.min(Math.max(getHistory(customer).length - 1, 0), 5);
             return (
               <div
                 className="customer-card"
@@ -207,7 +208,7 @@ export default function CustomerManager({ searchTerm = "", savedData = null, onC
                   <div className="customer-grid-row">
                     <div className="customer-grid-item customer-tier">
                       <span>Bậc: </span>
-                      <strong>{customer.member_tier || "0"}</strong>
+                      <strong>{displayTier}</strong>
                     </div>
                     <div className="customer-grid-item customer-latest">
                       Số lần booking: <strong>{getHistory(customer).length}</strong>
