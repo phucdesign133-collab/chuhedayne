@@ -102,28 +102,28 @@ export default function FundManager({ searchTerm = "", onCountChange }) {
 
     const activeSearchTerm = searchTerm.trim().toLowerCase();
 
-    return bookings
-      .filter((booking) => {
-        if (!booking.date) return false;
+    return bookings.filter((booking) => {
+      if (!booking.date) return false;
 
-        const bookingDate = new Date(`${booking.date}T00:00:00`);
+      const bookingDate = new Date(`${booking.date}T00:00:00`);
+      if (bookingDate >= today) return false;
 
-        return bookingDate < today;
-      })
-      .filter((booking) => {
-        if (!activeSearchTerm) return true;
+      if (!activeSearchTerm) return true;
 
-        const received = getReceivedAmount(booking);
+      const received = getReceivedAmount(booking);
 
-        return (
-          String(booking.date || "")
-            .toLowerCase()
-            .includes(activeSearchTerm) ||
-          String(received || "")
-            .toLowerCase()
-            .includes(activeSearchTerm)
-        );
-      });
+      return (
+        String(booking.category || "")
+          .toLowerCase()
+          .includes(activeSearchTerm) ||
+        String(booking.date || "")
+          .toLowerCase()
+          .includes(activeSearchTerm) ||
+        String(received || "")
+          .toLowerCase()
+          .includes(activeSearchTerm)
+      );
+    });
   }, [bookings, searchTerm]);
 
   // ============================================================

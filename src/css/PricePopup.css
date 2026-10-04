@@ -1,0 +1,37 @@
+.price-popup-materials {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.price-popup-material-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 50px 100px 32px;
+  gap: 2px;
+  align-items: center;
+  width: 100%;
+}
+
+.price-popup-material-row .popup-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.price-popup-material-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  margin: 0;
+}
+
+.price-popup-material-check input {
+  margin: 0;
+}
+.price-card-material-row{text-transform: capitalize;}
+.price-card-main img{width: 100%;}
+.price-card-note-toggle{background: none;
+    border: none;
+    padding: 0;}

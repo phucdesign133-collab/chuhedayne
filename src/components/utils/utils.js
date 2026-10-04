@@ -55,11 +55,7 @@ export const getDaysInCurrentMonth = (year, month) => {
   const targetYear = year || now.getFullYear();
   const targetMonth = month !== undefined ? month : now.getMonth();
 
-  const totalDays = new Date(
-    targetYear,
-    targetMonth + 1,
-    0
-  ).getDate();
+  const totalDays = new Date(targetYear, targetMonth + 1, 0).getDate();
 
   const daysList = [];
 
@@ -82,66 +78,133 @@ export const getDaysInCurrentMonth = (year, month) => {
 // ============================================================
 
 /**
+ * Chuẩn hóa ảnh trước khi upload.
+ *
+ * Chuẩn chung toàn hệ thống:
+ * - Kích thước tối đa: 414px ở cạnh dài nhất.
+ * - Không upscale ảnh nhỏ hơn 414px.
+ * - Giữ nguyên tỷ lệ ảnh.
+ * - Không crop.
+ * - Chuyển sang WebP.
+ * - Quality: 75.
+ */
+export const prepareImageForUpload = (file) => {
+  return new Promise((resolve, reject) => {
+    if (!(file instanceof File)) {
+      reject(new Error("File ảnh không hợp lệ."));
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      reject(new Error("File tải lên không phải là ảnh."));
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      try {
+        const maxSize = 414;
+        const longestSide = Math.max(image.width, image.height);
+        const scale = Math.min(1, maxSize / longestSide);
+
+        const width = Math.max(1, Math.round(image.width * scale));
+        const height = Math.max(1, Math.round(image.height * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("Không thể xử lý ảnh."));
+          return;
+        }
+
+        context.drawImage(image, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(objectUrl);
+
+            if (!blob) {
+              reject(new Error("Không thể chuyển ảnh sang WebP."));
+              return;
+            }
+
+            const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.webp`;
+
+            const webpFile = new File([blob], fileName, {
+              type: "image/webp",
+              lastModified: Date.now(),
+            });
+
+            resolve(webpFile);
+          },
+          "image/webp",
+          0.75,
+        );
+      } catch (error) {
+        URL.revokeObjectURL(objectUrl);
+        reject(error);
+      }
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Không thể đọc file ảnh."));
+    };
+
+    image.src = objectUrl;
+  });
+};
+
+/**
  * Upload một file ảnh lên Supabase Storage.
- *
- * Bucket:
- * events-images
- *
- * Kết quả trả về URL public thật của ảnh.
- *
- * QUAN TRỌNG:
- * Không sử dụng URL.createObjectURL() để lưu database.
  *
  * Flow chuẩn:
  *
- * File
+ * File ảnh
+ * ↓
+ * prepareImageForUpload()
+ * ↓
+ * Resize tối đa 414px
+ * ↓
+ * WebP quality 75
+ * ↓
+ * Đổi tên file
  * ↓
  * Supabase Storage
  * ↓
  * Public URL
- * ↓
- * services.images
- * ↓
- * services.image_url = ảnh đầu tiên
  *
- * NOTE:
- * - Đây là phần chuẩn bị để loại bỏ hoàn toàn blob URL.
- * - ContentPopup sẽ được cập nhật ở bước tiếp theo để sử dụng
- *   hàm này.
+ * Bucket:
+ * events-images
  */
-export const uploadImageToStorage = async (
-  file,
-  folder = "content"
-) => {
+export const uploadImageToStorage = async (file, folder = "content") => {
   if (!(file instanceof File)) {
     throw new Error("File ảnh không hợp lệ.");
   }
 
-  const fileExtension =
-    file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const preparedFile = await prepareImageForUpload(file);
 
-  const fileName = `${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2, 10)}.${fileExtension}`;
+  const filePath = `${folder}/${preparedFile.name}`;
 
-  const filePath = `${folder}/${fileName}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("events-images")
-    .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type,
-    });
+  const { error: uploadError } = await supabase.storage.from("events-images").upload(filePath, preparedFile, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: "image/webp",
+  });
 
   if (uploadError) {
     console.error("❌ Upload image error:", uploadError);
     throw uploadError;
   }
 
-  const { data } = supabase.storage
-    .from("events-images")
-    .getPublicUrl(filePath);
+  const { data } = supabase.storage.from("events-images").getPublicUrl(filePath);
 
   if (!data?.publicUrl) {
     throw new Error("Không lấy được URL ảnh từ Supabase Storage.");
@@ -153,22 +216,17 @@ export const uploadImageToStorage = async (
 /**
  * Upload nhiều ảnh lên Supabase Storage.
  *
+ * Tất cả ảnh đều đi qua uploadImageToStorage(),
+ * nên đều được chuẩn hóa thành WebP trước khi upload.
+ *
  * Trả về:
  * [
  *   "https://...webp",
  *   "https://...webp",
  *   ...
  * ]
- *
- * NOTE:
- * - Chưa ép định dạng WebP tại đây.
- * - Nếu flow cũ có bước nén/chuyển ảnh sang WebP,
- *   sẽ xử lý riêng sau khi xác định lại flow cũ.
  */
-export const uploadImagesToStorage = async (
-  files = [],
-  folder = "content"
-) => {
+export const uploadImagesToStorage = async (files = [], folder = "content") => {
   if (!Array.isArray(files) || files.length === 0) {
     return [];
   }
@@ -192,36 +250,6 @@ export const uploadImagesToStorage = async (
 export const isBlobUrl = (value) => {
   return typeof value === "string" && value.startsWith("blob:");
 };
-
-/**
- * NOTE - IMAGE FLOW CẦN XỬ LÝ TIẾP:
- *
- * Hiện tại ContentPopup đang:
- *
- * file
- * ↓
- * URL.createObjectURL(file)
- * ↓
- * blob:https://...
- * ↓
- * setImages()
- *
- * Đây là nguyên nhân gây lỗi.
- *
- * Flow mới cần là:
- *
- * file
- * ↓
- * uploadImagesToStorage()
- * ↓
- * https://...supabase.co/storage/...
- * ↓
- * setImages()
- * ↓
- * onSave()
- *
- * Tuyệt đối không lưu blob URL vào Supabase.
- */
 
 // ============================================================
 // PHONE
@@ -292,17 +320,12 @@ export const exportLocalStorageToJson = () => {
     data[key] = JSON.parse(localStorage.getItem(key));
   }
 
-  const dataStr =
-    "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(data, null, 2));
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
 
   const downloadAnchor = document.createElement("a");
 
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute(
-    "download",
-    `backup_data_${getCurrentDateFormatted()}.json`
-  );
+  downloadAnchor.setAttribute("download", `backup_data_${getCurrentDateFormatted()}.json`);
 
   document.body.appendChild(downloadAnchor);
 

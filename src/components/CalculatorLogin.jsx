@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function CalculatorLogin({ onLoginSuccess }) {
+export default function CalculatorLogin({ onLoginSuccess, onClose }) {
   const [display, setDisplay] = useState("0");
   const [equation, setEquation] = useState("");
   const [expressionTokens, setExpressionTokens] = useState(["0"]);
@@ -30,7 +30,7 @@ export default function CalculatorLogin({ onLoginSuccess }) {
 
   const handleNumber = (num) => {
     setInputSequence((prev) => prev + num);
-    
+
     // Nếu vừa bấm '=' xong mà nhập số mới -> Reset bắt đầu phép tính mới
     if (resetDisplay) {
       setExpressionTokens([num]);
@@ -65,7 +65,7 @@ export default function CalculatorLogin({ onLoginSuccess }) {
   const handleOperator = (op) => {
     setResetDisplay(false);
     setEquation("");
-    
+
     setExpressionTokens((prev) => {
       const lastToken = prev[prev.length - 1];
       // Nếu token cuối cũng là toán tử, thay thế bằng toán tử mới
@@ -81,7 +81,7 @@ export default function CalculatorLogin({ onLoginSuccess }) {
     // Chuyển đổi trung tố sang dạng tính toán an toàn
     try {
       // Lọc bỏ token rỗng
-      const cleanTokens = tokens.filter(t => t !== "");
+      const cleanTokens = tokens.filter((t) => t !== "");
       if (cleanTokens.length === 0) return 0;
 
       // Xử lý nhân chia trước, cộng trừ sau
@@ -93,11 +93,7 @@ export default function CalculatorLogin({ onLoginSuccess }) {
         if (!isNaN(t)) {
           nums.push(parseFloat(t));
         } else if (["+", "-", "×", "÷"].includes(t)) {
-          while (
-            ops.length > 0 &&
-            (("×" === ops[ops.length - 1] || "÷" === ops[ops.length - 1]) &&
-             (t === "+" || t === "-"))
-          ) {
+          while (ops.length > 0 && ("×" === ops[ops.length - 1] || "÷" === ops[ops.length - 1]) && (t === "+" || t === "-")) {
             let b = nums.pop();
             let a = nums.pop();
             let op = ops.pop();
@@ -122,11 +118,16 @@ export default function CalculatorLogin({ onLoginSuccess }) {
 
   const applyOp = (a, b, op) => {
     switch (op) {
-      case "+": return a + b;
-      case "-": return a - b;
-      case "×": return a * b;
-      case "÷": return b !== 0 ? a / b : "Error";
-      default: return b;
+      case "+":
+        return a + b;
+      case "-":
+        return a - b;
+      case "×":
+        return a * b;
+      case "÷":
+        return b !== 0 ? a / b : "Error";
+      default:
+        return b;
     }
   };
 
@@ -138,7 +139,7 @@ export default function CalculatorLogin({ onLoginSuccess }) {
     }
 
     const result = evaluateExpression(expressionTokens);
-    
+
     setEquation(`${getFormattedExpression()} =`);
     setDisplay(String(result));
     setExpressionTokens([String(result)]);
@@ -162,76 +163,143 @@ export default function CalculatorLogin({ onLoginSuccess }) {
   const dynamicFontSize = currentText.length > 15 ? "36px" : currentText.length > 10 ? "46px" : "60px";
 
   return (
-    <div style={{
-      backgroundColor: "#000000", 
-      width: "100vw", 
-      height: "100vh",
-      display: "flex", 
-      flexDirection: "column", 
-      justifyContent: "flex-end",
-      padding: "10px 12px 16px 12px", 
-      boxSizing: "border-box",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-      color: "#ffffff", 
-      position: "fixed", 
-      top: 0, 
-      left: 0, 
-      zIndex: 99999
-    }}>
+    <div
+      style={{
+        backgroundColor: "#000000",
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "10px 12px 16px 12px",
+        boxSizing: "border-box",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+        color: "#ffffff",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 99999,
+      }}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Quay lại"
+        style={{
+          position: "absolute",
+          top: "18px",
+          left: "16px",
+          background: "none",
+          border: "none",
+          color: "#888",
+          fontSize: "32px",
+          lineHeight: "1",
+          padding: "4px 8px",
+          cursor: "pointer",
+          zIndex: 2,
+        }}
+      >
+        ←
+      </button>
+
       {/* Hàng trên: Phép tính nhỏ */}
-      <div style={{
-        textAlign: "right", 
-        fontSize: "18px", 
-        color: "#888",
-        paddingRight: "8px", 
-        minHeight: "24px",
-        wordBreak: "break-all"
-      }}>
+      <div
+        style={{
+          textAlign: "right",
+          fontSize: "18px",
+          color: "#888",
+          paddingRight: "8px",
+          minHeight: "24px",
+          wordBreak: "break-all",
+        }}
+      >
         {equation}
       </div>
-      
+
       {/* Hàng dưới: Giữ nguyên toàn bộ chuỗi phép tính cho tới khi bấm dấu = */}
-      <div style={{
-        textAlign: "right", 
-        fontSize: dynamicFontSize, 
-        fontWeight: "300",
-        marginBottom: "12px", 
-        paddingRight: "8px", 
-        lineHeight: "1.1",
-        wordBreak: "break-all",
-        overflowWrap: "break-word",
-        maxHeight: "140px",
-        overflowY: "hidden"
-      }}>
+      <div
+        style={{
+          textAlign: "right",
+          fontSize: dynamicFontSize,
+          fontWeight: "300",
+          marginBottom: "12px",
+          paddingRight: "8px",
+          lineHeight: "1.1",
+          wordBreak: "break-all",
+          overflowWrap: "break-word",
+          maxHeight: "140px",
+          overflowY: "hidden",
+        }}
+      >
         {currentText}
       </div>
 
       {/* Bàn phím chuẩn iOS */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
-        <button onClick={handleClear} style={btnStyle("#a6a6a6", "#000")}>AC</button>
-        <button onClick={handleToggleSign} style={btnStyle("#a6a6a6", "#000")}>+/-</button>
-        <button onClick={handlePercent} style={btnStyle("#a6a6a6", "#000")}>%</button>
-        <button onClick={() => handleOperator("÷")} style={btnStyle("#ff9f0a", "#fff")}>÷</button>
-        
-        <button onClick={() => handleNumber("7")} style={btnStyle("#333333", "#fff")}>7</button>
-        <button onClick={() => handleNumber("8")} style={btnStyle("#333333", "#fff")}>8</button>
-        <button onClick={() => handleNumber("9")} style={btnStyle("#333333", "#fff")}>9</button>
-        <button onClick={() => handleOperator("×")} style={btnStyle("#ff9f0a", "#fff")}>×</button>
-        
-        <button onClick={() => handleNumber("4")} style={btnStyle("#333333", "#fff")}>4</button>
-        <button onClick={() => handleNumber("5")} style={btnStyle("#333333", "#fff")}>5</button>
-        <button onClick={() => handleNumber("6")} style={btnStyle("#333333", "#fff")}>6</button>
-        <button onClick={() => handleOperator("-")} style={btnStyle("#ff9f0a", "#fff")}>-</button>
-        
-        <button onClick={() => handleNumber("1")} style={btnStyle("#333333", "#fff")}>1</button>
-        <button onClick={() => handleNumber("2")} style={btnStyle("#333333", "#fff")}>2</button>
-        <button onClick={() => handleNumber("3")} style={btnStyle("#333333", "#fff")}>3</button>
-        <button onClick={() => handleOperator("+")} style={btnStyle("#ff9f0a", "#fff")}>+</button>
-        
-        <button onClick={handleToggleSign} style={btnStyle("#333333", "#fff")}>+/-</button>
-        <button onClick={() => handleNumber("0")} style={btnStyle("#333333", "#fff")}>0</button>
-        <button onClick={() => handleNumber(",")} style={btnStyle("#333333", "#fff")}>,</button>
-        <button onClick={handleEquals} style={btnStyle("#ff9f0a", "#fff")}>=</button>
+        <button onClick={handleClear} style={btnStyle("#a6a6a6", "#000")}>
+          AC
+        </button>
+        <button onClick={handleToggleSign} style={btnStyle("#a6a6a6", "#000")}>
+          +/-
+        </button>
+        <button onClick={handlePercent} style={btnStyle("#a6a6a6", "#000")}>
+          %
+        </button>
+        <button onClick={() => handleOperator("÷")} style={btnStyle("#ff9f0a", "#fff")}>
+          ÷
+        </button>
+
+        <button onClick={() => handleNumber("7")} style={btnStyle("#333333", "#fff")}>
+          7
+        </button>
+        <button onClick={() => handleNumber("8")} style={btnStyle("#333333", "#fff")}>
+          8
+        </button>
+        <button onClick={() => handleNumber("9")} style={btnStyle("#333333", "#fff")}>
+          9
+        </button>
+        <button onClick={() => handleOperator("×")} style={btnStyle("#ff9f0a", "#fff")}>
+          ×
+        </button>
+
+        <button onClick={() => handleNumber("4")} style={btnStyle("#333333", "#fff")}>
+          4
+        </button>
+        <button onClick={() => handleNumber("5")} style={btnStyle("#333333", "#fff")}>
+          5
+        </button>
+        <button onClick={() => handleNumber("6")} style={btnStyle("#333333", "#fff")}>
+          6
+        </button>
+        <button onClick={() => handleOperator("-")} style={btnStyle("#ff9f0a", "#fff")}>
+          -
+        </button>
+
+        <button onClick={() => handleNumber("1")} style={btnStyle("#333333", "#fff")}>
+          1
+        </button>
+        <button onClick={() => handleNumber("2")} style={btnStyle("#333333", "#fff")}>
+          2
+        </button>
+        <button onClick={() => handleNumber("3")} style={btnStyle("#333333", "#fff")}>
+          3
+        </button>
+        <button onClick={() => handleOperator("+")} style={btnStyle("#ff9f0a", "#fff")}>
+          +
+        </button>
+
+        <button onClick={handleToggleSign} style={btnStyle("#333333", "#fff")}>
+          +/-
+        </button>
+        <button onClick={() => handleNumber("0")} style={btnStyle("#333333", "#fff")}>
+          0
+        </button>
+        <button onClick={() => handleNumber(",")} style={btnStyle("#333333", "#fff")}>
+          ,
+        </button>
+        <button onClick={handleEquals} style={btnStyle("#ff9f0a", "#fff")}>
+          =
+        </button>
       </div>
     </div>
   );
@@ -239,18 +307,18 @@ export default function CalculatorLogin({ onLoginSuccess }) {
 
 function btnStyle(bg, color) {
   return {
-    backgroundColor: bg, 
-    color: color, 
-    border: "none", 
-    borderRadius: "50%", 
-    aspectRatio: "1 / 1", 
+    backgroundColor: bg,
+    color: color,
+    border: "none",
+    borderRadius: "50%",
+    aspectRatio: "1 / 1",
     width: "100%",
-    fontSize: "40px", 
+    fontSize: "40px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     outline: "none",
-    userSelect: "none"
+    userSelect: "none",
   };
 }
