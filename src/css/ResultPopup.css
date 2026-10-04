@@ -206,6 +206,7 @@
   font-weight: 700;
   line-height: 1.35;
   color: #222;
+  text-align: left;
 }
 
 .result-popup-gift-code {
@@ -213,6 +214,7 @@
   font-size: 12px;
   line-height: 1.3;
   color: #777;
+  text-align: left;
 }
 
 .result-popup-gift-quantity {

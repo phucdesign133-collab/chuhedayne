@@ -211,6 +211,7 @@ export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain
             })}
           </div>
         </div>
+        <div className="customer-info-notice" style={{textAlign:'center'}}>🎁 Bạn được đổi quà theo số lượng Card đang sở hữu.</div>
       </StepLayout>
     );
   }
@@ -233,6 +234,12 @@ export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain
 
           <div className="result-popup-code">
             <strong>Mã: {code}</strong>
+            <br></br>
+            {result?.text?.toLowerCase().includes("voucher") && (
+              <span>
+                <strong style={{ color: "#c0392b" }}>Lưu ý:</strong> Voucher chỉ được áp dụng đối với lần đặt tiếp theo.
+              </span>
+            )}
           </div>
 
           <div className="result-popup-image-action">

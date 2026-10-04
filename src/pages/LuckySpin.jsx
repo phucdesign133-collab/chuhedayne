@@ -190,7 +190,7 @@ export default function LuckySpinParty() {
     // ==========================================
     // TẠO KẾT QUẢ + GIFT CODE CỦA LẦN QUAY
     // ==========================================
-    const spinResult = await createSpinResult(selectedPrize);
+    const spinResult = await createSpinResult(selectedPrize, pendingGifts);
 
     setPrizeResult(spinResult.prize);
     setGeneratedCode(spinResult.code);
