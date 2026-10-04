@@ -2,13 +2,13 @@
 import React, { useState } from "react";
 import "../../css/ListGift.css";
 
-export default function ListGiftPopup({ isOpen, onClose, basicPrizes, vipPrizes }) {
-  const [activeTab, setActiveTab] = useState("basic");
+export default function ListGiftPopup({ isOpen, onClose, initialTab = "basic", basicPrizes, pendingGifts = [] }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [selectedGift, setSelectedGift] = useState(null);
 
   if (!isOpen) return null;
 
-  const currentList = activeTab === "basic" ? basicPrizes || [] : vipPrizes || [];
+  const currentList = activeTab === "basic" ? (basicPrizes || []).slice(0, 8) : pendingGifts || [];
 
   const handleGiftClick = (item) => {
     setSelectedGift(item);
@@ -32,21 +32,38 @@ export default function ListGiftPopup({ isOpen, onClose, basicPrizes, vipPrizes 
           <button onClick={() => setActiveTab("basic")} className={`lg-tab-btn ${activeTab === "basic" ? "lg-tab-basic-active" : "lg-tab-inactive"}`}>
             🎉 Vòng Quay Basic
           </button>
-          <button onClick={() => setActiveTab("vip")} className={`lg-tab-btn ${activeTab === "vip" ? "lg-tab-vip-active" : "lg-tab-inactive"}`}>
-            💎 Vòng Quay VIP
+
+          <button
+            onClick={() => setActiveTab("pending")}
+            className={`lg-tab-btn ${activeTab === "pending" ? "lg-tab-vip-active" : "lg-tab-inactive"}`}
+          >
+            🎟️ Quà Đã Quay Trúng
           </button>
         </div>
 
         <div className="lg-list-container">
-          {currentList.map((item, index) => (
-            <div key={index} className="lg-item-row" onClick={() => handleGiftClick(item)}>
-              <div className="lg-item-left">
-                <span className="lg-item-icon">{item.icon}</span>
-                <span className="lg-item-text">{item.text}</span>
+          {currentList.length === 0 ? (
+            <div className="lg-empty">Chưa có quà nào.</div>
+          ) : (
+            currentList.map((item, index) => (
+              <div
+                key={activeTab === "basic" ? `basic-${index}-${item.id || item.text}` : `pending-${item.id || item.text}`}
+                className="lg-item-row"
+                onClick={() => handleGiftClick(item)}
+              >
+                <div className="lg-item-left">
+                  <span className="lg-item-icon">{item.icon}</span>
+                  <span className="lg-item-text">{item.text}</span>
+                </div>
+
+                {activeTab === "basic" ? (
+                  <span className="lg-item-badge">#{String(index + 1).padStart(2, "0")}</span>
+                ) : (
+                  <span className="lg-item-badge">x{item.wonQuantity || 0}</span>
+                )}
               </div>
-              <span className="lg-item-badge">#0{index + 1}</span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {selectedGift && (
@@ -57,6 +74,7 @@ export default function ListGiftPopup({ isOpen, onClose, basicPrizes, vipPrizes 
               ) : (
                 <div className="lg-image-empty">{selectedGift.icon}</div>
               )}
+
               <div className="lg-image-close-text">Chạm bất kỳ vị trí nào để đóng</div>
             </div>
           </div>

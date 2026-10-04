@@ -81,6 +81,44 @@ export async function generateSpinCode(pendingGifts = []) {
   throw new Error("Không thể tạo Gift Code mới. Vui lòng thử lại.");
 }
 
+// ==========================================
+// CONSUME VIP SLOT
+// ==========================================
+// Slot VIP thật nằm trên DB.
+//
+// RPC:
+// 1. Kiểm tra slot
+// 2. Trừ 1 slot
+// 3. Tạo event gift
+// 4. Tạo event remaining
+//
+// Frontend không tự trừ slot
+// và không tự tạo vip_events.
+
+export async function consumeVipSlot(campaignCode, dailySlots, prizeText) {
+  const { data, error } = await supabase.rpc("consume_vip_slot", {
+    p_campaign_code: campaignCode,
+    p_daily_slots: dailySlots,
+    p_prize_text: prizeText || "",
+  });
+
+  if (error) {
+    console.error("Lỗi consume VIP slot:", error);
+    throw new Error("Không thể xác nhận lượt quay VIP. Vui lòng thử lại.");
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+
+  if (!result) {
+    throw new Error("Không nhận được kết quả lượt quay VIP.");
+  }
+
+  return {
+    success: Boolean(result.success),
+    remaining: Number(result.remaining) || 0,
+  };
+}
+
 export async function createSpinResult(selectedPrize, pendingGifts = []) {
   if (!selectedPrize) {
     return {

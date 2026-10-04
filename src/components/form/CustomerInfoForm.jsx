@@ -92,7 +92,7 @@ export default function CustomerInfoForm({ formData, onChange, onValidityChange 
         </div>
       </div>
 
-      <div className="customer-info-notice">🎁 Quà sẽ được nhận trong vòng 7 ngày kể từ khi đặt hàng thành công.</div>
+      <div className="customer-info-notice">🎁 Quà sẽ được nhận trong vòng 10 ngày kể từ khi đặt hàng thành công.</div>
     </div>
   );
 }
