@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "../css/Tab.css";
+// import "../css/Tab.css";
 import { supabase } from "../components/utils/supabaseClient";
 import IconTools from "../components/icon/iconTools";
 import CalculatorLogin from "../components/CalculatorLogin"; // Đảm bảo đường dẫn import đúng nơi anh đặt file

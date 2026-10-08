@@ -22,7 +22,7 @@ const VIP_CAMPAIGNS = [
   {
     code: "SUMMER-1q2w3e",
     startDate: "2026-10-01",
-    endDate: "2026-10-05",
+    endDate: "2026-10-29",
     dailySlots: 100,
     enabled: true,
   },
@@ -108,9 +108,9 @@ export default function VipAccessPanel({ isVipUnlocked = false, onVipUnlocked, o
     <>
       <div
         style={{
-          width: "100%",
+          width: "90%",
           maxWidth: "440px",
-          margin: "20px auto 0",
+          margin: "0 auto",
           display: "flex",
           flexDirection: "column",
           gap: "10px",
@@ -149,7 +149,7 @@ export default function VipAccessPanel({ isVipUnlocked = false, onVipUnlocked, o
             cursor: "pointer",
           }}
         >
-          🎟️ Xem quà đã quay trúng
+          🎟️ Xem quà quay trúng
         </button>
 
         <button
@@ -167,7 +167,7 @@ export default function VipAccessPanel({ isVipUnlocked = false, onVipUnlocked, o
             cursor: "pointer",
           }}
         >
-          {isVipUnlocked ? "💎 Quay lại vòng quay Basic" : "💎 Bật Vòng Quay VIP"}
+          {isVipUnlocked ? "💎 Trở lại vòng thường" : "💎 Bật Vòng Quay VIP"}
         </button>
       </div>
 
@@ -209,7 +209,7 @@ export default function VipAccessPanel({ isVipUnlocked = false, onVipUnlocked, o
                 style={{
                   margin: 0,
                   fontSize: "20px",
-                  fontWeight: "800",
+                  fontWeight: "700",
                   color: "#292828",
                 }}
               >
@@ -239,7 +239,7 @@ export default function VipAccessPanel({ isVipUnlocked = false, onVipUnlocked, o
                 setVipCode(e.target.value);
                 setCodeMessage("");
               }}
-              placeholder="nhập mã code để mở"
+              placeholder="Nhập mã code để mở"
               style={{
                 width: "100%",
                 boxSizing: "border-box",
@@ -276,7 +276,7 @@ export default function VipAccessPanel({ isVipUnlocked = false, onVipUnlocked, o
                 background: "#292828",
                 color: "#fff",
                 fontSize: "15px",
-                fontWeight: "800",
+                fontWeight: "700",
                 cursor: "pointer",
               }}
             >

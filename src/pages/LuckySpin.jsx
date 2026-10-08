@@ -500,7 +500,7 @@ export default function LuckySpinParty() {
         </h1>
 
         <p className="party-subtitle">
-          {isPremiumMode ? "Chào mừng bạn đến với Vòng quay VIP của Phúc" : "Chào mừng bạn đến với Vòng quay Basic của Phúc."}
+          {isPremiumMode ? "Chào mừng bạn đến với Vòng quay VIP của Phúc" : "Chào mừng bạn đến với Vòng quay của Phúc."}
         </p>
       </div>
 
@@ -529,7 +529,7 @@ export default function LuckySpinParty() {
             disabled={isSpinning}
             className={`spin-button ${isSpinning ? "spin-button-disabled" : ""} ${isMobile ? "spin-button-mobile" : "spin-button-desktop"}`}
           >
-            {isSpinning ? "🌟 ĐANG XOAY..." : isPremiumMode ? "🔥 QUAY VÒNG VIP 🔥" : "QUAY THỬ QUÀ NHỎ"}
+            {isSpinning ? "🌟 ĐANG XOAY..." : isPremiumMode ? "QUAY NGAY " : "QUAY LUÔN"}
           </button>
         </div>
 

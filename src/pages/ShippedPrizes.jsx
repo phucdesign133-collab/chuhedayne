@@ -1,40 +1,33 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
-import "../css/Tab.css";
 
-export default function ShippedPrizes({ searchTerm = "", savedData = null, onCountChange, onEdit }) {
+export default function ShippedPrizes({ searchTerm = "", savedData = null, onCountChange }) {
   const [bills, setBills] = useState([]);
-  const [statuses, setStatuses] = useState({});
   const [activeTab, setActiveTab] = useState("first");
   const [loading, setLoading] = useState(false);
-  const [swipeState, setSwipeState] = useState({ id: null, x: 0, startX: 0, startY: 0, dragging: false });
+  const [swipeState, setSwipeState] = useState({
+    id: null,
+    x: 0,
+    startX: 0,
+    startY: 0,
+    dragging: false,
+  });
+
+  const suppressClickRef = useRef(false);
 
   const loadBills = async () => {
     setLoading(true);
 
-    const [{ data: billData, error: billError }, { data: statusData, error: statusError }] = await Promise.all([
-      supabase.from("bills").select("*").eq("bill_type", "gift-orders").order("created_at", { ascending: false }),
-      supabase.from("shipped_prizes").select("id, gift_status"),
-    ]);
+    const { data, error } = await supabase.from("shipped_prizes").select("*").order("created_at", { ascending: false });
 
-    if (billError) {
-      console.error("❌ Lỗi tải gift-orders:", billError);
+    if (error) {
+      console.error("❌ Lỗi tải quà đã gửi:", error);
       setLoading(false);
       return;
     }
 
-    if (statusError) {
-      console.error("❌ Lỗi tải trạng thái quà gửi:", statusError);
-    }
-
-    const statusMap = {};
-    (statusData || []).forEach((item) => {
-      statusMap[item.id] = item.gift_status || "pending";
-    });
-
-    setBills(billData || []);
-    setStatuses(statusMap);
+    setBills(data || []);
     setLoading(false);
   };
 
@@ -51,15 +44,14 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
     .trim()
     .toLowerCase();
 
-  const getBillStatus = (bill) => statuses[bill.id] || "pending";
-
   const filteredBills = useMemo(() => {
     if (!activeSearchTerm) return bills;
 
     return bills.filter((bill) => {
       const items = Array.isArray(bill.items) ? bill.items : [];
+
       const giftText = items
-        .map((item) => `${item?.text || ""} ${item?.quantity || ""}`)
+        .map((item) => `${item?.name || item?.text || ""} ${item?.quantity || ""} ${item?.code || ""}`)
         .join(" ")
         .toLowerCase();
 
@@ -88,8 +80,8 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
       third: "shipped",
     };
 
-    return filteredBills.filter((bill) => getBillStatus(bill) === statusMap[activeTab]);
-  }, [filteredBills, activeTab, statuses]);
+    return filteredBills.filter((bill) => (bill.gift_status || "pending") === statusMap[activeTab]);
+  }, [filteredBills, activeTab]);
 
   useEffect(() => {
     if (typeof onCountChange === "function") {
@@ -110,6 +102,8 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
   const handleTouchStart = (event, id) => {
     const touch = event.touches[0];
 
+    suppressClickRef.current = false;
+
     setSwipeState({
       id,
       x: 0,
@@ -128,6 +122,10 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
 
     if (Math.abs(deltaY) > Math.abs(deltaX)) return;
 
+    if (Math.abs(deltaX) >= 10) {
+      suppressClickRef.current = true;
+    }
+
     setSwipeState((prev) => ({
       ...prev,
       x: Math.max(-140, Math.min(140, deltaX)),
@@ -138,10 +136,12 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
     if (swipeState.id !== id) return;
 
     const bill = visibleBills.find((item) => item.id === id);
+
     const shouldMove = Math.abs(swipeState.x) >= 80;
 
     if (bill && shouldMove) {
       const tabs = ["first", "second", "third"];
+
       const statusMap = {
         first: "pending",
         second: "prepared",
@@ -156,31 +156,41 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
         const nextTab = tabs[nextIndex];
         const nextStatus = statusMap[nextTab];
 
-        const payload = {
-          id: bill.id,
-          customer_name: bill.customer_name || "",
-          phone: bill.phone || "",
-          address: bill.address || "",
-          note: bill.note || "",
-          date: bill.created_at ? new Date(bill.created_at).toISOString().slice(0, 10) : undefined,
-          gift_status: nextStatus,
-        };
-
-        const { data, error } = await supabase.from("shipped_prizes").upsert(payload, { onConflict: "id" }).select("id, gift_status").single();
+        const { data, error } = await supabase
+          .from("shipped_prizes")
+          .update({
+            gift_status: nextStatus,
+          })
+          .eq("id", bill.id)
+          .select()
+          .maybeSingle();
 
         if (!error && data) {
-          setStatuses((prev) => ({
-            ...prev,
-            [bill.id]: data.gift_status,
-          }));
+          setBills((prev) =>
+            prev.map((item) =>
+              item.id === bill.id
+                ? {
+                    ...item,
+                    ...data,
+                  }
+                : item,
+            ),
+          );
         } else if (error) {
           console.error("❌ Lỗi cập nhật trạng thái quà gửi:", error);
+
           alert(`Không thể cập nhật trạng thái:\n${error?.message || "Lỗi không xác định"}`);
         }
       }
     }
 
-    setSwipeState({ id: null, x: 0, startX: 0, startY: 0, dragging: false });
+    setSwipeState({
+      id: null,
+      x: 0,
+      startX: 0,
+      startY: 0,
+      dragging: false,
+    });
   };
 
   return (
@@ -221,6 +231,7 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
                   padding: "10px",
                   border: "1px solid #333",
                   transform: `translateX(${x}px)`,
+                  margin: "10px auto",
                 }}
               >
                 {activeTab === "first" ? (
@@ -228,7 +239,7 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
                     <div className="row">👤 {bill.customer_name || ""}</div>
 
                     {items.map((item, index) => {
-                      const giftName = String(item?.text || "").trim();
+                      const giftName = String(item?.name || item?.text || "").trim();
                       const quantity = Number(item?.quantity);
 
                       if (!giftName) return null;
@@ -241,6 +252,7 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
                     })}
 
                     <div className="row">📞 {bill.phone || ""}</div>
+
                     <div className="row">📍 {bill.address || ""}</div>
 
                     {bill.note && <div className="row">Note: {bill.note}</div>}
@@ -252,7 +264,7 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
                     </div>
 
                     {items.map((item, index) => {
-                      const giftName = String(item?.text || "").trim();
+                      const giftName = String(item?.name || item?.text || "").trim();
                       const quantity = Number(item?.quantity);
 
                       if (!giftName) return null;
@@ -275,7 +287,7 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
                     </div>
 
                     {items.map((item, index) => {
-                      const giftName = String(item?.text || "").trim();
+                      const giftName = String(item?.name || item?.text || "").trim();
                       const quantity = Number(item?.quantity);
 
                       if (!giftName) return null;
@@ -287,7 +299,7 @@ export default function ShippedPrizes({ searchTerm = "", savedData = null, onCou
                       );
                     })}
 
-                    <div className="row">🚚 Ngày gửi: {formatDate(bill.created_at)}</div>
+                    <div className="row">🚚 Ngày gửi: {formatDate(bill.created_at || bill.date)}</div>
                   </>
                 )}
               </div>

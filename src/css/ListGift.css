@@ -67,6 +67,7 @@
   cursor: pointer;
   font-size: 13px;
   transition: all 0.3s ease;
+  text-transform: capitalize;
 }
 
 .lg-tab-basic-active {
@@ -111,6 +112,7 @@
   padding: 10px 14px;
   border-radius: 12px;
   cursor: pointer;
+  text-transform: none !important;
 }
 
 .lg-item-left {
@@ -185,3 +187,4 @@
   font-size: 13px;
   text-align: center;
 }
+.lg-empty{text-align: center;}

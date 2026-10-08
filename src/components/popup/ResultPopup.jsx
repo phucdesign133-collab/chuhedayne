@@ -262,11 +262,11 @@ export default function ResultPopup({ isOpen, onClose, result, code, onSpinAgain
           <div className="popup-footer result-popup-footer">
             <div className="popup-inline result-popup-actions">
               <button type="button" className="popup-submit result-popup-action-btn result-popup-primary" onClick={() => setShowStepLayout(true)}>
-                Đổi Quà Ngay
+                Đổi Quà Liền
               </button>
 
               <button type="button" className="popup-submit result-popup-action-btn result-popup-secondary" onClick={onSpinAgain}>
-                Quay tiếp
+                Quay Cái Nữa
               </button>
             </div>
           </div>

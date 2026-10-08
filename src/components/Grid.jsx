@@ -44,13 +44,27 @@ export default function Grid({ categoryIdOverride = null }) {
 
   const currentCategory = useMemo(() => {
     if (categoryId === "bills/gift-orders") return { id: "bills/gift-orders", name: "Đổi quà" };
+
     return allCategories.find((item) => item.id === categoryId);
   }, [allCategories, categoryId]);
 
   const currentCategoryLabel = currentCategory?.name || currentCategory?.title || "";
+
   const isPriceCategory = categoryId === "price-decoration" || categoryId === "price-party";
-  const isWarehouseCategory = ["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId);
+
+  const isWarehouseCategory = [
+    "costumes",
+    "electronic-equipment",
+    "manual-equipment",
+    "metal-frames",
+    "balloons",
+    "zip-bags",
+    "stamps",
+    "cake-set",
+  ].includes(categoryId);
+
   const isContentCategory = contentCategories.some((item) => item.id === categoryId);
+
   const isWarehouseGiftOrders = categoryId === "gift-orders";
   const isFinanceGiftOrders = categoryId === "bills/gift-orders";
   const isBillCategory = isWarehouseGiftOrders || isFinanceGiftOrders;
@@ -153,6 +167,7 @@ export default function Grid({ categoryIdOverride = null }) {
     const runner = String(booking?.runner || "").trim();
     const outS = Number(booking?.outs_price || 0);
     const received = !runner || runner.toLowerCase() === "phúc" ? bill : bill - outS;
+
     const rawDate = String(booking?.date || "").slice(0, 10);
     const parts = rawDate.split("-");
     const eventDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : rawDate;
@@ -175,6 +190,7 @@ export default function Grid({ categoryIdOverride = null }) {
       .trim();
 
     const customerPhone = normalizeCustomerPhone(booking?.customer_phone || "");
+
     const customerZalo = String(booking?.customer_zalo || "").trim();
 
     if (!customerName || (!customerPhone && !customerZalo)) return null;
@@ -208,9 +224,14 @@ export default function Grid({ categoryIdOverride = null }) {
 
     if (existingCustomer) {
       const currentHistory = Array.isArray(existingCustomer.history) ? [...existingCustomer.history] : [];
+
       const historyIndex = currentHistory.findIndex((item) => String(item?.booking_id || item?.id || "") === String(booking.id));
 
-      if (historyIndex >= 0) currentHistory[historyIndex] = { ...currentHistory[historyIndex], ...historyItem };
+      if (historyIndex >= 0)
+        currentHistory[historyIndex] = {
+          ...currentHistory[historyIndex],
+          ...historyItem,
+        };
       else currentHistory.push(historyItem);
 
       const { data, error } = await supabase.from("customer").update({ history: currentHistory }).eq("id", existingCustomer.id).select("*").single();
@@ -407,6 +428,37 @@ export default function Grid({ categoryIdOverride = null }) {
         return { success: true, data: result.data };
       }
 
+      if (categoryId === "shipped-prizes") {
+  const payload = {
+    ...(formData.id ? { id: formData.id } : {}),
+    customer_name: String(formData.customer_name || "").trim(),
+    phone: String(formData.phone || "").replace(/\D/g, ""),
+    address: String(formData.address || "").trim(),
+    items: Array.isArray(formData.items) ? formData.items : [],
+    note: String(formData.note || "").trim(),
+    gift_status: "pending",
+  };
+
+  const result = await supabase
+    .from("shipped_prizes")
+    .upsert(payload, { onConflict: "id" })
+    .select()
+    .maybeSingle();
+
+  if (result.error) throw result.error;
+
+  const savedResult = result.data || payload;
+
+  setSavedData(savedResult);
+  setIsPopupOpen(false);
+  setEditingData(null);
+
+  return {
+    success: true,
+    data: savedResult,
+  };
+}
+
       if (categoryId === "customer-info") {
         if (popupMode === "event") {
           if (!formData.id) throw new Error("Không xác định được khách hàng.");
@@ -481,7 +533,10 @@ export default function Grid({ categoryIdOverride = null }) {
               setEventIndex(null);
             }
 
-            return { success: true, data: result.data };
+            return {
+              success: true,
+              data: result.data,
+            };
           }
 
           const historyIndex = currentHistory.findIndex((item, index) => String(item.id || `history-${index}`) === String(eventIndex));
@@ -498,7 +553,10 @@ export default function Grid({ categoryIdOverride = null }) {
             tips: Number(event.tips) || 0,
           };
 
-          const payload = { history: currentHistory };
+          const payload = {
+            history: currentHistory,
+          };
+
           const result = await supabase.from("customer").update(payload).eq("id", formData.id).select().single();
 
           if (result.error) throw result.error;
@@ -518,7 +576,10 @@ export default function Grid({ categoryIdOverride = null }) {
             setEventIndex(null);
           }
 
-          return { success: true, data: result.data };
+          return {
+            success: true,
+            data: result.data,
+          };
         }
 
         const payload = {
@@ -567,7 +628,10 @@ export default function Grid({ categoryIdOverride = null }) {
         setIsPopupOpen(false);
         setEditingData(null);
 
-        return { success: true, data: result.data };
+        return {
+          success: true,
+          data: result.data,
+        };
       }
 
       if (categoryId === "calendar") {
@@ -601,11 +665,15 @@ export default function Grid({ categoryIdOverride = null }) {
         if (result.error) throw result.error;
 
         await syncCustomerFromBooking(result.data);
+
         setSavedData(result.data);
         setIsPopupOpen(false);
         setEditingData(null);
 
-        return { success: true, data: result.data };
+        return {
+          success: true,
+          data: result.data,
+        };
       }
 
       if (categoryId === "income") {
@@ -628,7 +696,10 @@ export default function Grid({ categoryIdOverride = null }) {
         setIsPopupOpen(false);
         setEditingData(null);
 
-        return { success: true, data: result.data };
+        return {
+          success: true,
+          data: result.data,
+        };
       }
 
       if (categoryId === "purchase") {
@@ -653,11 +724,19 @@ export default function Grid({ categoryIdOverride = null }) {
         setIsPopupOpen(false);
         setEditingData(null);
 
-        return { success: true, data: result.data };
+        return {
+          success: true,
+          data: result.data,
+        };
       }
 
       if (isWarehouseCategory) {
-        const payload = { ...formData, category: categoryId, images: prepareImages(formData.images) };
+        const payload = {
+          ...formData,
+          category: categoryId,
+          images: prepareImages(formData.images),
+        };
+
         let result;
 
         if (formData.id) result = await supabase.from("warehouse_items").update(payload).eq("id", formData.id).select().single();
@@ -669,7 +748,10 @@ export default function Grid({ categoryIdOverride = null }) {
         setIsPopupOpen(false);
         setEditingData(null);
 
-        return { success: true, data: result.data };
+        return {
+          success: true,
+          data: result.data,
+        };
       }
 
       if (isContentCategory) {
@@ -692,7 +774,10 @@ export default function Grid({ categoryIdOverride = null }) {
         setIsPopupOpen(false);
         setEditingData(null);
 
-        return { success: true, data: result.data };
+        return {
+          success: true,
+          data: result.data,
+        };
       }
 
       return { success: false };
@@ -757,7 +842,8 @@ export default function Grid({ categoryIdOverride = null }) {
     if (categoryId === "purchase")
       return <PurchaseManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
 
-    if (categoryId === "shipped-prizes") return <ShippedPrizes searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} />;
+    if (categoryId === "shipped-prizes")
+      return <ShippedPrizes searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;
 
     if (categoryId === "gift-codes")
       return <GiftCodeManager searchTerm={searchTerm} savedData={savedData} onCountChange={setItemCount} onEdit={handleEdit} />;

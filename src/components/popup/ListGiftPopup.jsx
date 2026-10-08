@@ -30,14 +30,14 @@ export default function ListGiftPopup({ isOpen, onClose, initialTab = "basic", b
 
         <div className="lg-tab-container">
           <button onClick={() => setActiveTab("basic")} className={`lg-tab-btn ${activeTab === "basic" ? "lg-tab-basic-active" : "lg-tab-inactive"}`}>
-            🎉 Vòng Quay Basic
+            Danh sách quà tặng
           </button>
 
           <button
             onClick={() => setActiveTab("pending")}
             className={`lg-tab-btn ${activeTab === "pending" ? "lg-tab-vip-active" : "lg-tab-inactive"}`}
           >
-            🎟️ Quà Đã Quay Trúng
+            Quà Đã Quay Trúng
           </button>
         </div>
 

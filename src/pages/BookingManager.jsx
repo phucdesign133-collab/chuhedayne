@@ -3,7 +3,6 @@ import { CalendarDays } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import Popup from "../components/popup/Popup";
 import "../css/Manager.css";
-import "../css/Tab.css";
 import "../css/BookingManager.css";
 
 export default function BookingManager({ searchTerm = "", savedData = null, onCountChange }) {

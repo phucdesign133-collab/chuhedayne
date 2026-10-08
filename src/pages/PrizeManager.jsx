@@ -5,11 +5,11 @@ import { fetchAllPrizesFromCloud } from "../datas/spinEngine";
 import { supabase } from "../components/utils/supabaseClient";
 
 import "../css/Manager.css";
-import "../css/Tab.css";
 
 export default function PrizeManager({ searchTerm = "", savedData = null, onCountChange, onEdit }) {
   const [prizes, setPrizes] = useState([]);
   const [activeTab, setActiveTab] = useState("first");
+  const [voucherSubTab, setVoucherSubTab] = useState("voucher");
 
   const [swipeState, setSwipeState] = useState({
     id: null,
@@ -90,19 +90,32 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
   }, [prizes, activeSearchTerm]);
 
   // ============================================================
-  // SORT
-  // TỒN KHO THẤP LÊN CAO
+  // SORT / TAB
   // ============================================================
 
   const sortedPrizes = useMemo(() => {
     const tabPrizes = filteredPrizes.filter((prize) => {
-      const isVoucher = String(prize.text || "")
-        .toLowerCase()
-        .includes("voucher");
+      const title = String(prize.text || "").toLowerCase();
+      const isVoucher = title.includes("voucher");
+      const isFragment = title.includes("mảnh");
       const quantity = Number(prize.quantity || 0);
 
-      if (isVoucher) {
-        return activeTab === "third";
+      // VOUCHER
+      if (activeTab === "third") {
+        if (voucherSubTab === "voucher") {
+          return isVoucher;
+        }
+
+        if (voucherSubTab === "fragment") {
+          return isFragment;
+        }
+
+        return false;
+      }
+
+      // Hai tab kho quà thường không lấy Voucher / Mảnh.
+      if (isVoucher || isFragment) {
+        return false;
       }
 
       if (activeTab === "first") {
@@ -129,7 +142,7 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
 
       return Number(a.quantity || 0) - Number(b.quantity || 0);
     });
-  }, [filteredPrizes, activeTab]);
+  }, [filteredPrizes, activeTab, voucherSubTab]);
 
   // ============================================================
   // COUNT
@@ -322,7 +335,7 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
   // ============================================================
 
   return (
-    <div className="manager">
+    <div className={`manager ${activeTab === "third" ? "has-sub-tabs" : ""}`}>
       <div className="tabs">
         <button type="button" className={`tab ${activeTab === "first" ? "active" : ""}`} onClick={() => setActiveTab("first")}>
           HIỆN CÓ
@@ -336,6 +349,19 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
           VOUCHER
         </button>
       </div>
+
+      {activeTab === "third" && (
+        <div className="sub-tabs">
+          <button type="button" className={`sub-tab ${voucherSubTab === "voucher" ? "active" : ""}`} onClick={() => setVoucherSubTab("voucher")}>
+            VOUCHER
+          </button>
+
+          <button type="button" className={`sub-tab ${voucherSubTab === "fragment" ? "active" : ""}`} onClick={() => setVoucherSubTab("fragment")}>
+            MẢNH
+          </button>
+        </div>
+      )}
+
       <div className="list">
         {sortedPrizes.length === 0 ? (
           <div className="empty">
@@ -346,8 +372,6 @@ export default function PrizeManager({ searchTerm = "", savedData = null, onCoun
           sortedPrizes.map((prize, index) => {
             const isSwiping = swipeState.id === prize.id;
             const swipeX = isSwiping ? swipeState.x : 0;
-
-            const quantity = Number(prize.quantity || 0);
 
             const firstImage = Array.isArray(prize.images) ? prize.images[0] || "" : typeof prize.images === "string" ? prize.images : "";
 

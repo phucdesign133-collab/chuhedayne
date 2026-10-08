@@ -25,7 +25,8 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
     if (categoryId === "income") return `${action} khoản thu`;
     if (categoryId === "purchase") return `${action} khoản mua`;
     if (categoryId === "shipped-prizes") return `${action} quà đã gửi`;
-    if (["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId)) return `${action} vật tư`;
+    if (["costumes", "electronic-equipment", "manual-equipment", "metal-frames", "balloons", "zip-bags", "stamps", "cake-set"].includes(categoryId))
+      return `${action} vật tư`;
     if (categoryId === "price-decoration") return `${action} giá trang trí`;
     if (categoryId === "price-party") return `${action} giá biểu diễn`;
     if (categoryId === "bills/gift-orders") return `${action} bill đổi quà`;
@@ -43,7 +44,7 @@ export default function Popup({ isOpen, onClose, onSave, categoryId, initialData
     if (categoryId === "income") return <IncomePopup onClose={onClose} onSave={onSave} initialData={initialData} />;
     if (categoryId === "purchase") return <PurchasePopup initialData={initialData} onSave={onSave} onClose={onClose} />;
     if (categoryId === "shipped-prizes") return <ShippedPrizesPopup onClose={onClose} onSave={onSave} initialData={initialData} />;
-    if (["balloons", "zip-bags", "stamps", "costumes"].includes(categoryId))
+    if (["costumes", "electronic-equipment", "manual-equipment", "metal-frames", "balloons", "zip-bags", "stamps", "cake-set"].includes(categoryId))
       return <WarehousePopup initialData={initialData} categoryId={categoryId} onSave={onSave} onClose={onClose} />;
     if (categoryId === "price-decoration" || categoryId === "price-party")
       return <PricePopup onClose={onClose} onSave={onSave} initialData={initialData} categoryId={categoryId} />;

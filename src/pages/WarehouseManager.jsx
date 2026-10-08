@@ -1,23 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  Pencil,
-  Trash2,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Pencil, Trash2, Image as ImageIcon } from "lucide-react";
 
 import { supabase } from "../components/utils/supabaseClient";
 import "../css/Manager.css";
+// import "../css/Tab.css";
 
-export default function WarehouseManager({
-  searchTerm = "",
-  categoryId,
-  savedData,
-  onCountChange,
-  onEdit,
-  onDelete,
-}) {
+export default function WarehouseManager({ searchTerm = "", categoryId, savedData, onCountChange, onEdit, onDelete }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("first");
+
+  const isReusableCategory = ["costumes", "electronic-equipment", "manual-equipment", "metal-frames"].includes(categoryId);
 
   // ============================================================
   // FORMAT NGÀY
@@ -53,10 +46,7 @@ export default function WarehouseManager({
   // ============================================================
 
   const getImages = (item) => {
-    if (
-      Array.isArray(item?.images) &&
-      item.images.length > 0
-    ) {
+    if (Array.isArray(item?.images) && item.images.length > 0) {
       return item.images.filter(Boolean);
     }
 
@@ -91,21 +81,11 @@ export default function WarehouseManager({
 
       if (error) throw error;
 
-      setItems(
-        Array.isArray(data) ? data : [],
-      );
+      setItems(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error(
-        "❌ Lỗi tải Warehouse:",
-        error,
-      );
+      console.error("❌ Lỗi tải Warehouse:", error);
 
-      alert(
-        `Không thể tải kho:\n${
-          error?.message ||
-          "Lỗi không xác định"
-        }`,
-      );
+      alert(`Không thể tải kho:\n${error?.message || "Lỗi không xác định"}`);
     } finally {
       setLoading(false);
     }
@@ -116,14 +96,19 @@ export default function WarehouseManager({
   }, [categoryId]);
 
   // ============================================================
+  // RESET TAB KHI ĐỔI CATEGORY
+  // ============================================================
+
+  useEffect(() => {
+    setActiveTab("first");
+  }, [categoryId]);
+
+  // ============================================================
   // ĐỒNG BỘ savedData
   // ============================================================
 
   useEffect(() => {
-    if (
-      !savedData ||
-      typeof savedData !== "object"
-    ) {
+    if (!savedData || typeof savedData !== "object") {
       return;
     }
 
@@ -132,16 +117,10 @@ export default function WarehouseManager({
     }
 
     setItems((prev) => {
-      const exists = prev.some(
-        (item) => item.id === savedData.id,
-      );
+      const exists = prev.some((item) => item.id === savedData.id);
 
       if (exists) {
-        return prev.map((item) =>
-          item.id === savedData.id
-            ? savedData
-            : item,
-        );
+        return prev.map((item) => (item.id === savedData.id ? savedData : item));
       }
 
       return [savedData, ...prev];
@@ -149,62 +128,56 @@ export default function WarehouseManager({
   }, [savedData, categoryId]);
 
   // ============================================================
-  // SEARCH
+  // SEARCH + TAB
   // ============================================================
 
-  const normalizedSearch = String(
-    searchTerm || "",
-  )
+  const normalizedSearch = String(searchTerm || "")
     .trim()
     .toLowerCase();
 
-  const filteredItems = items.filter(
-    (item) => {
-      if (!normalizedSearch) {
-        return true;
+  const filteredItems = items.filter((item) => {
+    const usageCount = Number(item.usage_count) || 0;
+
+    const breakEvenUsage = Number(item.break_even_usage) || 0;
+
+    const remainingBreakEven = Math.max(breakEvenUsage - usageCount, 0);
+
+    if (isReusableCategory) {
+      if (activeTab === "first" && remainingBreakEven <= 0) {
+        return false;
       }
 
-      const title = String(
-        item.title || "",
-      ).toLowerCase();
+      if (activeTab === "second" && remainingBreakEven > 0) {
+        return false;
+      }
+    }
 
-      const unit = String(
-        item.unit || "",
-      ).toLowerCase();
+    if (!normalizedSearch) {
+      return true;
+    }
 
-      const source = String(
-        item.source || "",
-      ).toLowerCase();
+    const title = String(item.title || "").toLowerCase();
 
-      const note = String(
-        item.note || "",
-      ).toLowerCase();
+    const unit = String(item.unit || "").toLowerCase();
 
-      return (
-        title.includes(normalizedSearch) ||
-        unit.includes(normalizedSearch) ||
-        source.includes(normalizedSearch) ||
-        note.includes(normalizedSearch)
-      );
-    },
-  );
+    const source = String(item.source || "").toLowerCase();
+
+    const note = String(item.note || "").toLowerCase();
+
+    return (
+      title.includes(normalizedSearch) || unit.includes(normalizedSearch) || source.includes(normalizedSearch) || note.includes(normalizedSearch)
+    );
+  });
 
   // ============================================================
   // COUNT
   // ============================================================
 
   useEffect(() => {
-    if (
-      typeof onCountChange === "function"
-    ) {
-      onCountChange(
-        filteredItems.length,
-      );
+    if (typeof onCountChange === "function") {
+      onCountChange(filteredItems.length);
     }
-  }, [
-    filteredItems.length,
-    onCountChange,
-  ]);
+  }, [filteredItems.length, onCountChange]);
 
   // ============================================================
   // SỬA
@@ -223,41 +196,24 @@ export default function WarehouseManager({
   const handleDelete = async (item) => {
     if (!item?.id) return;
 
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa "${
-        item.title || "vật tư này"
-      }" không?`,
-    );
+    const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa "${item.title || "vật tư này"}" không?`);
 
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from("warehouse_items")
-        .delete()
-        .eq("id", item.id);
+      const { error } = await supabase.from("warehouse_items").delete().eq("id", item.id);
 
       if (error) throw error;
 
       await fetchItems();
 
-      if (
-        typeof onDelete === "function"
-      ) {
+      if (typeof onDelete === "function") {
         onDelete(item);
       }
     } catch (error) {
-      console.error(
-        "❌ Lỗi xóa Warehouse:",
-        error,
-      );
+      console.error("❌ Lỗi xóa Warehouse:", error);
 
-      alert(
-        `Không thể xóa vật tư:\n${
-          error?.message ||
-          "Lỗi không xác định"
-        }`,
-      );
+      alert(`Không thể xóa vật tư:\n${error?.message || "Lỗi không xác định"}`);
     }
   };
 
@@ -267,296 +223,197 @@ export default function WarehouseManager({
 
   return (
     <div className="manager">
-      <div className="list">
+      {isReusableCategory && (
+        <div className="tabs">
+          <button type="button" className={`tab ${activeTab === "first" ? "active" : ""}`} onClick={() => setActiveTab("first")}>
+            CHƯA HÒA VỐN
+          </button>
 
+          <button type="button" className={`tab ${activeTab === "second" ? "active" : ""}`} onClick={() => setActiveTab("second")}>
+            ĐÃ HÒA VỐN
+          </button>
+        </div>
+      )}
+
+      <div className="list">
         {loading ? (
           <div className="empty">
-            <span>
-              Đang tải kho...
-            </span>
+            <span>Đang tải kho...</span>
           </div>
-        ) : filteredItems.length ===
-          0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="empty">
             <ImageIcon size={32} />
 
-            <span>
-              Không có vật tư phù hợp
-            </span>
+            <span>Không có vật tư phù hợp</span>
           </div>
         ) : (
-          filteredItems.map(
-            (item, index) => {
-              const images =
-                getImages(item);
+          filteredItems.map((item, index) => {
+            const images = getImages(item);
 
-              const firstImage =
-                images[0] || "";
+            const firstImage = images[0] || "";
 
-              const quantity =
-                Number(item.quantity) ||
-                0;
+            const quantity = Number(item.quantity) || 0;
 
-              const unitPrice =
-                Number(item.unit_price) ||
-                0;
+            const unitPrice = Number(item.unit_price) || 0;
 
-              const usageCount =
-                Number(item.usage_count) ||
-                0;
+            const usageCount = Number(item.usage_count) || 0;
 
-              const breakEvenUsage =
-                Number(
-                  item.break_even_usage,
-                ) || 0;
+            const breakEvenUsage = Number(item.break_even_usage) || 0;
 
-              const costPerUse =
-                usageCount > 0
-                  ? Math.round(
-                      unitPrice /
-                        usageCount,
-                    )
-                  : unitPrice;
+            const costPerUse = usageCount > 0 ? Math.round(unitPrice / usageCount) : unitPrice;
 
-              const remainingBreakEven =
-                Math.max(
-                  breakEvenUsage -
-                    usageCount,
-                  0,
-                );
+            const remainingBreakEven = Math.max(breakEvenUsage - usageCount, 0);
 
-              return (
-                <div
-                  className="card"
-                  key={
-                    item.id ||
-                    `warehouse-${index}`
-                  }
-                >
-                  <div className="card-main">
+            return (
+              <div className="card" key={item.id || `warehouse-${index}`}>
+                <div className="card-main">
+                  <div className="info">
+                    {/* TÊN */}
+                    <div className="row name">{item.title || "Vật tư"}</div>
 
-                    <div className="info">
+                    {/* SỐ LƯỢNG */}
+                    {item.quantity !== null && item.quantity !== undefined && item.quantity !== "" && (
+                      <div className="row">
+                        <span>Số lượng: </span>
 
-                      {/* TÊN */}
-                      <div className="row name">
-                        {item.title ||
-                          "Vật tư"}
+                        <strong>
+                          {quantity.toLocaleString("vi-VN")} {item.unit || ""}
+                        </strong>
                       </div>
+                    )}
 
-                      {/* SỐ LƯỢNG */}
-                      {item.quantity !==
-                        null &&
-                        item.quantity !==
-                          undefined &&
-                        item.quantity !==
-                          "" && (
-                          <div className="row">
-                            <span>
-                              Số lượng:{" "}
-                            </span>
+                    {/* GIÁ NHẬP */}
+                    {item.unit_price > 0 && (
+                      <div className="row">
+                        <span>Giá nhập: </span>
 
-                            <strong>
-                              {quantity.toLocaleString(
-                                "vi-VN",
-                              )}{" "}
-                              {item.unit ||
-                                ""}
-                            </strong>
-                          </div>
-                        )}
+                        <strong>{formatMoney(unitPrice)}đ</strong>
+                      </div>
+                    )}
 
-                      {/* GIÁ NHẬP */}
-                      {item.unit_price >
-                        0 && (
-                        <div className="row">
+                    {/* NGUỒN */}
+                    {item.source && (
+                      <div className="row">
+                        <span>Nguồn: </span>
+
+                        <strong>{item.source}</strong>
+                      </div>
+                    )}
+
+                    {/* SỐ LẦN SỬ DỤNG */}
+                    {usageCount > 0 && (
+                      <div className="row">
+                        <span>Đã sử dụng: </span>
+
+                        <strong>
+                          {usageCount} lần{" "}
                           <span>
-                            Giá nhập:{" "}
+                            (~
+                            {formatMoney(costPerUse)}
+                            đ/lần)
                           </span>
+                        </strong>
+                      </div>
+                    )}
 
-                          <strong>
-                            {formatMoney(
-                              unitPrice,
-                            )}
-                            đ
-                          </strong>
-                        </div>
-                      )}
+                    {/* TRƯỜNG HỢP CHƯA SỬ DỤNG */}
+                    {usageCount === 0 && unitPrice > 0 && breakEvenUsage > 0 && (
+                      <div className="row">
+                        <span>Đã sử dụng: </span>
 
-                      {/* NGUỒN */}
-                      {item.source && (
-                        <div className="row">
-                          <span>
-                            Nguồn:{" "}
-                          </span>
+                        <strong>
+                          0 lần ({formatMoney(unitPrice)}
+                          đ/lần)
+                        </strong>
+                      </div>
+                    )}
 
-                          <strong>
-                            {item.source}
-                          </strong>
-                        </div>
-                      )}
+                    {/* HÒA VỐN */}
+                    {breakEvenUsage > 0 && (
+                      <div className="row">
+                        <span>Hòa vốn: </span>
 
-                      {/* SỐ LẦN SỬ DỤNG */}
-                      {usageCount > 0 && (
-                        <div className="row">
-                          <span>
-                            Đã sử dụng:{" "}
-                          </span>
+                        <strong>còn {remainingBreakEven} lần</strong>
+                      </div>
+                    )}
 
-                          <strong>
-                            {usageCount} lần{" "}
-                            <span>
-                              (~
-                              {formatMoney(
-                                costPerUse,
-                              )}
-                              đ/lần)
-                            </span>
-                          </strong>
-                        </div>
-                      )}
+                    {/* NGÀY */}
+                    {item.date && (
+                      <div className="row">
+                        <span>Ngày nhập: </span>
 
-                      {/* TRƯỜNG HỢP CHƯA SỬ DỤNG */}
-                      {usageCount === 0 &&
-                        unitPrice > 0 &&
-                        breakEvenUsage >
-                          0 && (
-                          <div className="row">
-                            <span>
-                              Đã sử dụng:{" "}
-                            </span>
+                        <strong>{formatDate(item.date)}</strong>
+                      </div>
+                    )}
 
-                            <strong>
-                              0 lần (
-                              {formatMoney(
-                                unitPrice,
-                              )}
-                              đ/lần)
-                            </strong>
-                          </div>
-                        )}
+                    {/* GHI CHÚ */}
+                    {item.note && (
+                      <div className="row">
+                        <span>Ghi chú: </span>
 
-                      {/* HÒA VỐN */}
-                      {breakEvenUsage >
-                        0 && (
-                        <div className="row">
-                          <span>
-                            Hòa vốn:{" "}
-                          </span>
+                        <strong>
+                          {String(item.note)
+                            .split("-x")
+                            .map((part, partIndex) => {
+                              const value = part.trim();
 
-                          <strong>
-                            còn{" "}
-                            {
-                              remainingBreakEven
-                            }{" "}
-                            lần
-                          </strong>
-                        </div>
-                      )}
+                              if (!value) return null;
 
-                      {/* NGÀY */}
-                      {item.date && (
-                        <div className="row">
-                          <span>
-                            Ngày nhập:{" "}
-                          </span>
-
-                          <strong>
-                            {formatDate(
-                              item.date,
-                            )}
-                          </strong>
-                        </div>
-                      )}
-
-                      {/* GHI CHÚ */}
-                      {item.note && (
-                        <div className="row">
-                          <span>
-                            Ghi chú:{" "}
-                          </span>
-
-                          <strong>
-                            {item.note}
-                          </strong>
-                        </div>
-                      )}
-
-                    </div>
-
-                    {/* ẢNH */}
-
-                    <div className="image-box">
-                      {firstImage ? (
-                        <>
-                          <img
-                            src={
-                              firstImage
-                            }
-                            alt={
-                              item.title ||
-                              "Warehouse"
-                            }
-                            className="image"
-                          />
-
-                          {images.length >
-                            0 && (
-                            <span className="image-count">
-                              1 /{" "}
-                              {
-                                images.length
+                              if (partIndex === 0) {
+                                return <React.Fragment key={partIndex}>{value}</React.Fragment>;
                               }
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <div className="image-empty">
-                          <ImageIcon
-                            size={28}
-                          />
-                        </div>
-                      )}
-                    </div>
 
+                              return (
+                                <div
+                                  key={partIndex}
+                                  style={{
+                                    display: "list-item",
+                                    marginLeft: "20px",
+                                  }}
+                                >
+                                  {value}
+                                </div>
+                              );
+                            })}
+                        </strong>
+                      </div>
+                    )}
                   </div>
 
-                  {/* FOOTER */}
+                  {/* ẢNH */}
 
-                  <div className="card-footer">
+                  <div className="image-box">
+                    {firstImage ? (
+                      <>
+                        <img src={firstImage} alt={item.title || "Warehouse"} className="image" />
 
-                    <button
-                      type="button"
-                      className="action-btn edit-btn"
-                      onClick={() =>
-                        handleEdit(
-                          item,
-                        )
-                      }
-                    >
-                      <Pencil size={16} />
-                      Sửa
-                    </button>
-
-                    <button
-                      type="button"
-                      className="action-btn delete-btn"
-                      onClick={() =>
-                        handleDelete(
-                          item,
-                        )
-                      }
-                    >
-                      <Trash2 size={16} />
-                      Xóa
-                    </button>
-
+                        {images.length > 0 && <span className="image-count">1 / {images.length}</span>}
+                      </>
+                    ) : (
+                      <div className="image-empty">
+                        <ImageIcon size={28} />
+                      </div>
+                    )}
                   </div>
                 </div>
-              );
-            },
-          )
-        )}
 
+                {/* FOOTER */}
+
+                <div className="card-footer">
+                  <button type="button" className="action-btn edit-btn" onClick={() => handleEdit(item)}>
+                    <Pencil size={16} />
+                    Sửa
+                  </button>
+
+                  <button type="button" className="action-btn delete-btn" onClick={() => handleDelete(item)}>
+                    <Trash2 size={16} />
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
