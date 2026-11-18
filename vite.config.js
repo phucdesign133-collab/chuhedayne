@@ -4,6 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/',
+  server: {
+    allowedHosts: ['sb-5jmz29ky7g95.vercel.run']
+  },
   plugins: [
     react(),
     VitePWA({
