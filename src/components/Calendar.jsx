@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { supabase } from "./utils/supabaseClient";
 import "../css/Calendar.css";
@@ -6,6 +6,36 @@ import "../css/Calendar.css";
 const MONTH_NAMES = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
 
 const DAY_NAMES = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+
+const getDateString = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const getBookingDateString = (item) => String(item?.date || "").slice(0, 10);
+
+const getVirtualBookingsForMonth = (date, realBookings = []) => {
+  const bookings = [];
+  const targetYear = date.getFullYear();
+  const targetMonth = date.getMonth();
+  const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const currentDay = new Date(targetYear, targetMonth, day);
+    const dayOfWeek = currentDay.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) continue;
+
+    const dateString = getDateString(currentDay);
+    const hasRealBooking = realBookings.some((item) => getBookingDateString(item) === dateString);
+    if (hasRealBooking) continue;
+
+    bookings.push({
+      id: `virtual-${dateString}`,
+      date: dateString,
+      time_slot: "1700-2030",
+      staff_note: "Ít",
+      isVirtual: true,
+    });
+  }
+
+  return bookings;
+};
 
 const STAFF_STATUS_CONFIG = {
   Nhiều: {
@@ -27,15 +57,11 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [monthBookings, setMonthBookings] = useState([]);
   const [virtualBookings, setVirtualBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [showTasks, setShowTasks] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showTasks, setShowTasks] = useState(true);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
-  const getDateString = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-
-  const getBookingDateString = (item) => String(item?.date || "").slice(0, 10);
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
@@ -52,50 +78,8 @@ export default function Calendar() {
     return value;
   };
 
-  const getVirtualBookingsForMonth = (date, realBookings = []) => {
-    const bookings = [];
-    const targetYear = date.getFullYear();
-    const targetMonth = date.getMonth();
-    const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const currentDay = new Date(targetYear, targetMonth, day);
-      const dayOfWeek = currentDay.getDay();
-
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) continue;
-
-      const dateString = getDateString(currentDay);
-      const hasRealBooking = realBookings.some((item) => getBookingDateString(item) === dateString);
-
-      if (hasRealBooking) continue;
-
-      bookings.push({
-        id: `virtual-${dateString}`,
-        date: dateString,
-        time_slot: "1700-2030",
-        staff_note: "Ít",
-        isVirtual: true,
-      });
-    }
-
-    return bookings;
-  };
-
-  const generateVirtualBookings = (realBookings = []) => {
-    const now = new Date();
-    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
-    const currentVirtualBookings = getVirtualBookingsForMonth(currentMonth, realBookings);
-    const previousVirtualBookings = getVirtualBookingsForMonth(previousMonth, realBookings);
-
-    setVirtualBookings([...previousVirtualBookings, ...currentVirtualBookings]);
-  };
-
-  const fetchMonthBookings = async () => {
+  const fetchMonthBookings = useCallback(async () => {
     try {
-      setLoading(true);
-
       const visibleFirstDay = new Date(year, month, 1);
       const visibleLastDay = new Date(year, month + 1, 0);
 
@@ -119,32 +103,39 @@ export default function Calendar() {
       });
 
       setMonthBookings(visibleBookings);
-      generateVirtualBookings(allBookings);
+
+      const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const currentVirtualBookings = getVirtualBookingsForMonth(currentMonth, allBookings);
+      const previousVirtualBookings = getVirtualBookingsForMonth(previousMonth, allBookings);
+      setVirtualBookings([...previousVirtualBookings, ...currentVirtualBookings]);
     } catch (err) {
       console.error("Lỗi tải lịch booking:", err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [year, month]);
 
   useEffect(() => {
-    fetchMonthBookings();
+    const initialFetch = window.setTimeout(fetchMonthBookings, 0);
+    const interval = window.setInterval(fetchMonthBookings, 60000);
 
-    const interval = setInterval(() => {
-      fetchMonthBookings();
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [currentDate]);
+    return () => {
+      window.clearTimeout(initialFetch);
+      window.clearInterval(interval);
+    };
+  }, [fetchMonthBookings]);
 
   const handlePrevMonth = () => {
     const date = new Date(year, month - 1, 1);
+    setLoading(true);
     setCurrentDate(date);
     setSelectedDate(date);
   };
 
   const handleNextMonth = () => {
     const date = new Date(year, month + 1, 1);
+    setLoading(true);
     setCurrentDate(date);
     setSelectedDate(date);
   };
@@ -153,6 +144,7 @@ export default function Calendar() {
     const differentMonth = date.getMonth() !== month || date.getFullYear() !== year;
 
     if (differentMonth) {
+      setLoading(true);
       setCurrentDate(new Date(date.getFullYear(), date.getMonth(), 1));
     }
 
@@ -161,7 +153,8 @@ export default function Calendar() {
 
   const firstDayIndex = new Date(year, month, 1).getDay();
 
-  const calendarCells = Array.from({ length: 35 }, (_, index) => {
+  const calendarCellCount = Math.ceil((firstDayIndex + new Date(year, month + 1, 0).getDate()) / 7) * 7;
+  const calendarCells = Array.from({ length: calendarCellCount }, (_, index) => {
     const date = new Date(year, month, index - firstDayIndex + 1);
     const dateString = getDateString(date);
 
@@ -215,45 +208,49 @@ export default function Calendar() {
     .sort((a, b) => a.sortTime - b.sortTime);
 
   return (
-    <div className="calendar-module-container">
+    <section className="calendar-module-container" aria-label="Lịch tập trung theo tháng">
       <div className="calendar-header-nav">
-        <div className="calendar-month-label">
-          {MONTH_NAMES[month]}/{year}
+        <div>
+          <p className="calendar-section-eyebrow">LỊCH THEO THÁNG</p>
+          <h3 className="calendar-month-label">{MONTH_NAMES[month]} {year}</h3>
         </div>
-
-        <div className="calendar-nav-buttons">
-          <button className="cal-nav-btn" onClick={handlePrevMonth}>
-            <ChevronLeft size={18} />
+        <div className="calendar-nav-buttons" aria-label="Chọn tháng">
+          <button className="cal-nav-btn" type="button" onClick={handlePrevMonth} aria-label="Tháng trước">
+            <ChevronLeft size={17} />
           </button>
-
-          <button className="cal-nav-btn" onClick={handleNextMonth}>
-            <ChevronRight size={18} />
+          <button className="cal-nav-btn" type="button" onClick={handleNextMonth} aria-label="Tháng sau">
+            <ChevronRight size={17} />
           </button>
         </div>
       </div>
 
-      <div className="calendar-weekdays-grid">
-        {DAY_NAMES.map((day) => (
-          <div key={day} className="cal-weekday-item">
-            {day}
-          </div>
-        ))}
+      <div className="calendar-weekdays-grid" aria-hidden="true">
+        {DAY_NAMES.map((day) => <div key={day} className="cal-weekday-item">{day}</div>)}
       </div>
 
-      <div className="calendar-days-grid">
+      <div className="calendar-days-grid" aria-label={`${MONTH_NAMES[month]} ${year}`}>
         {calendarCells.map((cell) => {
           const isSelected = selectedDate.toDateString() === cell.date.toDateString();
+          const dateLabel = cell.date.toLocaleDateString("vi-VN", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+          const statusLabel = cell.staffStatuses.length ? `, ${cell.staffStatuses.join(", ")}` : "";
 
           return (
-            <div
+            <button
               key={cell.id}
+              type="button"
               className={["cal-day-cell", !cell.isCurrentMonth && "other-month", isSelected && "selected"].filter(Boolean).join(" ")}
               onClick={() => handleSelectDate(cell.date)}
+              aria-label={`${dateLabel}${statusLabel}`}
+              aria-pressed={isSelected}
             >
               <span className="cal-day-num">{cell.dayNumber}</span>
-
               {cell.staffStatuses.length > 0 && (
-                <span className="cal-event-dots">
+                <span className="cal-event-dots" aria-hidden="true">
                   {cell.staffStatuses.map((status) => (
                     <span
                       key={status}
@@ -262,34 +259,46 @@ export default function Calendar() {
                   ))}
                 </span>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
 
-      <div className="calendar-tasks-section">
-        <button className="calendar-tasks-header" onClick={() => setShowTasks((prev) => !prev)}>
-          <div className="calendar-tasks-title-group">
-            <h3>Khung giờ tập trung ({formatDisplayDate(selectedDateStr)})</h3>
-          </div>
+      <div className="calendar-legend" aria-label="Chú giải tình trạng nhân sự">
+        <span><i className="legend-dot staff-many" /> Nhiều</span>
+        <span><i className="legend-dot staff-few" /> Ít</span>
+        <span><i className="legend-dot staff-full" /> Hết nhân sự</span>
+      </div>
 
-          <ChevronDown size={18} className={`calendar-collapse-icon ${showTasks ? "open" : ""}`} />
+      <div className="calendar-tasks-section">
+        <button
+          className="calendar-tasks-header"
+          type="button"
+          onClick={() => setShowTasks((prev) => !prev)}
+          aria-expanded={showTasks}
+        >
+          <span className="calendar-tasks-title-group">
+            <span className="calendar-selected-day-label">NGÀY ĐÃ CHỌN</span>
+            <span className="calendar-tasks-title">Khung giờ tập trung</span>
+            <span className="calendar-selected-date">{formatDisplayDate(selectedDateStr)}</span>
+          </span>
+          <ChevronDown size={18} className={`calendar-collapse-icon ${showTasks ? "open" : ""}`} aria-hidden="true" />
         </button>
 
         {showTasks && (
-          <div className="calendar-tasks-content">
+          <div className="calendar-tasks-content" aria-live="polite">
             {loading ? (
-              <div className="calendar-loading-text">Đang tải lịch trình...</div>
+              <div className="calendar-no-tasks">Đang cập nhật lịch tập trung...</div>
             ) : currentDayStatusGroups.length === 0 ? (
-              <div className="calendar-no-tasks">Ngày này chưa có lịch ghi nhận.</div>
+              <div className="calendar-no-tasks">Chưa có lịch tập trung trong ngày này.</div>
             ) : (
               <div className="calendar-staff-summary-list">
                 {currentDayStatusGroups.map((group) => (
                   <div key={group.status} className="calendar-staff-summary">
                     <span className="calendar-staff-summary-row">
-                      <span className="calendar-summary-dot">{group.dot}</span>
-                      <span>{group.label}</span>
-                      <span className="calendar-staff-summary-time">(tập trung {group.timeSlots.join(" | ")})</span>
+                      <i className={`calendar-summary-dot ${group.status === "Nhiều" ? "staff-many" : group.status === "Ít" ? "staff-few" : "staff-full"}`} aria-hidden="true" />
+                      <span className="calendar-summary-label">{group.label}</span>
+                      <span className="calendar-staff-summary-time">Tập trung {group.timeSlots.join(" | ")}</span>
                     </span>
                   </div>
                 ))}
@@ -298,6 +307,6 @@ export default function Calendar() {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
