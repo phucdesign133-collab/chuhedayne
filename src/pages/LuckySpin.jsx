@@ -1,6 +1,6 @@
 // src/components/LuckySpinParty.jsx
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 import { supabase } from "../components/utils/supabaseClient";
 import { fetchPrizesFromCloud, generateCurrentRound } from "../datas/spinEngine";
 import { createSpinResult, addPendingGift, consumeVipSlot } from "../datas/spinResult";
@@ -31,7 +31,7 @@ function VipRealtimeNotification({ campaignCode, onVipLocked }) {
     setNotificationPreview(queueRef.current.slice(0, 2));
   }, []);
 
-  const processQueue = () => {
+  const processQueue = useCallback(() => {
     if (isProcessingQueueRef.current) {
       return;
     }
@@ -65,9 +65,11 @@ function VipRealtimeNotification({ campaignCode, onVipLocked }) {
 
       processQueueRef.current?.();
     }, VIP_EVENT_DURATION);
-  };
+  }, [updatePreview]);
 
-  processQueueRef.current = processQueue;
+  useEffect(() => {
+    processQueueRef.current = processQueue;
+  }, [processQueue]);
 
   useEffect(() => {
     if (!campaignCode) {
@@ -212,7 +214,6 @@ function VipRealtimeNotification({ campaignCode, onVipLocked }) {
 }
 
 export default function LuckySpinParty() {
-  const navigate = useNavigate();
   const [showListPopup, setShowListPopup] = useState(false);
   const [listPopupTab, setListPopupTab] = useState("basic");
   const [isVipUnlocked, setIsVipUnlocked] = useState(false);
@@ -229,11 +230,79 @@ export default function LuckySpinParty() {
 
   const canvasRef = useRef(null);
   const angleRef = useRef(0);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const audioContextRef = useRef(null);
+  const spinMusicTimerRef = useRef(null);
+  const melodyIndexRef = useRef(0);
+
+  const playSpinNote = useCallback(() => {
+    const audioContext = audioContextRef.current;
+
+    if (!audioContext || audioContext.state === "closed") return;
+
+    const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 698.46];
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(melody[melodyIndexRef.current % melody.length], now);
+    melodyIndexRef.current += 1;
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.035, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.19);
+  }, []);
+
+  const startSpinMusic = useCallback(() => {
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextConstructor) return;
+
+    if (spinMusicTimerRef.current !== null) {
+      window.clearInterval(spinMusicTimerRef.current);
+    }
+
+    if (!audioContextRef.current || audioContextRef.current.state === "closed") {
+      audioContextRef.current = new AudioContextConstructor();
+    }
+
+    void audioContextRef.current.resume();
+    melodyIndexRef.current = 0;
+    playSpinNote();
+    spinMusicTimerRef.current = window.setInterval(playSpinNote, 220);
+  }, [playSpinNote]);
+
+  const stopSpinMusic = useCallback(() => {
+    if (spinMusicTimerRef.current !== null) {
+      window.clearInterval(spinMusicTimerRef.current);
+      spinMusicTimerRef.current = null;
+    }
+
+    if (audioContextRef.current?.state === "running") {
+      void audioContextRef.current.suspend();
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopSpinMusic();
+
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+        void audioContextRef.current.close();
+      }
+    };
+  }, [stopSpinMusic]);
 
   const [allPrizes, setAllPrizes] = useState([]);
   const [basicRound, setBasicRound] = useState([]);
   const [vipRound, setVipRound] = useState([]);
-  const [lastRoundTime, setLastRoundTime] = useState(Date.now());
+  const [lastRoundTime, setLastRoundTime] = useState(0);
 
   useEffect(() => {
     async function initData() {
@@ -242,6 +311,7 @@ export default function LuckySpinParty() {
       setAllPrizes(prizes);
       setBasicRound(generateCurrentRound(prizes, "basic"));
       setVipRound(generateCurrentRound(prizes, "vip"));
+      setLastRoundTime(Date.now());
     }
 
     initData();
@@ -310,7 +380,10 @@ export default function LuckySpinParty() {
 
   const isPremiumMode = isVipUnlocked;
 
-  const currentPrizes = isPremiumMode ? (vipRound.length > 0 ? vipRound : []) : basicRound.length > 0 ? basicRound : [];
+  const currentPrizes = useMemo(
+    () => (isPremiumMode ? (vipRound.length > 0 ? vipRound : []) : basicRound.length > 0 ? basicRound : []),
+    [isPremiumMode, vipRound, basicRound],
+  );
 
   const handleOpenGiftList = () => {
     setListPopupTab("basic");
@@ -332,7 +405,7 @@ export default function LuckySpinParty() {
     setActiveVipCampaign(null);
   }, []);
 
-  const drawWheel = (currentAngle) => {
+  const drawWheel = useCallback((currentAngle) => {
     const canvas = canvasRef.current;
 
     if (!canvas || currentPrizes.length === 0) return;
@@ -386,13 +459,13 @@ export default function LuckySpinParty() {
     ctx.textBaseline = "middle";
 
     ctx.fillText("🎁", center, center + 2);
-  };
+  }, [canvasSize, currentPrizes]);
 
   useEffect(() => {
     if (currentPrizes.length > 0) {
       drawWheel(angleRef.current);
     }
-  }, [canvasSize, isPremiumMode, currentPrizes]);
+  }, [drawWheel, currentPrizes.length]);
 
   const calculateFinalPrize = async () => {
     if (currentPrizes.length === 0) return null;
@@ -438,6 +511,7 @@ export default function LuckySpinParty() {
     }
 
     setIsSpinning(true);
+    if (isSoundEnabled) startSpinMusic();
     setPrizeResult(null);
     setGeneratedCode("");
 
@@ -453,6 +527,7 @@ export default function LuckySpinParty() {
 
       if (spinTime >= spinTimeTotal) {
         setIsSpinning(false);
+        stopSpinMusic();
 
         calculateFinalPrize()
           .then((spinResult) => {
@@ -477,6 +552,17 @@ export default function LuckySpinParty() {
     };
 
     animate();
+  };
+
+  const toggleSpinSound = () => {
+    const nextSoundState = !isSoundEnabled;
+    setIsSoundEnabled(nextSoundState);
+
+    if (nextSoundState && isSpinning) {
+      startSpinMusic();
+    } else if (!nextSoundState) {
+      stopSpinMusic();
+    }
   };
 
   const handleOpenGiftImage = (imageSource, fallbackIcon) => {
@@ -508,14 +594,15 @@ export default function LuckySpinParty() {
         <div className={`wheel-wrapper ${isPremiumMode ? "wheel-wrapper-premium" : ""}`}>
           <div className={`pointer ${isPremiumMode ? "pointer-premium" : ""} ${isMobile ? "pointer-mobile" : "pointer-desktop"}`}></div>
 
-          <div className="wheel-container">
-            <div className={`wheel-lights-container ${isSpinning ? "spinning" : ""}`}>
+          <div className={`wheel-container ${isSpinning ? "wheel-container-spinning" : ""}`}>
+            <div className={`wheel-lights-container ${isSpinning ? "spinning" : ""}`} aria-hidden="true">
               {[...Array(20)].map((_, i) => (
                 <div
                   key={i}
                   className="light-dot"
                   style={{
                     transform: `rotate(${i * 18}deg) translateY(-${canvasSize / 2}px)`,
+                    animationDelay: `${i * 35}ms`,
                   }}
                 ></div>
               ))}
@@ -530,6 +617,17 @@ export default function LuckySpinParty() {
             className={`spin-button ${isSpinning ? "spin-button-disabled" : ""} ${isMobile ? "spin-button-mobile" : "spin-button-desktop"}`}
           >
             {isSpinning ? "🌟 ĐANG XOAY..." : isPremiumMode ? "QUAY NGAY " : "QUAY LUÔN"}
+          </button>
+
+          <button
+            type="button"
+            className="spin-sound-toggle"
+            onClick={toggleSpinSound}
+            aria-pressed={isSoundEnabled}
+            aria-label={isSoundEnabled ? "Tắt nhạc vòng quay" : "Bật nhạc vòng quay"}
+          >
+            {isSoundEnabled ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}
+            <span>{isSoundEnabled ? "Âm thanh bật" : "Âm thanh tắt"}</span>
           </button>
         </div>
 

@@ -16,19 +16,21 @@
   transform: translateX(-50%);
 
   width: 100%;
-  max-width: 480px;
+  max-width: 680px;
 
   /*
     Chiều cao phần navigation.
   */
-  height: 70px;
+  height: 76px;
 
   /*
     QUAN TRỌNG:
     Footer luôn có nền trắng.
     Safe-area cũng thuộc Footer.
   */
-  background: #ffffff;
+  background: rgba(255, 253, 250, 0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid #f0ece7;
 
   /*
     Safari / iPhone có Home Indicator:
@@ -91,16 +93,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
+  gap: 4px;
   flex: 1;
-
   height: 100%;
-
+  padding: 0;
+  color: #9999a5;
+  background: transparent;
+  border: 0;
   cursor: pointer;
-
   z-index: 11;
-
-  transition: transform 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .mobile-bottom-nav .nav-item:active {
@@ -158,16 +160,31 @@
    USER FOOTER
    ========================================================= */
 
+.mobile-bottom-nav.user-footer .nav-item.active {
+  color: #e66b53;
+}
+
 .mobile-bottom-nav.user-footer .nav-item.active .nav-icon {
-  color: #e74c3c !important;
+  color: #e66b53 !important;
+}
+
+.mobile-bottom-nav.user-footer .nav-text {
+  color: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.mobile-bottom-nav.user-footer .nav-item:focus-visible {
+  outline: 2px solid #e66b53;
+  outline-offset: -5px;
+  border-radius: 12px;
 }
 
 .mobile-bottom-nav.user-footer .nav-item.active .nav-text {
-  color: #1e293b;
-
+  color: #e66b53;
   font-weight: 700;
-
-  transform: translateY(-16px);
+  transform: none;
 }
 
 .mobile-bottom-nav.user-footer .follow {
@@ -203,7 +220,7 @@
 
 @media (min-width: 640px) {
   .mobile-bottom-nav {
-    max-width: 600px;
+    max-width: 680px;
   }
 }
 
@@ -213,6 +230,6 @@
 
 @media (min-width: 1024px) {
   .mobile-bottom-nav {
-    max-width: 768px;
+    max-width: 680px;
   }
 }

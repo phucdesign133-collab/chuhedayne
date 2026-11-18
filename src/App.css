@@ -7,16 +7,16 @@
    ========================================================= */
 
 :root {
-  --primary-rose: #e74c3c;
-  --primary-blue: #5dade2;
-  --primary-yellow: #f4d03f;
-  --primary-red: #c0392b;
-  --primary-green: #58d68d;
-  --primary-slate: #4f4f4f;
+  --primary-rose: #e66b53;
+  --primary-blue: #777b98;
+  --primary-yellow: #eebd69;
+  --primary-red: #c75b4c;
+  --primary-green: #70ad8e;
+  --primary-slate: #4c4f68;
 
-  --text-main: #333;
-  --bg-main: #f8f9fa;
-  --card-bg: #ffffff;
+  --text-main: #282a3d;
+  --bg-main: #f7f5f1;
+  --card-bg: #fffdfa;
 }
 
 /* =========================================================
@@ -28,16 +28,16 @@
   flex-direction: column;
 
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
 
-  max-width: 480px;
+  max-width: 680px;
   margin: 0 auto;
 
   position: relative;
 
   background-color: var(--card-bg);
-
-  /* box-shadow: 0 0 25px rgba(0, 0, 0, 0.08); */
+  box-shadow: 0 18px 60px rgba(47, 43, 59, 0.07);
 
   overflow: hidden;
 
@@ -50,10 +50,9 @@
 
 @media (min-width: 640px) {
   .app-container {
-    max-width: 600px;
-
-    border-left: 1px solid #e2e8f0;
-    border-right: 1px solid #e2e8f0;
+    max-width: 680px;
+    border-left: 1px solid #f0ece6;
+    border-right: 1px solid #f0ece6;
   }
 }
 
@@ -63,9 +62,8 @@
 
 @media (min-width: 1024px) {
   .app-container {
-    max-width: 768px;
-
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
+    max-width: 680px;
+    box-shadow: 0 18px 60px rgba(47, 43, 59, 0.07);
   }
 }
 
